@@ -1,4 +1,6 @@
-// Dán nguyên khối dữ liệu GeoJSON gốc của bạn vào đây:
+// ==========================================
+// 1. RANH GIỚI GỐC GEOJSON CỦA XÃ THẠCH KHÊ
+// ==========================================
 const rawGeojsonData = {
   "type": "FeatureCollection",
   "features": [
@@ -58,18 +60,17 @@ const rawGeojsonData = {
             [105.9522927, 18.3724637], [105.9519802, 18.3722914], [105.9513965, 18.3722623], [105.9503747, 18.3726346],
             [105.9497108, 18.3725373], [105.949434, 18.3723217], [105.9494937, 18.3715722], [105.949109, 18.3712263],
             [105.9481218, 18.3715052], [105.946812, 18.3711646], [105.9454765, 18.3714884], [105.9449676, 18.3720554],
-            [105.9444779, 18.3719717], [105.9432002, 18.371143], [105.9423783, 18.3712199], [105.9429166, 18.3732955],
-            [105.9420594, 18.3736529], [105.9409257, 18.3737497], [105.9389994, 18.3728941], [105.9389816, 18.3698314],
-            [105.9384996, 18.3686751], [105.9380357, 18.3682252], [105.9350815, 18.3672061], [105.9351273, 18.3674372],
-            [105.9349641, 18.3680291], [105.9346232, 18.3685178], [105.934382, 18.3688338], [105.9341863, 18.3689357],
-            [105.9323739, 18.3701229], [105.9318085, 18.3706993], [105.9310567, 18.3716674], [105.9298006, 18.3738837],
-            [105.9293008, 18.3764153], [105.9294539, 18.3780003], [105.9307218, 18.3818835], [105.9316088, 18.3857473],
-            [105.9316441, 18.3882965], [105.9313244, 18.3894633], [105.9307849, 18.3903296], [105.9298368, 18.3909592],
-            [105.9279386, 18.3914902], [105.9262227, 18.3923444], [105.9257209, 18.3928388], [105.9237542, 18.3946402],
-            [105.9213951, 18.3960855], [105.9203816, 18.3964803], [105.9186182, 18.3968292], [105.9162869, 18.3969636],
-            [105.9148299, 18.3965472], [105.9104607, 18.3936344], [105.9091787, 18.3935067], [105.9084234, 18.3936415],
-            [105.9080767, 18.3938243], [105.9072253, 18.394257], [105.9057843, 18.395644], [105.9039314, 18.398424],
-            [105.9027094, 18.4011053]
+            [105.9444779, 18.3719717], [105.9432002, 18.371143], [105.9423783, 18.3712199], [105.9429166, 18.3732955], [105.9420594, 18.3736529],
+            [105.9409257, 18.3737497], [105.9389994, 18.3728941], [105.9389816, 18.3698314], [105.9384996, 18.3686751],
+            [105.9380357, 18.3682252], [105.9350815, 18.3672061], [105.9351273, 18.3674372], [105.9349641, 18.3680291],
+            [105.9346232, 18.3685178], [105.934382, 18.3688338], [105.9341863, 18.3689357], [105.9323739, 18.3701229],
+            [105.9318085, 18.3706993], [105.9310567, 18.3716674], [105.9298006, 18.3738837], [105.9293008, 18.3764153],
+            [105.9294539, 18.3780003], [105.9307218, 18.3818835], [105.9316088, 18.3857473], [105.9316441, 18.3882965],
+            [105.9313244, 18.3894633], [105.9307849, 18.3903296], [105.9298368, 18.3909592], [105.9279386, 18.3914902],
+            [105.9262227, 18.3923444], [105.9257209, 18.3928388], [105.9237542, 18.3946402], [105.9213951, 18.3960855],
+            [105.9203816, 18.3964803], [105.9186182, 18.3968292], [105.9162869, 18.3969636], [105.9148299, 18.3965472],
+            [105.9104607, 18.3936344], [105.9091787, 18.3935067], [105.9084234, 18.3936415], [105.9080767, 18.3938243],
+            [105.9072253, 18.394257], [105.9057843, 18.395644], [105.9039314, 18.398424], [105.9027094, 18.4011053]
           ]
         ]
       }
@@ -77,28 +78,60 @@ const rawGeojsonData = {
   ]
 };
 
+const rawPolygonCoords = rawGeojsonData.features[0].geometry.coordinates[0];
+export const communeBoundary = rawPolygonCoords.map(coord => [coord[1], coord[0]]);
+
+// ==========================================
+// 2. THÔNG TIN CHUNG
+// ==========================================
 export const communeInfo = {
   name: "Xã Thạch Khê",
-  totalArea: "15.4 km²",
-  totalHouseholds: "1,450",
-  totalPopulation: "4,820",
+  totalArea: "4,631.8 ha",
+  totalHouseholds: "4,639",
+  totalPopulation: "17,515",
   description: "Hệ thống thông tin không gian & Đô thị thông minh Xã Thạch Khê"
 };
 
+// ==========================================
+// 3. DANH SÁCH 11 THÔN
+// ==========================================
 export const villagesData = [
-  { id: 1, name: "Thôn Thanh Lan", households: 480, population: 1620, secretary: "Nguyễn Văn A", secPhone: "0912345678", leader: "Trần Văn B", leadPhone: "0987654321" },
-  { id: 2, name: "Thôn Văn Sơn", households: 510, population: 1700, secretary: "Lê Thị C", secPhone: "0911223344", leader: "Phạm Văn D", leadPhone: "0988776655" },
-  { id: 3, name: "Thôn Vĩnh Sơn", households: 460, population: 1500, secretary: "Hoàng Văn E", secPhone: "0933445566", leader: "Đặng Thị F", leadPhone: "0977665544" }
+  { id: 1, name: "Trường Xuân", households: 394, population: 1482, area: "249.3 ha", color: "#22c55e", secretary: "Đang cập nhật", secPhone: "---", leader: "Đang cập nhật", leadPhone: "---" },
+  { id: 2, name: "Thanh Lan", households: 361, population: 1251, area: "321.7 ha", color: "#2563eb", secretary: "Nguyễn Văn A", secPhone: "0912345678", leader: "Trần Văn B", leadPhone: "0987654321" },
+  { id: 3, name: "Đồng Giang", households: 391, population: 1357, area: "423.6 ha", color: "#7c3aed", secretary: "Đang cập nhật", secPhone: "---", leader: "Đang cập nhật", leadPhone: "---" },
+  { id: 4, name: "Long Phúc", households: 389, population: 1400, area: "199.3 ha", color: "#64748b", secretary: "Đang cập nhật", secPhone: "---", leader: "Đang cập nhật", leadPhone: "---" },
+  { id: 5, name: "Minh Hải", households: 542, population: 2065, area: "736.1 ha", color: "#eab308", secretary: "Đang cập nhật", secPhone: "---", leader: "Đang cập nhật", leadPhone: "---" },
+  { id: 6, name: "Thạch Hải", households: 590, population: 2171, area: "642.6 ha", color: "#c084fc", secretary: "Đang cập nhật", secPhone: "---", leader: "Đang cập nhật", leadPhone: "---" },
+  { id: 7, name: "Vĩnh Hòa", households: 420, population: 1002, area: "195.5 ha", color: "#ec4899", secretary: "Đang cập nhật", secPhone: "---", leader: "Đang cập nhật", leadPhone: "---" },
+  { id: 8, name: "Định Hóa", households: 483, population: 1923, area: "317.9 ha", color: "#facc15", secretary: "Đang cập nhật", secPhone: "---", leader: "Đang cập nhật", leadPhone: "---" },
+  { id: 9, name: "Văn Sơn", households: 351, population: 1329, area: "235.4 ha", color: "#06b6d4", secretary: "Lê Thị C", secPhone: "0911223344", leader: "Phạm Văn D", leadPhone: "0988776655" },
+  { id: 10, name: "Thanh Long", households: 355, population: 1141, area: "323.8 ha", color: "#16a34a", secretary: "Đang cập nhật", secPhone: "---", leader: "Đang cập nhật", leadPhone: "---" },
+  { id: 11, name: "Tân Phong", households: 365, population: 1594, area: "875.6 ha", color: "#dc2626", secretary: "Đang cập nhật", secPhone: "---", leader: "Đang cập nhật", leadPhone: "---" }
 ];
 
-// Các điểm ghim định vị chuẩn nằm bên trong địa phận xã Thạch Khê
+// ==========================================
+// 4. DANH SÁCH ĐỊA ĐIỂM (ĐẦY ĐỦ CÁC MỤC THỰC TẾ)
+// ==========================================
 export const mapLocations = [
+  // Cơ quan hành chính
   { id: 1, name: "UBND Xã Thạch Khê", type: "admin", lat: 18.4250, lng: 105.9160, info: "Trụ sở làm việc hành chính xã Thạch Khê" },
-  { id: 2, name: "Trạm Y tế xã Thạch Khê", type: "health", lat: 18.4180, lng: 105.9190, info: "Khám chữa bệnh ban đầu" },
-  { id: 3, name: "Trường Tiểu học & THCS Thạch Khê", type: "school", lat: 18.4350, lng: 105.9110, info: "Cơ sở giáo dục liên cấp" },
-  { id: 4, name: "Khu vực Di tích / Danh thắng", type: "culture", lat: 18.4520, lng: 105.9290, info: "Khu vực văn hóa tâm linh" },
-];
+  
+  // Y tế & Giáo dục
+  { id: 2, name: "Trạm Y tế xã Thạch Khê", type: "health", lat: 18.4180, lng: 105.9190, info: "Khám chữa bệnh ban đầu cho nhân dân" },
+  { id: 3, name: "Trường Tiểu học & THCS Thạch Khê", type: "school", lat: 18.4350, lng: 105.9110, info: "Trung tâm giáo dục liên cấp của xã" },
+  
+  // Đền, Chùa, Tâm linh
+  { id: 4, name: "Đền Chợ Trại", type: "temple", lat: 18.4520, lng: 105.9290, info: "Khu di tích lịch sử văn hóa tâm linh" },
+  { id: 5, name: "Chùa Xã Thạch Khê", type: "temple", lat: 18.4200, lng: 105.9250, info: "Cơ sở sinh hoạt tôn giáo, tín ngưỡng" },
 
-// Tự động trích xuất và đảo ngược tọa độ từ GeoJSON [lng, lat] sang [lat, lng] cho Leaflet
-const rawPolygonCoords = rawGeojsonData.features[0].geometry.coordinates[0];
-export const communeBoundary = rawPolygonCoords.map(coord => [coord[1], coord[0]]);
+  // Khu du lịch
+  { id: 6, name: "Khu du lịch sinh thái biển Thạch Khê", type: "tourism", lat: 18.4400, lng: 105.9600, info: "Khu vực phát triển du lịch biển và nghỉ dưỡng" },
+
+  // Quán ăn, Ẩm thực
+  { id: 7, name: "Nhà hàng Hải sản Biển Xanh", type: "restaurant", lat: 18.4300, lng: 105.9500, info: "Chuyên các món hải sản tươi sống địa phương" },
+  { id: 8, name: "Quán Ăn Sáng Bình Dân", type: "restaurant", lat: 18.4220, lng: 105.9180, info: "Phục vụ các món ăn truyền thống buổi sáng" },
+
+  // Khách sạn, Nhà nghỉ
+  { id: 9, name: "Nhà nghỉ Bình An", type: "hotel", lat: 18.4260, lng: 105.9200, info: "Lưu trú tiện nghi, sạch sẽ cho khách du lịch" },
+  { id: 10, name: "Khách sạn Thạch Khê Palace", type: "hotel", lat: 18.4350, lng: 105.9400, info: "Khách sạn đạt chuẩn phục vụ lưu trú" }
+];
