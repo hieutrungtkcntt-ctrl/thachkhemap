@@ -69,8 +69,7 @@ const rawGeojsonData = {
             [105.9313244, 18.3894633], [105.9307849, 18.3903296], [105.9298368, 18.3909592], [105.9279386, 18.3914902],
             [105.9262227, 18.3923444], [105.9257209, 18.3928388], [105.9237542, 18.3946402], [105.9213951, 18.3960855],
             [105.9203816, 18.3964803], [105.9186182, 18.3968292], [105.9162869, 18.3969636], [105.9148299, 18.3965472],
-            [105.9104607, 18.3936344], [105.9091787, 18.3935067], [105.9084234, 18.3936415], [105.9080767, 18.3938243],
-            [105.9072253, 18.394257], [105.9057843, 18.395644], [105.9039314, 18.398424], [105.9027094, 18.4011053]
+            [105.9104607, 18.3936344], [105.9091787, 18.3935067], [105.9084234, 18.3936415], [105.9080767, 18.3938243], [105.9072253, 18.394257], [105.9057843, 18.395644], [105.9039314, 18.398424], [105.9027094, 18.4011053]
           ]
         ]
       }
@@ -110,28 +109,22 @@ export const villagesData = [
 ];
 
 // ==========================================
-// 4. DANH SÁCH ĐỊA ĐIỂM (ĐẦY ĐỦ CÁC MỤC THỰC TẾ)
+// 4. DANH SÁCH ĐỊA ĐIỂM (CẬP NHẬT TỌA ĐỘ CHUẨN XÁC)
 // ==========================================
 export const mapLocations = [
-  // Cơ quan hành chính
-  { id: 1, name: "UBND Xã Thạch Khê", type: "admin", lat: 18.4250, lng: 105.9160, info: "Trụ sở làm việc hành chính xã Thạch Khê" },
-  
-  // Y tế & Giáo dục
-  { id: 2, name: "Trạm Y tế xã Thạch Khê", type: "health", lat: 18.4180, lng: 105.9190, info: "Khám chữa bệnh ban đầu cho nhân dân" },
-  { id: 3, name: "Trường Tiểu học & THCS Thạch Khê", type: "school", lat: 18.4350, lng: 105.9110, info: "Trung tâm giáo dục liên cấp của xã" },
-  
-  // Đền, Chùa, Tâm linh
-  { id: 4, name: "Đền Chợ Trại", type: "temple", lat: 18.4520, lng: 105.9290, info: "Khu di tích lịch sử văn hóa tâm linh" },
-  { id: 5, name: "Chùa Xã Thạch Khê", type: "temple", lat: 18.4200, lng: 105.9250, info: "Cơ sở sinh hoạt tôn giáo, tín ngưỡng" },
-
-  // Khu du lịch
-  { id: 6, name: "Khu du lịch sinh thái biển Thạch Khê", type: "tourism", lat: 18.4400, lng: 105.9600, info: "Khu vực phát triển du lịch biển và nghỉ dưỡng" },
-
-  // Quán ăn, Ẩm thực
-  { id: 7, name: "Nhà hàng Hải sản Biển Xanh", type: "restaurant", lat: 18.4300, lng: 105.9500, info: "Chuyên các món hải sản tươi sống địa phương" },
-  { id: 8, name: "Quán Ăn Sáng Bình Dân", type: "restaurant", lat: 18.4220, lng: 105.9180, info: "Phục vụ các món ăn truyền thống buổi sáng" },
-
-  // Khách sạn, Nhà nghỉ
-  { id: 9, name: "Nhà nghỉ Bình An", type: "hotel", lat: 18.4260, lng: 105.9200, info: "Lưu trú tiện nghi, sạch sẽ cho khách du lịch" },
-  { id: 10, name: "Khách sạn Thạch Khê Palace", type: "hotel", lat: 18.4350, lng: 105.9400, info: "Khách sạn đạt chuẩn phục vụ lưu trú" }
+  { id: 1, name: "Ủy ban nhân dân xã Thạch Khê", type: "admin", lat: 18.38582936855509, lng: 105.95051326583012, info: "Trụ sở làm việc hành chính xã Thạch Khê" },
+  { id: 2, name: "Đảng ủy xã Thạch Khê", type: "admin", lat: 18.39985749678527, lng: 105.9770805104809, info: "Trụ sở Đảng ủy xã Thạch Khê" },
+  { id: 3, name: "Công an xã Thạch Khê", type: "security", lat: 18.405855602564046, lng: 105.93361472350306, info: "Trụ sở Công an xã Thạch Khê" },
+  { id: 4, name: "Đền thờ Đại học sĩ Trương Quốc Dụng", type: "temple", lat: 18.381923485650635, lng: 105.95674521510655, info: "Di tích lịch sử văn hóa - Đền thờ Đại học sĩ Trương Quốc Dụng" },
+  { id: 5, name: "Nhà Văn Hoá Thôn Liên Hải", type: "culture", lat: 18.391059355594848, lng: 105.96914348294408, info: "Nhà văn hóa sinh hoạt cộng đồng thôn Liên Hải" },
+  { id: 6, name: "Nhà Văn Hoá Thôn Phúc Thanh", type: "culture", lat: 18.393182483296098, lng: 105.93781965515849, info: "Nhà văn hóa sinh hoạt cộng đồng thôn Phúc Thanh" },
+  { id: 7, name: "Nhà Văn Hoá Thôn Đan Khê", type: "culture", lat: 18.397188959426533, lng: 105.94330493382864, info: "Nhà văn hóa sinh hoạt cộng đồng thôn Đan Khê" },
+  { id: 8, name: "Nhà Văn Hoá Thôn Thanh Lan", type: "culture", lat: 18.39256609408378, lng: 105.94687758243622, info: "Nhà văn hóa sinh hoạt cộng đồng thôn Thanh Lan" },
+  { id: 9, name: "Đồi Hoa Cát Biển - Thạch Hải", type: "tourism", lat: 18.39890540545692, lng: 105.96532801094239, info: "Khu du lịch, check-in Đồi Hoa Cát Biển" },
+  { id: 10, name: "Chùa Tam Bảo", type: "temple", lat: 18.416471914595597, lng: 105.96431135228968, info: "Cơ sở tôn giáo - Chùa Tam Bảo" },
+  { id: 11, name: "Tuyệt Tình Cốc Hà Tĩnh", type: "tourism", lat: 18.430763143939565, lng: 105.94190954252883, info: "Điểm tham quan du lịch Tuyệt Tình Cốc" },
+  { id: 12, name: "Ngoại Resort", type: "hotel", lat: 18.42632525403899, lng: 105.93684553183253, info: "Khu nghỉ dưỡng Ngoại Resort" },
+  { id: 13, name: "Nhà văn hoá thôn Thanh Long", type: "culture", lat: 18.41997357921264, lng: 105.93675970123317, info: "Nhà văn hóa sinh hoạt cộng đồng thôn Thanh Long" },
+  { id: 14, name: "Bãi sú vẹt", type: "eco", lat: 18.41927730312966, lng: 105.92128420877145, info: "Khu vực hệ sinh thái bãi sú vẹt" },
+  { id: 15, name: "Rú Bể (rú voi)", type: "eco", lat: 18.441204631322663, lng: 105.93322858417318, info: "Khu vực địa danh Rú Bể (rú voi)" }
 ];

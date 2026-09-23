@@ -15,12 +15,12 @@ function MapViewController({ center, zoom }) {
   return null;
 }
 
-// Hàm tạo icon ghim trực quan theo từng loại hình
-const createPinIcon = (type, isSelected) => {
+// Hàm tạo icon ghim kèm nhãn tên (đã được phóng to chữ)
+const createPinIcon = (loc, isSelected) => {
   let emoji = '📍';
   let bgColor = '#3b82f6';
 
-  switch (type) {
+  switch (loc.type) {
     case 'admin': emoji = '🏛️'; bgColor = '#2563eb'; break;
     case 'health': emoji = '🏥'; bgColor = '#dc2626'; break;
     case 'school': emoji = '🏫'; bgColor = '#16a34a'; break;
@@ -31,40 +31,64 @@ const createPinIcon = (type, isSelected) => {
     default: emoji = '📍'; bgColor = '#3b82f6';
   }
 
-  const size = isSelected ? '38px' : '32px';
+  const size = isSelected ? '36px' : '30px';
   const border = isSelected ? '3px solid #f59e0b' : `2px solid ${bgColor}`;
 
   return L.divIcon({
     className: 'custom-pin-marker',
-    html: `<div style="
-      background-color: white;
-      border: ${border};
-      width: ${size};
-      height: ${size};
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 16px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.35);
-      transition: all 0.3s ease;
-    ">${emoji}</div>`,
-    iconSize: [32, 32],
-    iconAnchor: [16, 16],
-    popupAnchor: [0, -16]
+    html: `
+      <div style="
+        display: flex; 
+        flex-direction: column; 
+        align-items: center; 
+        white-space: nowrap; 
+        cursor: pointer;
+        transform: translate(-50%, -50%);
+      ">
+        <div style="
+          background-color: white;
+          border: ${border};
+          width: ${size};
+          height: ${size};
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 16px;
+          box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+        ">${emoji}</div>
+        <span style="
+          background: rgba(255, 255, 255, 0.95);
+          padding: 2px 7px;
+          border-radius: 5px;
+          font-size: 11px;
+          font-weight: 800;
+          color: #0f172a;
+          margin-top: 3px;
+          box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+          max-width: 150px;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          text-align: center;
+          border: 1px solid #94a3b8;
+        ">${loc.name}</span>
+      </div>
+    `,
+    iconSize: [0, 0],
+    iconAnchor: [0, 0],
+    popupAnchor: [0, -28]
   });
 };
 
 export default function App() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
-  const [activeTab, setActiveTab] = useState('overview'); // 'overview' hoặc 'villages'
-  const [mapStyle, setMapStyle] = useState('colored'); // 'colored' hoặc 'satellite'
+  const [activeTab, setActiveTab] = useState('overview'); 
+  const [mapStyle, setMapStyle] = useState('colored'); 
 
   const [mapCenter, setMapCenter] = useState(null);
   const [mapZoom, setMapZoom] = useState(13);
 
-  // Lọc địa điểm theo từ khóa và danh mục
   const filteredLocations = mapLocations.filter(loc => {
     const matchesSearch = loc.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
                           loc.info.toLowerCase().includes(searchTerm.toLowerCase());
@@ -78,7 +102,6 @@ export default function App() {
 
   const currentCenter = mapCenter || defaultCenter;
 
-  // Khóa biên giới bản đồ chống trôi ra ngoài xã
   const mapBounds = (() => {
     if (!communeBoundary || communeBoundary.length === 0) return null;
     const lats = communeBoundary.map(coord => coord[0]);
@@ -206,7 +229,7 @@ export default function App() {
             </div>
           </div>
 
-          {/* Thanh chỉ mục nhanh dạng Pill Buttons đầy đủ */}
+          {/* Thanh chỉ mục nhanh dạng Pill Buttons */}
           <div className="flex flex-wrap items-center gap-1.5 pt-1 pb-1">
             <button 
               onClick={() => setSelectedCategory('all')}
@@ -368,25 +391,23 @@ export default function App() {
                 <Polygon 
                   positions={communeBoundary} 
                   pathOptions={{ 
-                    color: mapStyle === 'satellite' ? '#facc15' : '#2563eb',       
+                    color: mapStyle === 'satellite' ? '#facc15' : '#2563eb',      
                     weight: mapStyle === 'satellite' ? 3 : 2.5,            
                     fillColor: '#3b82f6',   
-                    fillOpacity: mapStyle === 'satellite' ? 0.05 : 0.02       
+                    fillOpacity: mapStyle === 'satellite' ? 0.05 : 0.02      
                   }} 
                 />
               )}
 
               {filteredLocations.map((loc) => {
                 const isSelected = mapCenter && mapCenter[0] === loc.lat && mapCenter[1] === loc.lng;
-                
-                // URL Google Maps mở trực tiếp tính năng chỉ đường tới tọa độ điểm đó
                 const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${loc.lat},${loc.lng}`;
 
                 return (
                   <Marker 
                     key={loc.id} 
                     position={[loc.lat, loc.lng]} 
-                    icon={createPinIcon(loc.type, isSelected)}
+                    icon={createPinIcon(loc, isSelected)}
                     eventHandlers={{ click: () => handleSelectLocation(loc) }}
                   >
                     <Popup>
@@ -399,7 +420,6 @@ export default function App() {
                           <p className="text-xs text-slate-600 mt-1">{loc.info}</p>
                         </div>
                         
-                        {/* Nút chỉ đường chuyên nghiệp */}
                         <a 
                           href={googleMapsUrl} 
                           target="_blank" 
