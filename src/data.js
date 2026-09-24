@@ -92,109 +92,135 @@ export const communeInfo = {
 };
 
 // ==========================================
-// 3. DANH SÁCH 11 THÔN (CÓ TỌA ĐỘ PHÂN VÙNG BOUNDARY & CENTER)
+// 3. DANH SÁCH 11 THÔN (CẬP NHẬT TỌA ĐỘ PHÂN VÙNG CHUẨN THEO SƠ ĐỒ)
 // ==========================================
 export const villagesData = [
   { 
     id: 1, name: "Trường Xuân", households: 394, population: 1482, area: "249.3 ha", color: "#22c55e", 
     secretary: "Đang cập nhật", secPhone: "---", leader: "Đang cập nhật", leadPhone: "---",
-    center: [18.4200, 105.9150],
-    boundary: [[18.4250, 105.9100], [18.4280, 105.9150], [18.4230, 105.9200], [18.4180, 105.9150]]
+    center: [18.3971, 105.9433],
+    boundary: [
+      [18.4050, 105.9260], [18.4020, 105.9320], [18.3950, 105.9300], 
+      [18.3850, 105.9350], [18.3800, 105.9480], [18.3950, 105.9420]
+    ]
   },
   { 
     id: 2, name: "Thanh Lan", households: 361, population: 1251, area: "321.7 ha", color: "#2563eb", 
     secretary: "Nguyễn Văn A", secPhone: "0912345678", leader: "Trần Văn B", leadPhone: "0987654321",
     center: [18.3925, 105.9468],
-    boundary: [[18.3970, 105.9430], [18.3950, 105.9500], [18.3900, 105.9480], [18.3890, 105.9430]]
+    boundary: [
+      [18.4010, 105.9350], [18.4020, 105.9520], [18.3880, 105.9620], 
+      [18.3800, 105.9480], [18.3850, 105.9350]
+    ]
   },
   { 
     id: 3, name: "Đồng Giang", households: 391, population: 1357, area: "423.6 ha", color: "#7c3aed", 
     secretary: "Đang cập nhật", secPhone: "---", leader: "Đang cập nhật", leadPhone: "---",
-    center: [18.3910, 105.9691],
-    boundary: [[18.3950, 105.9650], [18.3960, 105.9720], [18.3880, 105.9730], [18.3870, 105.9660]]
+    center: [18.3750, 105.9500],
+    boundary: [
+      [18.3800, 105.9380], [18.3800, 105.9480], [18.3880, 105.9620], 
+      [18.3750, 105.9680], [18.3600, 105.9450], [18.3680, 105.9320]
+    ]
   },
   { 
-    id: 4, name: "Long Phúc", households: 389, population: 1400, area: "199.3 ha", color: "#64748b", 
+    id: 4, name: "Long Phúc", households: 389, population: 1400, area: "199.3 ha", color: "#cbd5e1", 
     secretary: "Đang cập nhật", secPhone: "---", leader: "Đang cập nhật", leadPhone: "---",
-    center: [18.3998, 105.9770],
-    boundary: [[18.4040, 105.9740], [18.4030, 105.9800], [18.3960, 105.9810], [18.3960, 105.9750]]
+    center: [18.3810, 105.9630],
+    boundary: [
+      [18.3880, 105.9620], [18.3750, 105.9680], [18.3700, 105.9750], 
+      [18.3800, 105.9800], [18.3890, 105.9700]
+    ]
   },
   { 
     id: 5, name: "Minh Hải", households: 542, population: 2065, area: "736.1 ha", color: "#eab308", 
     secretary: "Đang cập nhật", secPhone: "---", leader: "Đang cập nhật", leadPhone: "---",
     center: [18.4307, 105.9419],
-    boundary: [[18.4360, 105.9380], [18.4350, 105.9460], [18.4270, 105.9450], [18.4270, 105.9380]]
+    boundary: [
+      [18.4520, 105.9150], [18.4650, 105.9350], [18.4300, 105.9750], 
+      [18.4100, 105.9500], [18.4150, 105.9300]
+    ]
   },
   { 
     id: 6, name: "Thạch Hải", households: 590, population: 2171, area: "642.6 ha", color: "#c084fc", 
     secretary: "Đang cập nhật", secPhone: "---", leader: "Đang cập nhật", leadPhone: "---",
     center: [18.3989, 105.9653],
-    boundary: [[18.4030, 105.9610], [18.4020, 105.9690], [18.3950, 105.9700], [18.3950, 105.9620]]
+    boundary: [
+      [18.4200, 105.9450], [18.4300, 105.9750], [18.3800, 105.9850], 
+      [18.3700, 105.9750], [18.3880, 105.9620], [18.4020, 105.9520]
+    ]
   },
   { 
     id: 7, name: "Vĩnh Hòa", households: 420, population: 1002, area: "195.5 ha", color: "#ec4899", 
     secretary: "Đang cập nhật", secPhone: "---", leader: "Đang cập nhật", leadPhone: "---",
     center: [18.4192, 105.9212],
-    boundary: [[18.4240, 105.9180], [18.4230, 105.9250], [18.4160, 105.9250], [18.4150, 105.9180]]
+    boundary: [
+      [18.4280, 105.9180], [18.4270, 105.9290], [18.4120, 105.9280], 
+      [18.4100, 105.9200], [18.4150, 105.9150]
+    ]
   },
   { 
     id: 8, name: "Định Hóa", households: 483, population: 1923, area: "317.9 ha", color: "#facc15", 
     secretary: "Đang cập nhật", secPhone: "---", leader: "Đang cập nhật", leadPhone: "---",
     center: [18.3971, 105.9433],
-    boundary: [[18.4010, 105.9400], [18.4000, 105.9470], [18.3940, 105.9460], [18.3940, 105.9400]]
+    boundary: [
+      [18.4180, 105.9020], [18.4280, 105.9180], [18.4100, 105.9200], 
+      [18.3980, 105.9150], [18.3850, 105.9200]
+    ]
   },
   { 
     id: 9, name: "Văn Sơn", households: 351, population: 1329, area: "235.4 ha", color: "#06b6d4", 
     secretary: "Lê Thị C", secPhone: "0911223344", leader: "Phạm Văn D", leadPhone: "0988776655",
     center: [18.4058, 105.9336],
-    boundary: [[18.4100, 105.9300], [18.4090, 105.9370], [18.4020, 105.9360], [18.4020, 105.9300]]
+    boundary: [
+      [18.4150, 105.9300], [18.4150, 105.9480], [18.4020, 105.9520], 
+      [18.4010, 105.9350], [18.4050, 105.9260]
+    ]
   },
   { 
     id: 10, name: "Thanh Long", households: 355, population: 1141, area: "323.8 ha", color: "#16a34a", 
     secretary: "Đang cập nhật", secPhone: "---", leader: "Đang cập nhật", leadPhone: "---",
     center: [18.4199, 105.9367],
-    boundary: [[18.4240, 105.9330], [18.4230, 105.9400], [18.4160, 105.9390], [18.4160, 105.9330]]
+    boundary: [
+      [18.4270, 105.9290], [18.4350, 105.9450], [18.4200, 105.9580], 
+      [18.4150, 105.9480], [18.4150, 105.9300]
+    ]
   },
   { 
     id: 11, name: "Tân Phong", households: 365, population: 1594, area: "875.6 ha", color: "#dc2626", 
     secretary: "Đang cập nhật", secPhone: "---", leader: "Đang cập nhật", leadPhone: "---",
     center: [18.4412, 105.9332],
-    boundary: [[18.4460, 105.9290], [18.4450, 105.9370], [18.4370, 105.9360], [18.4370, 105.9290]]
+    boundary: [
+      [18.4520, 105.9150], [18.4400, 105.9100], [18.4280, 105.9180], 
+      [18.4350, 105.9450], [18.4520, 105.9350]
+    ]
   }
 ];
 
 // ==========================================
-// 4. DANH SÁCH ĐỊA ĐIỂM (ĐẦY ĐỦ CÁC MỤC THỰC TẾ)
+// 4. DANH SÁCH ĐỊA ĐIỂM
 // ==========================================
 export const mapLocations = [
-  // Cơ quan hành chính & An ninh
-  { id: 1, name: "Ủy ban nhân dân xã Thạch Khê", type: "admin", lat: 18.38582936855509, lng: 105.95051326583012, info: "Trụ sở làm việc hành chính xã Thạch Khê" },
-  { id: 2, name: "Đảng ủy xã Thạch Khê", type: "admin", lat: 18.39985749678527, lng: 105.9770805104809, info: "Trụ sở Đảng ủy xã Thạch Khê" },
-  { id: 3, name: "Công an xã Thạch Khê", type: "security", lat: 18.405855602564046, lng: 105.93361472350306, info: "Trụ sở Công an xã Thạch Khê" },
-
-  // Di tích - Văn hóa - Tâm linh - Nhà văn hóa
-  { id: 4, name: "Đền thờ Đại học sĩ Trương Quốc Dụng", type: "temple", lat: 18.381923485650635, lng: 105.95674521510655, info: "Di tích lịch sử văn hóa - Đền thờ Đại học sĩ Trương Quốc Dụng" },
-  { id: 5, name: "Chùa Tam Bảo", type: "temple", lat: 18.416471914595597, lng: 105.96431135228968, info: "Cơ sở tôn giáo - Chùa Tam Bảo" },
-  { id: 6, name: "Nhà Văn Hoá Thôn Liên Hải", type: "culture", lat: 18.391059355594848, lng: 105.96914348294408, info: "Nhà văn hóa sinh hoạt cộng đồng thôn Liên Hải" },
-  { id: 7, name: "Nhà Văn Hoá Thôn Phúc Thanh", type: "culture", lat: 18.393182483296098, lng: 105.93781965515849, info: "Nhà văn hóa sinh hoạt cộng đồng thôn Phúc Thanh" },
-  { id: 8, name: "Nhà Văn Hoá Thôn Đan Khê", type: "culture", lat: 18.397188959426533, lng: 105.94330493382864, info: "Nhà văn hóa sinh hoạt cộng đồng thôn Đan Khê" },
-  { id: 9, name: "Nhà Văn Hoá Thôn Thanh Lan", type: "culture", lat: 18.39256609408378, lng: 105.94687758243622, info: "Nhà văn hóa sinh hoạt cộng đồng thôn Thanh Lan" },
-  { id: 10, name: "Nhà văn hoá thôn Thanh Long", type: "culture", lat: 18.41997357921264, lng: 105.93675970123317, info: "Nhà văn hóa sinh hoạt cộng đồng thôn Thanh Long" },
-
-  // Du lịch & Sinh thái
-  { id: 11, name: "Đồi Hoa Cát Biển - Thạch Hải", type: "tourism", lat: 18.39890540545692, lng: 105.96532801094239, info: "Khu du lịch, check-in Đồi Hoa Cát Biển" },
-  { id: 12, name: "Tuyệt Tình Cốc Hà Tĩnh", type: "tourism", lat: 18.430763143939565, lng: 105.94190954252883, info: "Điểm tham quan du lịch Tuyệt Tình Cốc" },
-  { id: 13, name: "Bãi sú vẹt", type: "eco", lat: 18.41927730312966, lng: 105.92128420877145, info: "Khu vực hệ sinh thái bãi sú vẹt" },
-  { id: 14, name: "Rú Bể (rú voi)", type: "eco", lat: 18.441204631322663, lng: 105.93322858417318, info: "Khu vực địa danh Rú Bể (rú voi)" },
-
-  // Nhà hàng, Khách sạn & Lưu trú
-  { id: 15, name: "Ngoại Resort", type: "hotel", lat: 18.42632525403899, lng: 105.93684553183253, info: "Khu nghỉ dưỡng Ngoại Resort" },
-  { id: 16, name: "Nhà hàng Hồng Ngọc", type: "restaurant", lat: 18.401101553732385, lng: 105.97855680138464, info: "Nhà hàng phục vụ hải sản và ẩm thực địa phương" },
-  { id: 17, name: "Nhà Hàng Thái Ất", type: "restaurant", lat: 18.40134288061787, lng: 105.97834545279774, info: "Nhà hàng chuyên hải sản biển" },
-  { id: 18, name: "Nhà hàng Nga Sự", type: "restaurant", lat: 18.401437047959313, lng: 105.97829449082866, info: "Nhà hàng phục vụ ăn uống hải sản" },
-  { id: 19, name: "Nhà hàng Nhật Hạnh", type: "restaurant", lat: 18.40165004279734, lng: 105.97814164439029, info: "Chuyên đặc sản biển tươi sống" },
-  { id: 20, name: "Nhà Hàng Nhà Nghỉ Mạnh Hướng", type: "hotel", lat: 18.403239348660986, lng: 105.97667586141822, info: "Dịch vụ lưu trú kết hợp nhà hàng ăn uống" },
-  { id: 21, name: "Nhà Hàng Tri Kỉ", type: "restaurant", lat: 18.40077587733252, lng: 105.97874529800592, info: "Nhà hàng phục vụ du khách và người dân" },
-  { id: 22, name: "Nhà Hàng Hào Giáp", type: "restaurant", lat: 18.40032430674582, lng: 105.97906331786302, info: "Địa điểm ăn uống uy tín khu vực ven biển" },
-  { id: 23, name: "Nhà Hàng Hiền Thành", type: "restaurant", lat: 18.400031106238778, lng: 105.97927082017628, info: "Nhà hàng chuyên các món ăn hải sản tươi ngon" }
+  { id: 1, name: "Ủy ban nhân dân xã Thạch Khê", type: "admin", lat: 18.3858, lng: 105.9505, info: "Trụ sở làm việc hành chính xã Thạch Khê" },
+  { id: 2, name: "Đảng ủy xã Thạch Khê", type: "admin", lat: 18.3998, lng: 105.9770, info: "Trụ sở Đảng ủy xã Thạch Khê" },
+  { id: 3, name: "Công an xã Thạch Khê", type: "security", lat: 18.4058, lng: 105.9336, info: "Trụ sở Công an xã Thạch Khê" },
+  { id: 4, name: "Đền thờ Đại học sĩ Trương Quốc Dụng", type: "temple", lat: 18.3819, lng: 105.9567, info: "Di tích lịch sử văn hóa" },
+  { id: 5, name: "Chùa Tam Bảo", type: "temple", lat: 18.4164, lng: 105.9643, info: "Cơ sở tôn giáo" },
+  { id: 6, name: "Nhà Văn Hoá Thôn Liên Hải", type: "culture", lat: 18.3910, lng: 105.9691, info: "Sinh hoạt cộng đồng thôn Liên Hải" },
+  { id: 7, name: "Nhà Văn Hoá Thôn Phúc Thanh", type: "culture", lat: 18.3931, lng: 105.9378, info: "Sinh hoạt cộng đồng thôn Phúc Thanh" },
+  { id: 8, name: "Nhà Văn Hoá Thôn Đan Khê", type: "culture", lat: 18.3971, lng: 105.9433, info: "Sinh hoạt cộng đồng thôn Đan Khê" },
+  { id: 9, name: "Nhà Văn Hoá Thôn Thanh Lan", type: "culture", lat: 18.3925, lng: 105.9468, info: "Sinh hoạt cộng đồng thôn Thanh Lan" },
+  { id: 10, name: "Nhà văn hoá thôn Thanh Long", type: "culture", lat: 18.4199, lng: 105.9367, info: "Sinh hoạt cộng đồng thôn Thanh Long" },
+  { id: 11, name: "Đồi Hoa Cát Biển - Thạch Hải", type: "tourism", lat: 18.3989, lng: 105.9653, info: "Khu du lịch, check-in" },
+  { id: 12, name: "Tuyệt Tình Cốc Hà Tĩnh", type: "tourism", lat: 18.4307, lng: 105.9419, info: "Điểm tham quan du lịch" },
+  { id: 13, name: "Bãi sú vẹt", type: "eco", lat: 18.4192, lng: 105.9212, info: "Khu vực hệ sinh thái bãi sú vẹt" },
+  { id: 14, name: "Rú Bể (rú voi)", type: "eco", lat: 18.4412, lng: 105.9332, info: "Khu vực địa danh Rú Bể" },
+  { id: 15, name: "Ngoại Resort", type: "hotel", lat: 18.4263, lng: 105.9368, info: "Khu nghỉ dưỡng Ngoại Resort" },
+  { id: 16, name: "Nhà hàng Hồng Ngọc", type: "restaurant", lat: 18.4011, lng: 105.9785, info: "Hải sản và ẩm thực địa phương" },
+  { id: 17, name: "Nhà Hàng Thái Ất", type: "restaurant", lat: 18.4013, lng: 105.9783, info: "Chuyên hải sản biển" },
+  { id: 18, name: "Nhà hàng Nga Sự", type: "restaurant", lat: 18.4014, lng: 105.9782, info: "Ẩm thực hải sản" },
+  { id: 19, name: "Nhà hàng Nhật Hạnh", type: "restaurant", lat: 18.4016, lng: 105.9781, info: "Đặc sản biển tươi sống" },
+  { id: 20, name: "Nhà Hàng Nhà Nghỉ Mạnh Hướng", type: "hotel", lat: 18.4032, lng: 105.9766, info: "Lưu trú kết hợp nhà hàng" },
+  { id: 21, name: "Nhà Hàng Tri Kỉ", type: "restaurant", lat: 18.4007, lng: 105.9787, info: "Ẩm thực ven biển" },
+  { id: 22, name: "Nhà Hàng Hào Giáp", type: "restaurant", lat: 18.4003, lng: 105.9790, info: "Ăn uống uy tín khu vực biển" },
+  { id: 23, name: "Nhà Hàng Hiền Thành", type: "restaurant", lat: 18.4000, lng: 105.9792, info: "Hải sản tươi ngon" }
 ];

@@ -1,13 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { communeInfo, villagesData, mapLocations, communeBoundary } from './data';
-import { MapContainer, TileLayer, Marker, Popup, Polygon, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Polygon, Polyline, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 
-// Component phụ trợ di chuyển tâm bản đồ mượt mà khi chọn địa điểm hoặc thôn
 function MapViewController({ center, zoom }) {
   const map = useMap();
-  React.useEffect(() => {
+  useEffect(() => {
     if (center) {
       map.flyTo(center, zoom, { duration: 1.2 });
     }
@@ -15,7 +14,6 @@ function MapViewController({ center, zoom }) {
   return null;
 }
 
-// Hàm tạo icon ghim dạng ẩn tên, chỉ giữ logo, hiện title khi rê chuột
 const createPinIcon = (loc, isSelected) => {
   let emoji = '📍';
   let bgColor = '#3b82f6';
@@ -64,17 +62,81 @@ const createPinIcon = (loc, isSelected) => {
   });
 };
 
+const gpsPinIcon = L.divIcon({
+  className: 'gps-user-marker',
+  html: `
+    <div style="
+      background-color: #2563eb;
+      border: 3px solid white;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      box-shadow: 0 0 10px rgba(37,99,235,0.8);
+    "></div>
+  `,
+  iconSize: [22, 22],
+  iconAnchor: [11, 11]
+});
+
+function getDirectionIcon(type, modifier) {
+  if (type === 'arrive') return '🏁';
+  if (modifier?.includes('right')) return '↪️';
+  if (modifier?.includes('left')) return '↩️';
+  return '⬆️';
+}
+
+function translateManeuver(step) {
+  const maneuver = step.maneuver;
+  if (maneuver.type === 'arrive') return 'Đến điểm đến của bạn';
+  if (maneuver.type === 'depart') return 'Bắt đầu di chuyển';
+  
+  let text = 'Đi tiếp';
+  if (maneuver.type === 'turn') {
+    const mod = maneuver.modifier;
+    if (mod?.includes('right')) text = 'Quẹo phải';
+    else if (mod?.includes('left')) text = 'Quẹo trái';
+    else text = 'Tiếp tục rẽ';
+  }
+
+  if (step.name) {
+    text += ` vào ${step.name}`;
+  }
+  return text;
+}
+
 export default function App() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
-  const [activeTab, setActiveTab] = useState('overview'); // 'overview' hoặc 'villages'
-  const [mapStyle, setMapStyle] = useState('colored'); 
+  const [activeTab, setActiveTab] = useState('overview'); 
+  const [mapStyle, setMapStyle] = useState('satellite'); 
 
   const [mapCenter, setMapCenter] = useState(null);
   const [mapZoom, setMapZoom] = useState(13);
-  const [selectedVillage, setSelectedVillage] = useState(null); // Lưu thông tin thôn đang được chọn phân vùng
+  const [selectedVillage, setSelectedVillage] = useState(null);
 
-  // Lọc danh sách địa điểm theo từ khóa và danh mục
+  const [navigatingTarget, setNavigatingTarget] = useState(null); 
+  const [userLocation, setUserLocation] = useState(null); 
+  const [routeCoordinates, setRouteCoordinates] = useState([]); 
+  const [routeSteps, setRouteSteps] = useState([]); 
+  const [routeDistance, setRouteDistance] = useState(null); 
+  const [routeDuration, setRouteDuration] = useState(null); 
+  const [gpsLoading, setGpsLoading] = useState(false);
+  const [activeStepIndex, setActiveStepIndex] = useState(null);
+
+  const categories = [
+    { id: 'all', label: 'Tất cả', icon: '📍' },
+    { id: 'admin', label: 'Hành chính', icon: '🏛️' },
+    { id: 'security', label: 'An ninh', icon: '🛡️' },
+    { id: 'school', label: 'Giáo dục', icon: '🏫' },
+    { id: 'health', label: 'Y tế', icon: '🏥' },
+    { id: 'temple', label: 'Di tích - Tâm linh', icon: '🛕' },
+    { id: 'culture', label: 'Nhà văn hóa', icon: '🏮' },
+    { id: 'tourism', label: 'Khu du lịch', icon: '🏖️' },
+    { id: 'restaurant', label: 'Nhà hàng', icon: '🍽️' },
+    { id: 'hotel', label: 'Khách sạn', icon: '🏨' },
+    { id: 'eco', label: 'Khu sinh thái', icon: '🌳' },
+  ];
+
   const filteredLocations = mapLocations.filter(loc => {
     const matchesSearch = loc.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
                           loc.info.toLowerCase().includes(searchTerm.toLowerCase());
@@ -99,7 +161,7 @@ export default function App() {
   })();
 
   const handleSelectLocation = (loc) => {
-    setSelectedVillage(null); // Bỏ chọn thôn nếu click điểm dịch vụ
+    setSelectedVillage(null);
     setMapCenter([loc.lat, loc.lng]);
     setMapZoom(16);
   };
@@ -112,193 +174,309 @@ export default function App() {
     }
   };
 
-  const getCategoryEmoji = (type) => {
-    switch (type) {
-      case 'admin': return '🏛️';
-      case 'security': return '🛡️';
-      case 'culture': return '🏮';
-      case 'health': return '🏥';
-      case 'school': return '🏫';
-      case 'temple': return '🛕';
-      case 'tourism': return '🏖️';
-      case 'restaurant': return '🍽️';
-      case 'hotel': return '🏨';
-      case 'eco': return '🌳';
-      default: return '📍';
+  const fetchRoadRoute = async (startLat, startLng, destLat, destLng) => {
+    try {
+      const url = `https://router.project-osrm.org/route/v1/driving/${startLng},${startLat};${destLng},${destLat}?overview=full&geometries=geojson&steps=true`;
+      const res = await fetch(url);
+      const data = await res.json();
+
+      if (data.routes && data.routes.length > 0) {
+        const route = data.routes[0];
+        let latLngs = route.geometry.coordinates.map(coord => [coord[1], coord[0]]);
+        
+        const finalDest = [destLat, destLng];
+        const lastPoint = latLngs[latLngs.length - 1];
+        const distanceToDest = Math.hypot(lastPoint[0] - finalDest[0], lastPoint[1] - finalDest[1]);
+        if (distanceToDest > 0.0001) {
+          latLngs.push(finalDest);
+        }
+
+        setRouteCoordinates(latLngs);
+        setRouteDistance((route.distance / 1000).toFixed(1)); 
+        setRouteDuration(Math.round(route.duration / 60)); 
+
+        if (route.legs && route.legs[0] && route.legs[0].steps) {
+          setRouteSteps(route.legs[0].steps);
+        }
+      } else {
+        setRouteCoordinates([[startLat, startLng], [destLat, destLng]]);
+        setRouteSteps([]);
+      }
+    } catch (err) {
+      console.error("Lỗi định tuyến:", err);
+      setRouteCoordinates([[startLat, startLng], [destLat, destLng]]);
+      setRouteSteps([]);
     }
   };
 
-  const getCategoryName = (type) => {
-    switch (type) {
-      case 'admin': return 'Cơ quan hành chính nhà nước';
-      case 'security': return 'An ninh trật tự';
-      case 'culture': return 'Nhà văn hóa TDP';
-      case 'health': return 'Cơ sở y tế';
-      case 'school': return 'Cơ sở Giáo dục';
-      case 'temple': return 'Di tích lịch sử văn hóa';
-      case 'tourism': return 'Khu du lịch';
-      case 'restaurant': return 'Nhà hàng, quán ăn';
-      case 'hotel': return 'Khách sạn, nhà nghỉ';
-      case 'eco': return 'Khu sinh thái - Địa danh';
-      default: return 'Địa điểm khác';
+  const handleDirectGPSRoute = (loc) => {
+    setNavigatingTarget(loc);
+    setActiveStepIndex(null);
+    setMapCenter([loc.lat, loc.lng]);
+    setMapZoom(15);
+
+    if (!navigator.geolocation) {
+      alert('Trình duyệt không hỗ trợ GPS!');
+      return;
     }
+
+    setGpsLoading(true);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
+        setUserLocation([lat, lng]);
+        fetchRoadRoute(lat, lng, loc.lat, loc.lng);
+        setGpsLoading(false);
+      },
+      (error) => {
+        setGpsLoading(false);
+        console.error(error);
+        const fallbackLat = 18.4250;
+        const fallbackLng = 105.9160;
+        setUserLocation([fallbackLat, fallbackLng]);
+        fetchRoadRoute(fallbackLat, fallbackLng, loc.lat, loc.lng);
+      },
+      { enableHighAccuracy: true, timeout: 8000 }
+    );
+  };
+
+  const handleStepClick = (step, index) => {
+    setActiveStepIndex(index);
+    if (step.maneuver && step.maneuver.location) {
+      const [lng, lat] = step.maneuver.location;
+      setMapCenter([lat, lng]);
+      setMapZoom(17);
+    }
+  };
+
+  const getCategoryEmoji = (type) => {
+    const found = categories.find(c => c.id === type);
+    return found ? found.icon : '📍';
+  };
+
+  const getCategoryName = (type) => {
+    const found = categories.find(c => c.id === type);
+    return found ? found.label : 'Địa điểm khác';
   };
 
   return (
     <div className="min-h-screen bg-slate-100 text-slate-800 flex flex-col font-sans">
       
-      {/* ================= HEADER ĐÔ THỊ THÔNG MINH ================= */}
-      <header className="bg-white shadow-sm border-b border-slate-200 py-3.5 px-6 shrink-0">
-        <div className="max-w-7xl mx-auto flex flex-col gap-3">
+      {/* HEADER TỈNH TẮN, THANH THOÁT */}
+      <header className="bg-white shadow-sm border-b border-slate-200 py-3 px-6 shrink-0">
+        <div className="max-w-7xl mx-auto flex flex-col gap-2.5">
           
-          <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-2">
             <div>
-              <h1 className="text-xl md:text-2xl font-bold text-blue-900 flex items-center gap-2">
+              <h1 className="text-lg md:text-xl font-bold text-blue-900 tracking-tight">
                 Bản đồ số {communeInfo.name}
               </h1>
-              <p className="text-slate-600 text-xs md:text-sm mt-0.5">
-                Ứng dụng tích hợp thông tin địa bàn, giúp người dân và du khách tra cứu thông tin, tiếp cận dịch vụ thuận tiện.
+              <p className="text-slate-500 text-xs mt-0.5">
+                Ứng dụng tích hợp thông tin địa bàn, giúp tra cứu thông tin và tiếp cận dịch vụ thuận tiện.
               </p>
             </div>
 
-            {/* Khung tìm kiếm & Lọc */}
-            <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto justify-end">
-              <div className="flex flex-col">
-                <span className="text-[11px] font-semibold text-slate-500 mb-1">Tìm địa điểm</span>
-                <input
-                  type="text"
-                  placeholder="Nhập tên địa điểm..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="px-3 py-1.5 border border-slate-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-52 bg-white"
-                />
-              </div>
-
-              <div className="flex flex-col">
-                <span className="text-[11px] font-semibold text-slate-500 mb-1">Loại địa điểm</span>
-                <select
-                  value={selectedCategory}
-                  onChange={(e) => setSelectedCategory(e.target.value)}
-                  className="px-3 py-1.5 border border-slate-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-slate-700 w-full sm:w-48"
-                >
-                  <option value="all">Tất cả loại địa điểm</option>
-                  <option value="admin">🏛️ Cơ quan hành chính</option>
-                  <option value="security">🛡️ An ninh trật tự</option>
-                  <option value="school">🏫 Cơ sở Giáo dục</option>
-                  <option value="health">🏥 Cơ sở y tế</option>
-                  <option value="temple">🛕 Di tích lịch sử văn hóa</option>
-                  <option value="culture">🏮 Nhà văn hóa TDP</option>
-                  <option value="tourism">🏖️ Khu du lịch</option>
-                  <option value="restaurant">🍽️ Nhà hàng, quán ăn</option>
-                  <option value="hotel">🏨 Khách sạn, nhà nghỉ</option>
-                  <option value="eco">🌳 Khu sinh thái</option>
-                </select>
-              </div>
-
-              {(searchTerm || selectedCategory !== 'all') && (
-                <button 
-                  onClick={() => { setSearchTerm(''); setSelectedCategory('all'); }}
-                  className="mt-5 px-3 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs rounded-lg font-medium transition"
-                >
-                  Xóa lọc
-                </button>
-              )}
+            <div className="flex items-center gap-3 text-slate-600 font-medium text-xs bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200">
+              <span>Diện tích: <strong className="text-slate-900">{communeInfo.totalArea}</strong></span>
+              <span>•</span>
+              <span>Số hộ: <strong className="text-slate-900">{communeInfo.totalHouseholds}</strong></span>
+              <span>•</span>
+              <span>Nhân khẩu: <strong className="text-slate-900">{communeInfo.totalPopulation}</strong></span>
             </div>
           </div>
 
-          {/* Tab chuyển đổi & Thống kê */}
-          <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-100 text-xs font-medium">
-            <button 
-              onClick={() => { setActiveTab('overview'); setSelectedVillage(null); }}
-              className={`px-3.5 py-1.5 rounded-full border transition flex items-center gap-1.5 ${activeTab === 'overview' ? 'bg-blue-600 text-white border-blue-600 shadow-sm' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'}`}
-            >
-              ℹ️ Thông tin chung
-            </button>
-            <button 
-              onClick={() => setActiveTab('villages')}
-              className={`px-3.5 py-1.5 rounded-full border transition flex items-center gap-1.5 ${activeTab === 'villages' ? 'bg-blue-600 text-white border-blue-600 shadow-sm' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'}`}
-            >
-              👥 Danh sách 11 Thôn
-            </button>
+          <div className="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-slate-100 text-xs">
+            <div className="flex items-center gap-2">
+              <button 
+                onClick={() => { setActiveTab('overview'); setSelectedVillage(null); }}
+                className={`px-3 py-1 rounded-lg font-medium transition flex items-center gap-1.5 ${activeTab === 'overview' ? 'bg-blue-600 text-white shadow-sm' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}
+              >
+                ℹ️ Thông tin chung & Dịch vụ
+              </button>
+              <button 
+                onClick={() => setActiveTab('villages')}
+                className={`px-3 py-1 rounded-lg font-medium transition flex items-center gap-1.5 ${activeTab === 'villages' ? 'bg-blue-600 text-white shadow-sm' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}
+              >
+                👥 Danh sách 11 Thôn
+              </button>
+            </div>
+          </div>
 
-            <div className="h-4 w-[1px] bg-slate-300 mx-1"></div>
-
-            <span className="px-3 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
-              Tổng diện tích: <strong>{communeInfo.totalArea}</strong>
-            </span>
-            <span className="px-3 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
-              Tổng số hộ: <strong>{communeInfo.totalHouseholds}</strong>
-            </span>
-            <span className="px-3 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
-              Tổng nhân khẩu: <strong>{communeInfo.totalPopulation}</strong>
-            </span>
+          {/* THANH LỌC DANH MỤC */}
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 pt-1 border-t border-slate-100 scrollbar-none">
+            <span className="text-xs font-semibold text-slate-400 whitespace-nowrap mr-1">Danh mục:</span>
+            {categories.map((cat) => {
+              const isActive = selectedCategory === cat.id;
+              return (
+                <button
+                  key={cat.id}
+                  onClick={() => {
+                    setSelectedCategory(cat.id);
+                    setActiveTab('overview');
+                  }}
+                  className={`px-2.5 py-1 rounded-md text-xs font-medium whitespace-nowrap transition-all flex items-center gap-1 shrink-0 ${
+                    isActive
+                      ? 'bg-blue-600 text-white shadow-sm'
+                      : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                  }`}
+                >
+                  <span>{cat.icon}</span>
+                  <span>{cat.label}</span>
+                </button>
+              );
+            })}
           </div>
 
         </div>
       </header>
 
-      {/* ================= MAIN CONTAINER: 2 CỘT ================= */}
-      <main className="max-w-7xl mx-auto px-4 py-4 flex-1 w-full grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+      {/* MAIN CONTAINER */}
+      <main className="max-w-7xl mx-auto px-4 py-4 flex-1 w-full grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
         
-        {/* CỘT TRÁI: DANH SÁCH THÔN HOẶC ĐIỂM DỊCH VỤ */}
-        <div className="lg:col-span-4 flex flex-col gap-4">
+        {/* CỘT TRÁI */}
+        <div className="lg:col-span-4 flex flex-col gap-3">
           
-          {activeTab === 'overview' ? (
+          {/* Ô TÌM KIẾM ĐƯỢC CHUYỂN XUỐNG CỘT TRÁI CHO DỄ THAO TÁC */}
+          <div className="bg-white p-3 rounded-xl shadow-sm border border-slate-200 flex flex-col gap-2">
+            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">🔍 Tìm kiếm nhanh</span>
+            <input
+              type="text"
+              placeholder="Nhập tên địa điểm cần tìm..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50"
+            />
+          </div>
+
+          {navigatingTarget ? (
             <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex flex-col gap-3">
-              <div className="flex justify-between items-center border-b pb-2">
-                <h2 className="font-bold text-slate-800 text-xs uppercase tracking-wider">
-                  📍 Danh sách điểm hiển thị ({filteredLocations.length})
+              <div className="flex justify-between items-center border-b border-slate-100 pb-2">
+                <h2 className="font-bold text-blue-900 text-xs uppercase tracking-wider flex items-center gap-1.5">
+                  🧭 Thông tin hành trình
                 </h2>
+                <button 
+                  onClick={() => { setNavigatingTarget(null); setRouteCoordinates([]); setRouteSteps([]); setUserLocation(null); setActiveStepIndex(null); }}
+                  className="text-xs text-slate-400 hover:text-red-600 font-bold"
+                >
+                  ✕ Đóng
+                </button>
+              </div>
+
+              <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-200 flex flex-col gap-1">
+                <span className="text-[10px] font-bold text-slate-400 uppercase">Điểm đến</span>
+                <h4 className="font-bold text-xs text-blue-900">{navigatingTarget.name}</h4>
+                <p className="text-[11px] text-slate-600">{navigatingTarget.info}</p>
+              </div>
+
+              {gpsLoading ? (
+                <div className="p-3 bg-blue-50 border border-blue-100 rounded-lg text-center text-xs font-semibold text-blue-600 animate-pulse">
+                  🛰️ Đang lấy GPS và tìm đường đi thực tế...
+                </div>
+              ) : (
+                <div className="p-3 bg-emerald-50 border border-emerald-100 rounded-lg text-xs text-emerald-800 font-medium flex flex-col gap-1">
+                  <div>✅ <strong>Đã định tuyến thành công!</strong></div>
+                  {routeDistance && (
+                    <div className="flex gap-3 text-emerald-900 font-bold pt-1 border-t border-emerald-200">
+                      <span>📏 {routeDistance} km</span>
+                      <span>⏱️ ~{routeDuration} phút</span>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* NÚT GOOGLE MAPS ĐÃ ĐƯỢC ĐỒNG BỘ MÀU XANH DƯƠNG CHUẨN GIAO DIỆN */}
+              <a
+                href={`https://www.google.com/maps/dir/?api=1&destination=${navigatingTarget.lat},${navigatingTarget.lng}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold py-2 px-3 rounded-lg text-center transition shadow-sm flex items-center justify-center gap-1.5"
+              >
+                🗺️ Mở chỉ đường bằng Google Maps
+              </a>
+
+              <button
+                onClick={() => handleDirectGPSRoute(navigatingTarget)}
+                className="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold py-2 px-3 rounded-lg transition flex items-center justify-center gap-1.5"
+              >
+                🔄 Cập nhật lại vị trí GPS
+              </button>
+            </div>
+          ) : activeTab === 'overview' ? (
+            <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex flex-col gap-3">
+              <div className="flex justify-between items-center border-b border-slate-100 pb-2">
+                <h2 className="font-bold text-slate-800 text-xs uppercase tracking-wider">
+                  📍 Địa điểm hiển thị ({filteredLocations.length})
+                </h2>
+                {selectedCategory !== 'all' && (
+                  <span className="text-[10px] text-blue-600 font-semibold bg-blue-50 px-2 py-0.5 rounded">
+                    Đang lọc danh mục
+                  </span>
+                )}
               </div>
               
-              <div className="flex flex-col gap-2 max-h-[600px] overflow-y-auto pr-1">
-                {filteredLocations.map((loc) => (
-                  <div 
-                    key={loc.id} 
-                    onClick={() => handleSelectLocation(loc)}
-                    className="p-3 bg-slate-50 hover:bg-blue-50/70 rounded-xl border border-slate-200 hover:border-blue-300 cursor-pointer transition flex items-start gap-3 shadow-sm"
-                  >
-                    <span className="text-xl mt-0.5">{getCategoryEmoji(loc.type)}</span>
-                    <div className="flex-1 min-w-0">
-                      <h4 className="font-bold text-xs text-blue-900 truncate">{loc.name}</h4>
-                      <p className="text-[11px] text-slate-600 mt-0.5 line-clamp-1">{loc.info}</p>
-                      <span className="inline-block mt-1.5 px-2 py-0.5 bg-slate-200/80 text-slate-700 text-[10px] font-medium rounded">
-                        {getCategoryName(loc.type)}
-                      </span>
-                    </div>
+              <div className="flex flex-col gap-2.5 max-h-[480px] overflow-y-auto pr-1">
+                {filteredLocations.length === 0 ? (
+                  <div className="text-center py-8 text-xs text-slate-400">
+                    Không tìm thấy địa điểm phù hợp.
                   </div>
-                ))}
+                ) : (
+                  filteredLocations.map((loc) => (
+                    <div 
+                      key={loc.id} 
+                      className="p-3 bg-white hover:bg-slate-50 rounded-xl border border-slate-200 hover:border-blue-300 transition flex flex-col gap-2"
+                    >
+                      <div className="flex items-start gap-2.5 cursor-pointer" onClick={() => handleSelectLocation(loc)}>
+                        <span className="text-lg mt-0.5">{getCategoryEmoji(loc.type)}</span>
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-bold text-xs text-blue-900 truncate">{loc.name}</h4>
+                          <p className="text-[11px] text-slate-500 mt-0.5 line-clamp-1">{loc.info}</p>
+                          <span className="inline-block mt-1 px-2 py-0.5 bg-slate-100 text-slate-600 text-[10px] font-medium rounded">
+                            {getCategoryName(loc.type)}
+                          </span>
+                        </div>
+                      </div>
+
+                      <button
+                        onClick={() => handleDirectGPSRoute(loc)}
+                        className="w-full bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-semibold py-1.5 px-3 rounded-lg flex items-center justify-center gap-1.5 transition"
+                      >
+                        🧭 Chỉ đường đường bộ (GPS)
+                      </button>
+                    </div>
+                  ))
+                )}
               </div>
             </div>
           ) : (
             <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex flex-col gap-3">
-              <div className="flex justify-between items-center border-b pb-2">
+              <div className="flex justify-between items-center border-b border-slate-100 pb-2">
                 <h2 className="font-bold text-slate-800 text-xs uppercase tracking-wider">
-                  👥 Danh sách 11 Thôn (Nhấp để phân vùng)
+                  👥 Danh sách 11 Thôn
                 </h2>
               </div>
 
-              <div className="flex flex-col gap-3 max-h-[600px] overflow-y-auto pr-1">
+              <div className="flex flex-col gap-2.5 max-h-[480px] overflow-y-auto pr-1">
                 {villagesData.map((village) => {
                   const isVillageSelected = selectedVillage && selectedVillage.id === village.id;
                   return (
                     <div 
                       key={village.id} 
                       onClick={() => handleSelectVillage(village)}
-                      className={`p-3.5 rounded-xl border cursor-pointer transition flex flex-col gap-2 shadow-sm ${isVillageSelected ? 'bg-blue-50 border-blue-500 ring-2 ring-blue-300' : 'bg-slate-50 hover:bg-slate-100 border-slate-200'}`}
+                      className={`p-3 rounded-xl border cursor-pointer transition flex flex-col gap-2 ${isVillageSelected ? 'bg-blue-50/60 border-blue-400 ring-1 ring-blue-300' : 'bg-white hover:bg-slate-50 border-slate-200'}`}
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <span className="w-3.5 h-3.5 rounded-full shrink-0 shadow-sm" style={{ backgroundColor: village.color }}></span>
-                          <h3 className="font-bold text-blue-900 text-sm">{village.name}</h3>
+                          <span className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: village.color }}></span>
+                          <h3 className="font-bold text-blue-900 text-xs">{village.name}</h3>
                         </div>
-                        <span className="text-[11px] bg-slate-200 px-2.5 py-0.5 rounded font-medium text-slate-700">{village.area}</span>
+                        <span className="text-[10px] bg-slate-100 px-2 py-0.5 rounded font-medium text-slate-600">{village.area}</span>
                       </div>
-                      <div className="text-xs text-slate-600 grid grid-cols-2 gap-2 bg-white p-2.5 rounded-lg border border-slate-200">
-                        <div>🏠 Số hộ: <strong className="text-slate-900">{village.households}</strong></div>
-                        <div>👥 Nhân khẩu: <strong className="text-slate-900">{village.population}</strong></div>
+                      <div className="text-[11px] text-slate-600 grid grid-cols-2 gap-2 bg-slate-50 p-2 rounded-lg border border-slate-100">
+                        <div>Số hộ: <strong className="text-slate-900">{village.households}</strong></div>
+                        <div>Nhân khẩu: <strong className="text-slate-900">{village.population}</strong></div>
                       </div>
-                      <div className="text-[11px] text-slate-500 pt-1 border-t border-slate-100 flex flex-col gap-0.5">
+                      <div className="text-[10px] text-slate-500 pt-1 border-t border-slate-100 flex flex-col gap-0.5">
                         <div>Bí thư: <strong className="text-slate-700">{village.secretary}</strong> ({village.secPhone})</div>
                         <div>Trưởng thôn: <strong className="text-slate-700">{village.leader}</strong> ({village.leadPhone})</div>
                       </div>
@@ -311,51 +489,113 @@ export default function App() {
 
         </div>
 
-        {/* CỘT PHẢI: BẢN ĐỒ TƯƠNG TÁC LỚN */}
+        {/* CỘT PHẢI: BẢN ĐỒ VÀ BẢNG CHỈ DẪN */}
         <div className="lg:col-span-8 bg-white p-3 rounded-xl shadow-sm border border-slate-200 flex flex-col">
           <div className="flex justify-between items-center mb-2 px-1">
-            <h2 className="font-semibold text-slate-700 text-sm">
+            <h2 className="font-semibold text-slate-700 text-xs md:text-sm">
               🗺️ Không gian bản đồ số 
-              {selectedVillage && <span className="text-blue-600 font-bold ml-1.5">— Đang chọn phân vùng: {selectedVillage.name}</span>}
+              {selectedVillage && <span className="text-blue-600 font-bold ml-1">— Phân vùng: {selectedVillage.name}</span>}
+              {navigatingTarget && <span className="text-emerald-600 font-bold ml-1">— Đang hướng dẫn: {navigatingTarget.name}</span>}
             </h2>
-            <span className="text-xs text-slate-500">Rê chuột hoặc nhấp vào biểu tượng để xem thông tin</span>
+            <span className="text-[11px] text-slate-400 hidden sm:inline">Rê chuột hoặc nhấp vào ghim để xem chi tiết</span>
           </div>
 
-          <div className="w-full h-[660px] rounded-lg overflow-hidden border border-slate-200 relative z-0">
+          <div className="w-full h-[600px] rounded-lg overflow-hidden border border-slate-200 relative z-0">
             
-            {/* Nút chọn kiểu bản đồ kiểu Google Maps (Hover xổ ra ở góc trên bên phải) */}
+            {/* NÚT CHUYỂN NỀN BẢN ĐỒ */}
             <div className="absolute top-3 right-3 z-[1000] group">
-              <div className="bg-white hover:bg-slate-50 w-10 h-10 rounded-lg shadow-md border border-slate-300 flex items-center justify-center cursor-pointer transition text-lg select-none">
+              <div className="bg-white hover:bg-slate-50 w-9 h-9 rounded-lg shadow-md border border-slate-200 flex items-center justify-center cursor-pointer transition text-base select-none">
                 🗺️
               </div>
 
-              <div className="absolute right-0 top-0 hidden group-hover:flex bg-white/95 backdrop-blur-sm p-1.5 rounded-lg shadow-xl border border-slate-300 flex-row gap-1.5 items-center">
+              <div className="absolute right-0 top-0 hidden group-hover:flex bg-white/95 backdrop-blur-sm p-1.5 rounded-lg shadow-xl border border-slate-200 flex-row gap-1 items-center">
                 <button 
-                  onClick={() => setMapStyle('colored')} 
-                  className={`px-3 py-1.5 text-xs rounded-md font-medium transition whitespace-nowrap ${mapStyle === 'colored' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-700 hover:bg-slate-100'}`}
+                  onClick={() => setMapStyle('voyager')} 
+                  className={`px-2.5 py-1 text-[11px] rounded font-medium transition whitespace-nowrap ${mapStyle === 'voyager' ? 'bg-blue-600 text-white shadow-2xs' : 'text-slate-700 hover:bg-slate-100'}`}
                 >
                   🗺️ Bản đồ màu
                 </button>
                 <button 
                   onClick={() => setMapStyle('satellite')} 
-                  className={`px-3 py-1.5 text-xs rounded-md font-medium transition whitespace-nowrap ${mapStyle === 'satellite' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-700 hover:bg-slate-100'}`}
+                  className={`px-2.5 py-1 text-[11px] rounded font-medium transition whitespace-nowrap ${mapStyle === 'satellite' ? 'bg-blue-600 text-white shadow-2xs' : 'text-slate-700 hover:bg-slate-100'}`}
                 >
-                  🛰️ Vệ tinh
+                  🛰️ Vệ tinh Esri
                 </button>
               </div>
             </div>
+
+            {/* BẢNG CHỈ ĐƯỜNG BẰNG CHỮ (NỔI GÓC PHẢI) */}
+            {routeSteps && routeSteps.length > 0 && (
+              <div className="absolute top-14 right-3 z-[1000] w-72 md:w-80 max-h-[350px] bg-white/95 backdrop-blur-md rounded-xl shadow-xl border border-slate-200 flex flex-col overflow-hidden text-xs">
+                <div className="flex items-center justify-between bg-blue-600 text-white px-3 py-2">
+                  <span className="font-bold uppercase tracking-wider flex items-center gap-1.5 text-[11px]">
+                    🧭 Hướng dẫn chi tiết
+                  </span>
+                  <button 
+                    onClick={() => { setRouteSteps([]); setActiveStepIndex(null); }}
+                    className="text-white hover:bg-blue-700 rounded w-5 h-5 flex items-center justify-center text-xs font-bold transition"
+                  >
+                    ✕
+                  </button>
+                </div>
+
+                <div className="overflow-y-auto divide-y divide-slate-100 p-1.5 flex flex-col gap-0.5">
+                  {routeSteps.map((step, idx) => {
+                    const isSelected = activeStepIndex === idx;
+                    return (
+                      <div 
+                        key={idx} 
+                        onClick={() => handleStepClick(step, idx)}
+                        className={`flex items-start gap-2 py-2 px-2 rounded-lg cursor-pointer transition ${
+                          isSelected ? 'bg-blue-600 text-white shadow-2xs' : 'hover:bg-blue-50/60 text-slate-800'
+                        }`}
+                      >
+                        <span className={`text-sm mt-0.5 shrink-0 ${isSelected ? 'text-white' : ''}`}>
+                          {getDirectionIcon(step.maneuver.type, step.maneuver.modifier)}
+                        </span>
+                        <div className="flex-1 min-w-0">
+                          <p className={`font-semibold leading-snug ${isSelected ? 'text-white' : 'text-slate-800'}`}>
+                            {translateManeuver(step)}
+                          </p>
+                          <span className={`text-[10px] font-medium ${isSelected ? 'text-blue-100' : 'text-slate-400'}`}>
+                            {step.distance >= 1000 ? `${(step.distance / 1000).toFixed(1)} km` : `${Math.round(step.distance)} m`}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
             <MapContainer 
               center={defaultCenter} 
               zoom={mapZoom} 
               minZoom={12}
-              maxZoom={18}
+              maxZoom={19}
               maxBounds={mapBounds}
               maxBoundsViscosity={1.0}
               scrollWheelZoom={true} 
               style={{ width: '100%', height: '100%' }}
             >
               <MapViewController center={currentCenter} zoom={mapZoom} />
+
+              {userLocation && (
+                <Marker position={userLocation} icon={gpsPinIcon}>
+                  <Popup>
+                    <div className="p-1 text-xs font-semibold text-blue-900">
+                      📍 Vị trí hiện tại của thiết bị (GPS)
+                    </div>
+                  </Popup>
+                </Marker>
+              )}
+
+              {routeCoordinates.length > 0 && (
+                <Polyline 
+                  positions={routeCoordinates} 
+                  pathOptions={{ color: '#2563eb', weight: 5, opacity: 0.85 }} 
+                />
+              )}
 
               {mapStyle === 'satellite' ? (
                 <TileLayer
@@ -366,49 +606,45 @@ export default function App() {
               ) : (
                 <TileLayer
                   attribution='&copy; CARTO'
-                  url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+                  url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
                   maxZoom={19}
                 />
               )}
               
-              {/* Ranh giới tổng của Xã */}
               {communeBoundary && communeBoundary.length > 0 && (
                 <Polygon 
                   positions={communeBoundary} 
                   pathOptions={{ 
                     color: mapStyle === 'satellite' ? '#facc15' : '#2563eb',      
-                    weight: mapStyle === 'satellite' ? 3 : 2.5,            
+                    weight: mapStyle === 'satellite' ? 3 : 2,            
                     fillColor: '#3b82f6',   
                     fillOpacity: mapStyle === 'satellite' ? 0.05 : 0.02      
                   }} 
                 />
               )}
 
-              {/* PHÂN VÙNG THÔN ĐƯỢC CHỌN (SÁNG RỰC LÊN KHI CLICK) */}
               {selectedVillage && selectedVillage.boundary && (
                 <Polygon
                   positions={selectedVillage.boundary}
                   pathOptions={{
                     color: '#f59e0b',
-                    weight: 4,
+                    weight: 3,
                     fillColor: selectedVillage.color || '#3b82f6',
-                    fillOpacity: 0.55 // Làm cho vùng sáng rực hơn hẳn so với nền
+                    fillOpacity: 0.45
                   }}
                 >
                   <Popup>
-                    <div className="p-2 min-w-[180px]">
-                      <h3 className="font-bold text-blue-900 text-sm">📍 {selectedVillage.name}</h3>
-                      <p className="text-xs text-slate-600 mt-1">Diện tích: {selectedVillage.area}</p>
-                      <p className="text-xs text-slate-600">Số hộ: {selectedVillage.households} | Khẩu: {selectedVillage.population}</p>
+                    <div className="p-1.5 min-w-[160px]">
+                      <h3 className="font-bold text-blue-900 text-xs">📍 {selectedVillage.name}</h3>
+                      <p className="text-[11px] text-slate-600 mt-0.5">Diện tích: {selectedVillage.area}</p>
+                      <p className="text-[11px] text-slate-600">Số hộ: {selectedVillage.households} | Khẩu: {selectedVillage.population}</p>
                     </div>
                   </Popup>
                 </Polygon>
               )}
 
-              {/* Hiển thị các điểm đánh dấu địa điểm dịch vụ */}
               {filteredLocations.map((loc) => {
                 const isSelected = mapCenter && mapCenter[0] === loc.lat && mapCenter[1] === loc.lng;
-                const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${loc.lat},${loc.lng}`;
 
                 return (
                   <Marker 
@@ -418,23 +654,21 @@ export default function App() {
                     eventHandlers={{ click: () => handleSelectLocation(loc) }}
                   >
                     <Popup>
-                      <div className="p-1.5 min-w-[200px] flex flex-col gap-2">
+                      <div className="p-1 min-w-[180px] flex flex-col gap-1.5">
                         <div>
-                          <span className="inline-block px-2 py-0.5 bg-blue-50 text-blue-700 text-[10px] font-semibold rounded mb-1">
+                          <span className="inline-block px-1.5 py-0.5 bg-blue-50 text-blue-700 text-[10px] font-semibold rounded mb-1">
                             {getCategoryEmoji(loc.type)} {getCategoryName(loc.type)}
                           </span>
-                          <h3 className="font-bold text-blue-900 text-sm leading-snug">{loc.name}</h3>
-                          <p className="text-xs text-slate-600 mt-1">{loc.info}</p>
+                          <h3 className="font-bold text-blue-900 text-xs leading-snug">{loc.name}</h3>
+                          <p className="text-[11px] text-slate-600 mt-0.5">{loc.info}</p>
                         </div>
                         
-                        <a 
-                          href={googleMapsUrl} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="mt-1 w-full bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold py-1.5 px-3 rounded-lg flex items-center justify-center gap-1.5 shadow-sm transition"
+                        <button 
+                          onClick={() => handleDirectGPSRoute(loc)}
+                          className="w-full bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-semibold py-1 px-2 rounded flex items-center justify-center gap-1 transition"
                         >
-                          🚗 Chỉ đường (Google Maps)
-                        </a>
+                          🧭 Chỉ đường đường bộ (GPS)
+                        </button>
                       </div>
                     </Popup>
                   </Marker>
