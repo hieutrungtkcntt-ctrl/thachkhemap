@@ -263,18 +263,28 @@ export default function App() {
   return (
     <div className="min-h-screen bg-slate-100 text-slate-800 flex flex-col font-sans">
       
-      {/* HEADER TỈNH TẮN, THANH THOÁT */}
+      {/* HEADER CÓ TÍCH HỢP LOGO XÃ */}
       <header className="bg-white shadow-sm border-b border-slate-200 py-3 px-6 shrink-0">
         <div className="max-w-7xl mx-auto flex flex-col gap-2.5">
           
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-2">
-            <div>
-              <h1 className="text-lg md:text-xl font-bold text-blue-900 tracking-tight">
-                Bản đồ số {communeInfo.name}
-              </h1>
-              <p className="text-slate-500 text-xs mt-0.5">
-                Ứng dụng tích hợp thông tin địa bàn, giúp tra cứu thông tin và tiếp cận dịch vụ thuận tiện.
-              </p>
+            
+            {/* CỤM LOGO VÀ TIÊU ĐỀ */}
+            <div className="flex items-center gap-3">
+              <img 
+                src="/logo.png" 
+                alt="Logo Xã Thạch Khê" 
+                className="w-10 h-10 object-contain drop-shadow-sm shrink-0" 
+                onError={(e) => { e.target.style.display = 'none'; }} // Phòng hờ nếu chưa có file logo.png thì ẩn đi không lỗi
+              />
+              <div>
+                <h1 className="text-lg md:text-xl font-bold text-blue-900 tracking-tight">
+                  Bản đồ số {communeInfo.name}
+                </h1>
+                <p className="text-slate-500 text-xs mt-0.5">
+                  Ứng dụng tích hợp thông tin địa bàn, giúp tra cứu thông tin và tiếp cận dịch vụ thuận tiện.
+                </p>
+              </div>
             </div>
 
             <div className="flex items-center gap-3 text-slate-600 font-medium text-xs bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200">
@@ -337,7 +347,6 @@ export default function App() {
         {/* CỘT TRÁI */}
         <div className="lg:col-span-4 flex flex-col gap-3">
           
-          {/* Ô TÌM KIẾM ĐƯỢC CHUYỂN XUỐNG CỘT TRÁI CHO DỄ THAO TÁC */}
           <div className="bg-white p-3 rounded-xl shadow-sm border border-slate-200 flex flex-col gap-2">
             <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">🔍 Tìm kiếm nhanh</span>
             <input
@@ -385,7 +394,6 @@ export default function App() {
                 </div>
               )}
 
-              {/* NÚT GOOGLE MAPS ĐÃ ĐƯỢC ĐỒNG BỘ MÀU XANH DƯƠNG CHUẨN GIAO DIỆN */}
               <a
                 href={`https://www.google.com/maps/dir/?api=1&destination=${navigatingTarget.lat},${navigatingTarget.lng}`}
                 target="_blank"
@@ -502,7 +510,6 @@ export default function App() {
 
           <div className="w-full h-[600px] rounded-lg overflow-hidden border border-slate-200 relative z-0">
             
-            {/* NÚT CHUYỂN NỀN BẢN ĐỒ */}
             <div className="absolute top-3 right-3 z-[1000] group">
               <div className="bg-white hover:bg-slate-50 w-9 h-9 rounded-lg shadow-md border border-slate-200 flex items-center justify-center cursor-pointer transition text-base select-none">
                 🗺️
@@ -524,7 +531,6 @@ export default function App() {
               </div>
             </div>
 
-            {/* BẢNG CHỈ ĐƯỜNG BẰNG CHỮ (NỔI GÓC PHẢI) */}
             {routeSteps && routeSteps.length > 0 && (
               <div className="absolute top-14 right-3 z-[1000] w-72 md:w-80 max-h-[350px] bg-white/95 backdrop-blur-md rounded-xl shadow-xl border border-slate-200 flex flex-col overflow-hidden text-xs">
                 <div className="flex items-center justify-between bg-blue-600 text-white px-3 py-2">
