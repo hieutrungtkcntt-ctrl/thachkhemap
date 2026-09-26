@@ -173,7 +173,9 @@ export default function MapComponent({
   getCategoryName 
 }) {
   return (
-    <div className="flex-1 bg-slate-200 relative flex items-center justify-center min-h-[500px] z-0">
+    /* Sử dụng flex-1 và w-full h-full để ép bản đồ co giãn hoàn toàn theo không gian cha trên cả PC lẫn Mobile */
+    <div className="w-full h-full flex-1 relative bg-slate-200 z-0 min-h-[350px]">
+      
       {isPickingMap && (
         <div className="absolute top-3 left-1/2 -translate-x-1/2 z-[1000] bg-amber-500 text-white px-4 py-2 rounded-xl shadow-lg font-bold text-xs animate-bounce flex items-center gap-2">
           <span>👉 Click trong ranh giới viền vàng để chọn điểm sự cố!</span>
@@ -207,7 +209,7 @@ export default function MapComponent({
         minZoom={12}
         maxZoom={19}
         scrollWheelZoom={true} 
-        style={{ width: '100%', height: '100%', cursor: isPickingMap ? 'crosshair' : 'grab' }}
+        style={{ width: '100%', height: '100%', position: 'absolute', inset: 0, cursor: isPickingMap ? 'crosshair' : 'grab' }}
       >
         <MapViewController center={currentCenter} zoom={mapZoom} />
 

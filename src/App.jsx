@@ -128,7 +128,7 @@ export default function App() {
 
   if (currentView === 'admin-login') {
     return (
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4 font-sans">
+      <div className="h-screen w-screen bg-slate-900 flex items-center justify-center p-4 font-sans overflow-hidden">
         <div className="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-md relative">
           <button 
             onClick={() => { setCurrentView('client'); setLoginError(''); }}
@@ -188,54 +188,59 @@ export default function App() {
 
   if (currentView === 'admin') {
     return (
-      <AdminReports 
-        reports={reports}
-        onUpdateReportStatus={handleUpdateReportStatus}
-        onLogout={() => setCurrentView('client')}
-        currentUser={currentUser}
-        onUpdateProfile={(updatedUser) => {
-          setCurrentUser(updatedUser);
-          setAccounts(accounts.map(a => a.id === updatedUser.id ? updatedUser : a));
-        }}
-        locations={locations}
-        onAddLocation={handleAddLocation}
-        onUpdateLocation={handleUpdateLocation}
-        onDeleteLocation={handleDeleteLocation}
-        villages={villages}
-        onAddVillage={handleAddVillage}
-        onUpdateVillage={handleUpdateVillage}
-        onDeleteVillage={handleDeleteVillage}
-        accounts={accounts}
-        onAddAccount={handleAddAccount}
-        onUpdateAccount={handleUpdateAccount}
-        onDeleteAccount={handleDeleteAccount}
-      />
+      <div className="h-screen w-screen overflow-hidden flex flex-col">
+        <AdminReports 
+          reports={reports}
+          onUpdateReportStatus={handleUpdateReportStatus}
+          onLogout={() => setCurrentView('client')}
+          currentUser={currentUser}
+          onUpdateProfile={(updatedUser) => {
+            setCurrentUser(updatedUser);
+            setAccounts(accounts.map(a => a.id === updatedUser.id ? updatedUser : a));
+          }}
+          locations={locations}
+          onAddLocation={handleAddLocation}
+          onUpdateLocation={handleUpdateLocation}
+          onDeleteLocation={handleDeleteLocation}
+          villages={villages}
+          onAddVillage={handleAddVillage}
+          onUpdateVillage={handleUpdateVillage}
+          onDeleteVillage={handleDeleteVillage}
+          accounts={accounts}
+          onAddAccount={handleAddAccount}
+          onUpdateAccount={handleUpdateAccount}
+          onDeleteAccount={handleDeleteAccount}
+        />
+      </div>
     );
   }
 
   return (
-    <ClientHome 
-      locations={locations}
-      categories={[
-        { id: 'all', label: 'Tất cả', icon: '📋' },
-        { id: 'admin', label: 'Hành chính', icon: '🏛️' },
-        { id: 'security', label: 'An ninh', icon: '🛡️' },
-        { id: 'school', label: 'Giáo dục', icon: '🏫' },
-        { id: 'health', label: 'Y tế', icon: '🏥' },
-        { id: 'temple', label: 'Di tích - Tâm linh', icon: '🛕' },
-        { id: 'culture', label: 'Nhà văn hóa', icon: '🏮' },
-        { id: 'tourism', label: 'Khu du lịch', icon: '🏖️' },
-        { id: 'restaurant', label: 'Nhà hàng', icon: '🍽️' },
-        { id: 'hotel', label: 'Khách sạn', icon: '🏨' },
-        { id: 'eco', label: 'Khu sinh thái', icon: '🌳' },
-      ]}
-      selectedCategory={selectedCategory}
-      setSelectedCategory={setSelectedCategory}
-      searchTerm={searchTerm}
-      setSearchTerm={setSearchTerm}
-      onGoToAdmin={() => setCurrentView('admin-login')}
-      onAddNewReport={(newRep) => setReports([newRep, ...reports])}
-      reports={reports}
-    />
+    /* Khung bao bọc trang chủ Client bắt buộc phải có h-screen, w-screen và overflow-hidden để các thành phần con co giãn chuẩn tuyệt đối */
+    <div className="h-screen w-screen overflow-hidden flex flex-col bg-slate-100 font-sans">
+      <ClientHome 
+        locations={locations}
+        categories={[
+          { id: 'all', label: 'Tất cả', icon: '📋' },
+          { id: 'admin', label: 'Hành chính', icon: '🏛️' },
+          { id: 'security', label: 'An ninh', icon: '🛡️' },
+          { id: 'school', label: 'Giáo dục', icon: '🏫' },
+          { id: 'health', label: 'Y tế', icon: '🏥' },
+          { id: 'temple', label: 'Di tích - Tâm linh', icon: '🛕' },
+          { id: 'culture', label: 'Nhà văn hóa', icon: '🏮' },
+          { id: 'tourism', label: 'Khu du lịch', icon: '🏖️' },
+          { id: 'restaurant', label: 'Nhà hàng', icon: '🍽️' },
+          { id: 'hotel', label: 'Khách sạn', icon: '🏨' },
+          { id: 'eco', label: 'Khu sinh thái', icon: '🌳' },
+        ]}
+        selectedCategory={selectedCategory}
+        setSelectedCategory={setSelectedCategory}
+        searchTerm={searchTerm}
+        setSearchTerm={setSearchTerm}
+        onGoToAdmin={() => setCurrentView('admin-login')}
+        onAddNewReport={(newRep) => setReports([newRep, ...reports])}
+        reports={reports}
+      />
+    </div>
   );
 }

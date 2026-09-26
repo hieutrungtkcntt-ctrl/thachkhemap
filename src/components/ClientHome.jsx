@@ -167,22 +167,23 @@ export default function ClientHome({
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
       {/* Header Chính */}
-      <header className="bg-blue-900 text-white shadow-md px-6 py-3 flex flex-col md:flex-row justify-between items-start md:items-center gap-2 z-20">
-        <div className="flex items-center space-x-3">
-          {/* Chỉ giữ lại class kích thước và object-contain để giữ nguyên vẹn màu chữ, hiệu ứng gốc */}
-          <img 
-            src="/logo.png" 
-            alt="Logo Xã Thạch Khê" 
-            className="w-9 h-9 object-contain"
-          />
-          <div>
-            <h1 className="text-sm font-bold tracking-wide text-white">Bản Đồ Số Xã Thạch Khê</h1>
-            <p className="text-[11px] text-blue-300">Ứng dụng tích hợp thông tin địa bàn, tra cứu thông tin và tiếp cận dịch vụ thuận tiện.</p>
+      <header className="bg-blue-900 text-white shadow-md px-3 sm:px-6 py-2.5 sm:py-3 flex flex-col md:flex-row justify-between items-stretch md:items-center gap-2.5 z-20 shrink-0">
+        <div className="flex items-center justify-between md:justify-start space-x-3">
+          <div className="flex items-center space-x-2.5">
+            <img 
+              src="/logo.png" 
+              alt="Logo Xã Thạch Khê" 
+              className="w-8 h-8 sm:w-9 sm:h-9 object-contain"
+            />
+            <div>
+              <h1 className="text-xs sm:text-sm font-bold tracking-wide text-white">Bản Đồ Số Xã Thạch Khê</h1>
+              <p className="text-[10px] sm:text-[11px] text-blue-300 hidden sm:block">Ứng dụng tích hợp thông tin địa bàn và tra cứu thuận tiện.</p>
+            </div>
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2.5 relative">
-          <div className="hidden lg:flex items-center gap-3 bg-blue-950/60 px-3 py-1.5 rounded-xl border border-blue-800 text-xs">
+        <div className="flex items-center justify-between md:justify-end gap-2 relative">
+          <div className="hidden xl:flex items-center gap-3 bg-blue-950/60 px-3 py-1.5 rounded-xl border border-blue-800 text-xs">
             <span>Diện tích: <strong className="text-yellow-400">4,631.8 ha</strong></span>
             <span>•</span>
             <span>Số hộ: <strong className="text-yellow-400">4,639</strong></span>
@@ -190,16 +191,16 @@ export default function ClientHome({
             <span>Nhân khẩu: <strong className="text-yellow-400">17,515</strong></span>
           </div>
 
-          <div className="relative">
+          <div className="relative flex-1 sm:flex-initial">
             <button 
               onClick={() => setIsActionMenuOpen(!isActionMenuOpen)}
-              className="bg-red-600 hover:bg-red-700 text-white text-xs px-4 py-2 rounded-xl font-bold shadow transition flex items-center gap-1.5 animate-bounce"
+              className="w-full sm:w-auto bg-red-600 hover:bg-red-700 text-white text-[11px] sm:text-xs px-3 sm:px-4 py-2 rounded-xl font-bold shadow transition flex items-center justify-center gap-1.5 animate-bounce"
             >
               🚨 Phản Ánh & Tra Cứu ▾
             </button>
 
             {isActionMenuOpen && (
-              <div className="absolute right-0 mt-2 w-52 bg-white rounded-2xl shadow-2xl border border-slate-200 py-2 z-50 text-slate-800 text-xs">
+              <div className="absolute right-0 mt-2 w-48 sm:w-52 bg-white rounded-2xl shadow-2xl border border-slate-200 py-2 z-50 text-slate-800 text-xs">
                 <button 
                   onClick={() => { setIsActionMenuOpen(false); setIsReportModalOpen(true); }}
                   className="w-full text-left px-4 py-2.5 hover:bg-red-50 hover:text-red-600 font-semibold flex items-center gap-2 transition"
@@ -218,32 +219,32 @@ export default function ClientHome({
 
           <button 
             onClick={onGoToAdmin}
-            className="bg-slate-800 hover:bg-slate-900 text-white text-xs px-3.5 py-2 rounded-xl font-medium shadow transition"
+            className="bg-slate-800 hover:bg-slate-900 text-white text-[11px] sm:text-xs px-3 py-2 rounded-xl font-medium shadow transition whitespace-nowrap"
           >
-            🔐 Quản trị viên
+            🔐 Quản trị
           </button>
         </div>
       </header>
 
-      {/* Thanh tab lựa chọn */}
-      <div className="bg-white border-b border-slate-200 px-6 py-2.5 flex flex-col md:flex-row items-start md:items-center justify-between gap-2 text-xs shadow-xs z-10">
-        <div className="flex items-center gap-2">
+      {/* Thanh tab lựa chọn & Danh mục */}
+      <div className="bg-white border-b border-slate-200 px-3 sm:px-6 py-2 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-2 text-xs shadow-xs z-10 shrink-0">
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0 scrollbar-none">
           <button 
             onClick={() => setActiveTab('villages')}
-            className={`px-3.5 py-1.5 rounded-lg font-bold transition flex items-center gap-1.5 ${activeTab === 'villages' ? 'bg-blue-900 text-white shadow' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}
+            className={`px-3 py-1.5 rounded-lg font-bold transition flex items-center gap-1.5 whitespace-nowrap ${activeTab === 'villages' ? 'bg-blue-900 text-white shadow' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}
           >
-            👥 Danh sách 11 Thôn ({villagesData.length})
+            👥 11 Thôn ({villagesData.length})
           </button>
           <button 
             onClick={() => { setActiveTab('overview'); setSelectedVillage(null); }}
-            className={`px-3.5 py-1.5 rounded-lg font-bold transition flex items-center gap-1.5 ${activeTab === 'overview' ? 'bg-blue-900 text-white shadow' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}
+            className={`px-3 py-1.5 rounded-lg font-bold transition flex items-center gap-1.5 whitespace-nowrap ${activeTab === 'overview' ? 'bg-blue-900 text-white shadow' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}
           >
-            📍 Các địa điểm ({locations.length})
+            📍 Địa điểm ({locations.length})
           </button>
         </div>
 
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 w-full md:w-auto">
-          <span className="font-semibold text-slate-400 mr-1 whitespace-nowrap">Danh mục:</span>
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0 scrollbar-none">
+          <span className="font-semibold text-slate-400 mr-1 whitespace-nowrap hidden sm:inline">Danh mục:</span>
           {categories && categories.map(cat => (
             <button
               key={cat.id}
@@ -259,8 +260,16 @@ export default function ClientHome({
         </div>
       </div>
 
-      {/* Nội dung chính: Gọi Sidebar và MapComponent */}
-      <div className="flex-1 flex flex-col md:flex-row relative">
+      {/* Nội dung chính: Trên mobile là cột dọc tự cuộn, trên PC (md) gộp thành 1 khung tràn màn hình tuyệt đối không cuộn trang */}
+      <div className="flex-1 flex flex-col md:flex-row relative md:overflow-hidden" style={{ height: 'auto', minHeight: 0 }} id="main-content-layout">
+        <style>{`
+          @media (min-width: 768px) {
+            #main-content-layout {
+              height: calc(100vh - 105px) !important;
+            }
+          }
+        `}</style>
+
         <SidebarPanel 
           navigatingTarget={navigatingTarget}
           onCloseNavigation={() => { setNavigatingTarget(null); setRouteCoordinates([]); setUserLocation(null); }}
@@ -303,7 +312,7 @@ export default function ClientHome({
         />
       </div>
 
-      {/* Các Modal */}
+      {/* Các Modal Tra cứu & Phản ánh */}
       <SearchProgressModal 
         isOpen={isSearchModalOpen}
         onClose={() => { setIsSearchModalOpen(false); setSearchResult(null); setSearchPhone(''); }}
