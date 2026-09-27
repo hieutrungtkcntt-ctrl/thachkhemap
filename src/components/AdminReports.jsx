@@ -14,6 +14,7 @@ export default function AdminReports({
   accounts = [],
   currentUser,
   onUpdateReportStatus, 
+  onToggleHideReport, // 1. Nhận thêm prop này từ App.jsx
   onAddLocation, 
   onUpdateLocation, 
   onDeleteLocation, 
@@ -49,6 +50,7 @@ export default function AdminReports({
           <ReportManagement 
             reports={reports}
             onUpdateReportStatus={onUpdateReportStatus}
+            onToggleHideReport={onToggleHideReport} // 2. Truyền prop này xuống cho ReportManagement
           />
         )}
         {activeTab === 'villages' && (

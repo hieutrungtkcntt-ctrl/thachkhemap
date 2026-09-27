@@ -3,7 +3,7 @@ import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet'
 import 'leaflet/dist/leaflet.css';
 import { mapLocations } from '../../data';
 
-export default function ReportManagement({ reports = [], onUpdateReportStatus }) {
+export default function ReportManagement({ reports = [], onUpdateReportStatus, onToggleHideReport }) {
   const [statusFilter, setStatusFilter] = useState('all');
   const [mapModalReport, setMapModalReport] = useState(null);       
   const [replyModalReport, setReplyModalReport] = useState(null); 
@@ -43,12 +43,17 @@ export default function ReportManagement({ reports = [], onUpdateReportStatus })
     setResultImage('');
   };
 
+  const getRowStyle = (isHidden) => {
+    if (isHidden) return { opacity: 0.6, background: '#f8fafc' };
+    return {};
+  };
+
   return (
     <div className="p-6 space-y-4 text-xs max-h-[calc(100vh-60px)] overflow-y-auto">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
         <div>
           <h1 className="text-lg font-bold text-slate-900">🚨 Quản Lý Phản Ánh Sự Cố</h1>
-          <p className="text-slate-500 text-xs">Kiểm tra ảnh hiện trường, định vị tuyến đường trên bản đồ Leaflet và trả lời kết quả cho người dân.</p>
+          <p className="text-slate-500 text-xs">Kiểm tra ảnh hiện trường, định vị tuyến đường trên bản đồ Leaflet, trả lời kết quả và ẩn/hiện phản ánh trên bản đồ người dân.</p>
         </div>
 
         <div className="flex items-center gap-2">
@@ -79,11 +84,12 @@ export default function ReportManagement({ reports = [], onUpdateReportStatus })
                   <th className="p-3 font-bold">Khu vực / Định vị</th>
                   <th className="p-3 font-bold">Trạng thái</th>
                   <th className="p-3 font-bold text-center">Thao tác xử lý</th>
+                  <th className="p-3 font-bold text-center">Hiển thị map</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-slate-700">
                 {filteredReports.map(r => (
-                  <tr key={r.id} className="hover:bg-slate-50 transition">
+                  <tr key={r.id} className="hover:bg-slate-50 transition" style={getRowStyle(r.isMapHidden)}>
                     <td className="p-3">
                       <div className="font-bold text-slate-900">{r.sender}</div>
                       <div className="font-mono text-[11px] text-blue-600">{r.phone}</div>
@@ -145,6 +151,18 @@ export default function ReportManagement({ reports = [], onUpdateReportStatus })
                         </button>
                       )}
                     </td>
+                    <td className="p-3 text-center">
+                      <button 
+                        onClick={() => onToggleHideReport(r.id)}
+                        title={r.isMapHidden ? "Đang ẩn trên map. Nhấn để HIỆN lại" : "Đang hiện trên map. Nhấn để ẨN đi"}
+                        className={`w-12 h-7 rounded-full transition relative inline-block ${r.isMapHidden ? 'bg-slate-300' : 'bg-blue-600'}`}
+                      >
+                        <span className={`block w-5 h-5 bg-white rounded-full absolute top-1 transition-all shadow-md ${r.isMapHidden ? 'left-1' : 'left-6'}`}></span>
+                      </button>
+                      <div className={`text-[10px] font-bold mt-1 ${r.isMapHidden ? 'text-red-600' : 'text-emerald-600'}`}>
+                        {r.isMapHidden ? "ĐÃ ẨN" : "ĐANG HIỆN"}
+                      </div>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -153,7 +171,7 @@ export default function ReportManagement({ reports = [], onUpdateReportStatus })
         )}
       </div>
 
-      {/* Modal Miniview bản đồ Leaflet tương tác thực tế từ UBND xã đến vị trí phản ánh */}
+      {/* Modal Miniview bản đồ */}
       {mapModalReport && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center z-50 p-4">
           <div className="bg-white p-5 rounded-2xl shadow-2xl w-full max-w-3xl space-y-3">
@@ -184,7 +202,6 @@ export default function ReportManagement({ reports = [], onUpdateReportStatus })
 
               <div><strong>Nội dung sự cố:</strong> {mapModalReport.content}</div>
 
-              {/* Bản đồ Leaflet có định nghĩa chiều cao chuẩn trực tiếp */}
               <div className="w-full h-96 bg-slate-100 rounded-2xl overflow-hidden border shadow-inner relative z-0">
                 <MapContainer 
                   center={[parseFloat(mapModalReport.lat) || adminCoords[0], parseFloat(mapModalReport.lng) || adminCoords[1]]} 
@@ -196,8 +213,6 @@ export default function ReportManagement({ reports = [], onUpdateReportStatus })
                     attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                   />
-
-                  {/* Marker vị trí xuất phát của Admin (UBND xã) */}
                   <Marker position={adminCoords}>
                     <Popup>
                       <div className="text-xs font-bold text-blue-900">
@@ -205,8 +220,6 @@ export default function ReportManagement({ reports = [], onUpdateReportStatus })
                       </div>
                     </Popup>
                   </Marker>
-
-                  {/* Marker vị trí phản ánh của người dân */}
                   <Marker position={[parseFloat(mapModalReport.lat), parseFloat(mapModalReport.lng)]}>
                     <Popup>
                       <div className="text-xs space-y-1">
@@ -215,8 +228,6 @@ export default function ReportManagement({ reports = [], onUpdateReportStatus })
                       </div>
                     </Popup>
                   </Marker>
-
-                  {/* Đường nối chỉ đường */}
                   <Polyline 
                     positions={[
                       adminCoords, 
@@ -248,7 +259,7 @@ export default function ReportManagement({ reports = [], onUpdateReportStatus })
         </div>
       )}
 
-      {/* Modal Trả lời phản ánh có đầy đủ Hình ảnh hiện trường và Địa chỉ */}
+      {/* Modal Trả lời phản ánh */}
       {replyModalReport && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center z-50 p-4">
           <div className="bg-white p-6 rounded-2xl shadow-2xl w-full max-w-lg space-y-4 max-h-[90vh] overflow-y-auto">
@@ -257,7 +268,7 @@ export default function ReportManagement({ reports = [], onUpdateReportStatus })
               <button onClick={() => setReplyModalReport(null)} className="text-slate-400 hover:text-red-600 font-bold">✕</button>
             </div>
 
-            <div className="space-y-2 text-xs bg-slate-50 p-3.5 rounded-xl border space-y-2">
+            <div className="space-y-2 text-xs bg-slate-50 p-3.5 rounded-xl border">
               <div className="grid grid-cols-2 gap-2">
                 <div><strong>👤 Người gửi:</strong> {replyModalReport.sender}</div>
                 <div><strong>📞 SĐT:</strong> <span className="font-mono text-blue-600">{replyModalReport.phone}</span></div>

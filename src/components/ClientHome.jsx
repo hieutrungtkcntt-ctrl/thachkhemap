@@ -29,7 +29,8 @@ export default function ClientHome({
   const [pickedLatLng, setPickedLatLng] = useState(null);
   const [detectedLocationName, setDetectedLocationName] = useState('');
 
-  const [mapCenter, setMapCenter] = useState(null);
+  // Đặt mặc định map ở trung tâm xã Thạch Khê và mức zoom 13 để hiển thị toàn bộ 11 thôn ngay khi mở
+  const [mapCenter, setMapCenter] = useState([18.3950, 105.9550]);
   const [mapZoom, setMapZoom] = useState(13);
   const [mapStyle, setMapStyle] = useState('satellite');
 
@@ -49,10 +50,7 @@ export default function ClientHome({
     image: null
   });
 
-  const defaultCenter = communeBoundary && communeBoundary.length > 0 
-    ? communeBoundary[Math.floor(communeBoundary.length / 2)] 
-    : [18.4250, 105.9160];
-
+  const defaultCenter = [18.3950, 105.9550];
   const currentCenter = mapCenter || defaultCenter;
 
   const filteredLocations = locations.filter(loc => {
@@ -260,7 +258,7 @@ export default function ClientHome({
         </div>
       </div>
 
-      {/* Nội dung chính: Trên mobile là cột dọc tự cuộn, trên PC (md) gộp thành 1 khung tràn màn hình tuyệt đối không cuộn trang */}
+      {/* Nội dung chính */}
       <div className="flex-1 flex flex-col md:flex-row relative md:overflow-hidden" style={{ height: 'auto', minHeight: 0 }} id="main-content-layout">
         <style>{`
           @media (min-width: 768px) {
@@ -289,6 +287,7 @@ export default function ClientHome({
         />
 
         <MapComponent 
+          villages={villagesData}
           defaultCenter={defaultCenter}
           currentCenter={currentCenter}
           mapZoom={mapZoom}
@@ -309,6 +308,7 @@ export default function ClientHome({
           onSelectLocation={handleSelectLocation}
           onDirectGPSRoute={handleDirectGPSRoute}
           getCategoryName={getCategoryName}
+          reports={reports}
         />
       </div>
 

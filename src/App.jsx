@@ -52,7 +52,8 @@ export default function App() {
         status: 'Chờ xử lý',
         note: '',
         image: null,
-        resultImage: null
+        resultImage: null,
+        isMapHidden: false
       }
     ];
   });
@@ -126,6 +127,16 @@ export default function App() {
     }));
   };
 
+  // Xử lý bật/tắt ẩn hiện phản ánh trên bản đồ
+  const handleToggleHideReport = (id) => {
+    setReports(reports.map(r => {
+      if (r.id === id) {
+        return { ...r, isMapHidden: !r.isMapHidden };
+      }
+      return r;
+    }));
+  };
+
   if (currentView === 'admin-login') {
     return (
       <div className="h-screen w-screen bg-slate-900 flex items-center justify-center p-4 font-sans overflow-hidden">
@@ -178,9 +189,6 @@ export default function App() {
               </button>
             </div>
           </form>
-          <div className="mt-6 text-center text-[11px] text-slate-400 border-t pt-4">
-            Tài khoản mẫu: <code className="text-slate-600 font-bold">admin</code> / <code className="text-slate-600 font-bold">123</code>
-          </div>
         </div>
       </div>
     );
@@ -192,6 +200,7 @@ export default function App() {
         <AdminReports 
           reports={reports}
           onUpdateReportStatus={handleUpdateReportStatus}
+          onToggleHideReport={handleToggleHideReport}
           onLogout={() => setCurrentView('client')}
           currentUser={currentUser}
           onUpdateProfile={(updatedUser) => {
@@ -216,7 +225,6 @@ export default function App() {
   }
 
   return (
-    /* Khung bao bọc trang chủ Client bắt buộc phải có h-screen, w-screen và overflow-hidden để các thành phần con co giãn chuẩn tuyệt đối */
     <div className="h-screen w-screen overflow-hidden flex flex-col bg-slate-100 font-sans">
       <ClientHome 
         locations={locations}
@@ -238,7 +246,7 @@ export default function App() {
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
         onGoToAdmin={() => setCurrentView('admin-login')}
-        onAddNewReport={(newRep) => setReports([newRep, ...reports])}
+        onAddNewReport={(newRep) => setReports([{ ...newRep, isMapHidden: false }, ...reports])}
         reports={reports}
       />
     </div>
