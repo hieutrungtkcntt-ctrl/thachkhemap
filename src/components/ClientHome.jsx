@@ -365,7 +365,7 @@ export default function ClientHome({
                     <span>🏘</span> {selectedVillage.name || selectedVillage.tenThon}
                   </h3>
                   <p className="text-xs text-slate-500">
-                    {selectedVillage.description || selectedVillage.moTa || 'Khu dân cư thuộc xã Thạch Khê, huyện Thạch Hà, tỉnh Hà Tĩnh.'}
+                    {selectedVillage.description || selectedVillage.moTa || 'Khu dân cư thuộc xã Thạch Khê, tỉnh Hà Tĩnh.'}
                   </p>
 
                   <div className="grid grid-cols-2 gap-2">
@@ -692,7 +692,7 @@ export default function ClientHome({
       {/* ================= FOOTER CHÍNH CỦA TRANG ================= */}
       <footer className="bg-slate-900 text-slate-400 text-xs py-4 px-6 border-t border-slate-800 text-center md:text-left flex flex-col md:flex-row items-center justify-between gap-2 shrink-0">
         <div>
-          <p className="font-semibold text-slate-300">Bản Đồ Số & Quản Lý Thông Tin Xã Thạch Khê, Huyện Thạch Hà, Tỉnh Hà Tĩnh</p>
+          <p className="font-semibold text-slate-300">Bản Đồ Số & Quản Lý Thông Tin Xã Thạch Khê, Tỉnh Hà Tĩnh</p>
           <p className="text-[11px] text-slate-500 mt-0.5">Cơ quan chủ quản: UBND Xã Thạch Khê. Phục vụ công tác chuyển đổi số cộng đồng.</p>
         </div>
         <div className="text-[11px] text-slate-500">
