@@ -112,8 +112,8 @@ export const villagesData = [
   {
   id: 1, // ID tùy chỉnh cho thôn Trường Xuân
   name: "Trường Xuân", 
-  households: 0, 
-  population: 0, 
+  households: 394, 
+  population: 1682, 
   area: "---", 
   color: "#05ff54", // Chuyển từ rgba(5, 255, 84, 1)
   partySecretary: "Lê Thị Vân",
@@ -141,8 +141,8 @@ export const villagesData = [
  {
   id: 2, // ID tùy chỉnh cho thôn Thanh Lan
   name: "Thanh Lan", 
-  households: 0, 
-  population: 0, 
+  households: 340, 
+  population: 1251, 
   area: "---", 
   color: "#0800f0", // Chuyển từ rgba(8, 0, 240, 1)
   partySecretary: "Dương Thị Hằng",
@@ -169,8 +169,8 @@ export const villagesData = [
   {
   id: 3, // ID tùy chỉnh cho thôn Đồng Giang
   name: "Đồng Giang", 
-  households: 0, 
-  population: 0, 
+  households: 391, 
+  population: 1357, 
   area: "---", 
   color: "#9d00ff", // Chuyển từ rgba(157, 0, 255, 1)
   partySecretary: "Trần Thị Kiêu Linh",
@@ -199,8 +199,8 @@ export const villagesData = [
  {
   id: 4, // ID tùy chỉnh cho thôn Long Phúc
   name: "Long Phúc", 
-  households: 0, 
-  population: 0, 
+  households: 386, 
+  population: 1400, 
   area: "---", 
   color: "#3b82f6", // Màu mặc định (hoặc tùy chỉnh theo ý bạn)
   partySecretary: "-Dương Văn Minh",
@@ -230,7 +230,7 @@ export const villagesData = [
  {
   id: 5, 
   name: "Minh Hải", 
-  households: 542, 
+  households: 540, 
   population: 2065, 
   area: "736.1 ha", 
   color: "#eab308", 
@@ -276,8 +276,8 @@ export const villagesData = [
   {
   id: 6, // ID tùy chỉnh cho thôn Tân Phong
   name: "Tân Phong", 
-  households: 0, // Cập nhật số liệu thực tế nếu có
-  population: 0, 
+  households: 364, // Cập nhật số liệu thực tế nếu có
+  population: 1594, 
   area: "---", 
   color: "#ff0000", 
   partySecretary: "-Nguyễn Văn Hà",
@@ -327,8 +327,8 @@ export const villagesData = [
   {
   id: 7, // ID tùy chỉnh cho thôn Thanh Long
   name: "Thanh Long", 
-  households: 0, 
-  population: 0, 
+  households: 354, 
+  population: 1141, 
   area: "---", 
   color: "#17a951", // Chuyển từ rgba(23, 169, 81, 1)
   partySecretary: "Nguyễn Thị Xuân",
@@ -353,8 +353,8 @@ export const villagesData = [
   {
   id: 8, // ID tùy chỉnh cho thôn Đình Hoè
   name: "Đình Hoè", 
-  households: 0, 
-  population: 0, 
+  households: 482, 
+  population: 1923, 
   area: "---", 
   color: "#f3ff08", // Chuyển từ rgba(243, 255, 8, 1)
   partySecretary: "-Trương Thị Huệ",
@@ -380,8 +380,8 @@ export const villagesData = [
   {
   id: 9, // ID tùy chỉnh cho thôn Vĩnh Hoà
   name: "Vĩnh Hoà", 
-  households: 0, 
-  population: 0, 
+  households: 404 , 
+  population: 1602, 
   area: "---", 
   color: "#b606a5", // Chuyển từ rgba(182, 6, 165, 1)
   partySecretary: "-Nguyễn Thị Sáng",
@@ -408,8 +408,8 @@ export const villagesData = [
   {
   id: 10, // ID tùy chỉnh cho thôn Văn Sơn
   name: "Văn Sơn", 
-  households: 0, 
-  population: 0, 
+  households: 351, 
+  population: 1329 , 
   area: "---", 
   color: "#06ffe2", // Chuyển từ rgba(6, 255, 226, 1)
   partySecretary: "Ngô Văn Ngọc",
@@ -474,35 +474,68 @@ export const villagesData = [
 },
 ];
 
-// ==========================================
-// 4. DANH SÁCH ĐỊA ĐIỂM (23 ĐỊA ĐIỂM)
-// ==========================================
-export const mapLocations = [
-  { id: 1, name: "Ủy ban nhân dân xã Thạch Khê", type: "admin", category: "Hành chính", lat: 18.3858, lng: 105.9505, phone: "02393.850.111", info: "Trụ sở làm việc hành chính xã Thạch Khê", scale: "25 Cán bộ công chức", workingHours: "07:30 - 17:00 (Thứ 2 - Thứ 6)", mediaUrl: "", qrCode: "" },
-  { id: 2, name: "Đảng ủy xã Thạch Khê", type: "admin", category: "Hành chính", lat: 18.3998, lng: 105.9770, phone: "02393.850.112", info: "Trụ sở Đảng ủy xã Thạch Khê", scale: "15 Cán bộ", workingHours: "07:30 - 17:00 (Thứ 2 - Thứ 6)", mediaUrl: "", qrCode: "" },
-  { id: 3, name: "Công an xã Thạch Khê", type: "security", category: "An ninh trật tự", lat: 18.4058, lng: 105.9336, phone: "02393.850.333", info: "Trụ sở Công an xã Thạch Khê", scale: "8 Đồng chí công an", workingHours: "24/7", mediaUrl: "", qrCode: "" },
-  { id: 4, name: "Đền thờ Đại học sĩ Trương Quốc Dụng", type: "temple", category: "Di tích - Tâm linh", lat: 18.3819, lng: 105.9567, phone: "---", info: "Di tích lịch sử văn hóa cấp quốc gia", scale: "Khu di tích lịch sử", workingHours: "08:00 - 17:00 hàng ngày", mediaUrl: "", qrCode: "" },
-  { id: 5, name: "Chùa Tam Bảo", type: "temple", category: "Di tích - Tâm linh", lat: 18.4164, lng: 105.9643, phone: "---", info: "Cơ sở tôn giáo, sinh hoạt tâm linh", scale: "Khuôn viên chùa", workingHours: "06:00 - 20:00 hàng ngày", mediaUrl: "", qrCode: "" },
-  { id: 6, name: "Nhà Văn Hoá Thôn Liên Hải", type: "culture", category: "Văn hóa - Thể thao", lat: 18.3910, lng: 105.9691, phone: "---", info: "Sinh hoạt cộng đồng thôn Liên Hải", scale: "Sức chứa 200 chỗ ngồi", workingHours: "Cả ngày", mediaUrl: "", qrCode: "" },
-  { id: 7, name: "Nhà Văn Hoá Thôn Phúc Thanh", type: "culture", category: "Văn hóa - Thể thao", lat: 18.3931, lng: 105.9378, phone: "---", info: "Sinh hoạt cộng đồng thôn Phúc Thanh", scale: "Sức chứa 200 chỗ ngồi", workingHours: "Cả ngày", mediaUrl: "", qrCode: "" },
-  { id: 8, name: "Nhà Văn Hoá Thôn Đan Khê", type: "culture", category: "Văn hóa - Thể thao", lat: 18.3971, lng: 105.9433, phone: "---", info: "Sinh hoạt cộng đồng thôn Đan Khê", scale: "Sức chứa 200 chỗ ngồi", workingHours: "Cả ngày", mediaUrl: "", qrCode: "" },
-  { id: 9, name: "Nhà Văn Hoá Thôn Thanh Lan", type: "culture", category: "Văn hóa - Thể thao", lat: 18.3925, lng: 105.9468, phone: "---", info: "Sinh hoạt cộng đồng thôn Thanh Lan", scale: "Sức chứa 200 chỗ ngồi", workingHours: "Cả ngày", mediaUrl: "", qrCode: "" },
-  { id: 10, name: "Nhà văn hoá thôn Thanh Long", type: "culture", category: "Văn hóa - Thể thao", lat: 18.4199, lng: 105.9367, phone: "---", info: "Sinh hoạt cộng đồng thôn Thanh Long", scale: "Sức chứa 200 chỗ ngồi", workingHours: "Cả ngày", mediaUrl: "", qrCode: "" },
-  { id: 11, name: "Đồi Hoa Cát Biển - Thạch Hải", type: "tourism", category: "Du lịch - Bãi biển", lat: 18.3989, lng: 105.9653, phone: "---", info: "Khu du lịch sinh thái, điểm check-in nổi tiếng", scale: "Khu du lịch rộng lớn", workingHours: "07:00 - 18:00", mediaUrl: "", qrCode: "" },
-  { id: 12, name: "Tuyệt Tình Cốc Hà Tĩnh", type: "tourism", category: "Du lịch - Bãi biển", lat: 18.4307, lng: 105.9419, phone: "---", info: "Điểm tham quan du lịch cảnh quan", scale: "Danh lam thắng cảnh", workingHours: "Cả ngày", mediaUrl: "", qrCode: "" },
-  { id: 13, name: "Bãi sú vẹt", type: "eco", category: "Sinh thái - Môi trường", lat: 18.4192, lng: 105.9212, phone: "---", info: "Khu vực hệ sinh thái bãi sú vẹt phòng hộ", scale: "Hệ sinh thái ngập mặn", workingHours: "Cả ngày", mediaUrl: "", qrCode: "" },
-  { id: 14, name: "Rú Bể (rú voi)", type: "eco", category: "Sinh thái - Môi trường", lat: 18.4412, lng: 105.9332, phone: "---", info: "Khu vực địa danh Rú Bể sinh thái", scale: "Rừng phòng hộ", workingHours: "Cả ngày", mediaUrl: "", qrCode: "" },
-  { id: 15, name: "Ngoại Resort", type: "hotel", category: "Lưu trú - Khách sạn", lat: 18.4263, lng: 105.9368, phone: "02393.999.888", info: "Khu nghỉ dưỡng ven biển cao cấp", scale: "50 phòng nghỉ", workingHours: "24/7", mediaUrl: "", qrCode: "" },
-  { id: 16, name: "Nhà hàng Hồng Ngọc", type: "restaurant", category: "Ẩm thực - Nhà hàng", lat: 18.4011, lng: 105.9785, phone: "0912333444", info: "Hải sản và ẩm thực địa phương tươi sống", scale: "Phục vụ 200 khách", workingHours: "09:00 - 22:00", mediaUrl: "", qrCode: "" },
-  { id: 17, name: "Nhà Hàng Thái Ất", type: "restaurant", category: "Ẩm thực - Nhà hàng", lat: 18.4013, lng: 105.9783, phone: "0912333555", info: "Chuyên hải sản biển tươi ngon", scale: "Phục vụ 150 khách", workingHours: "09:00 - 22:00", mediaUrl: "", qrCode: "" },
-  { id: 18, name: "Nhà hàng Nga Sự", type: "restaurant", category: "Ẩm thực - Nhà hàng", lat: 18.4014, lng: 105.9782, phone: "0912333666", info: "Ẩm thực hải sản phong phú", scale: "Phục vụ 150 khách", workingHours: "09:00 - 22:00", mediaUrl: "", qrCode: "" },
-  { id: 19, name: "Nhà hàng Nhật Hạnh", type: "restaurant", category: "Ẩm thực - Nhà hàng", lat: 18.4016, lng: 105.9781, phone: "0912333777", info: "Đặc sản biển tươi sống chất lượng", scale: "Phục vụ 180 khách", workingHours: "09:00 - 22:00", mediaUrl: "", qrCode: "" },
-  { id: 20, name: "Nhà Hàng Nhà Nghỉ Mạnh Hướng", type: "hotel", category: "Lưu trú - Khách sạn", lat: 18.4032, lng: 105.9766, phone: "0912333888", info: "Lưu trú kết hợp nhà hàng hải sản", scale: "20 phòng nghỉ", workingHours: "24/7", mediaUrl: "", qrCode: "" },
-  { id: 21, name: "Nhà Hàng Tri Kỉ", type: "restaurant", category: "Ẩm thực - Nhà hàng", lat: 18.4007, lng: 105.9787, phone: "0912333999", info: "Ẩm thực ven biển uy tín", scale: "Phục vụ 120 khách", workingHours: "09:00 - 22:00", mediaUrl: "", qrCode: "" },
-  { id: 22, name: "Nhà Hàng Hào Giáp", type: "restaurant", category: "Ẩm thực - Nhà hàng", lat: 18.4003, lng: 105.9790, phone: "0912334000", info: "Ăn uống uy tín khu vực biển Thạch Khê", scale: "Phục vụ 200 khách", workingHours: "09:00 - 22:00", mediaUrl: "", qrCode: "" },
-  { id: 23, name: "Nhà Hàng Hiền Thành", type: "restaurant", category: "Ẩm thực - Nhà hàng", lat: 18.4000, lng: 105.9792, phone: "0912334111", info: "Hải sản tươi ngon giá bình dân", scale: "Phục vụ 150 khách", workingHours: "09:00 - 22:00", mediaUrl: "", qrCode: "" }
-];
 
+// ==========================================
+// 4. DANH SÁCH ĐỊA ĐIỂM (36 ĐỊA ĐIỂM ĐẦY ĐỦ)
+export const mapLocations = [
+  { id: 1, name: "Ủy ban nhân dân xã Thạch Khê", type: "admin", category: "Hành chính", lat: 18.3858, lng: 105.9505, phone: "02393.850.111", info: "Trụ sở làm việc hành chính xã Thạch Khê", scale: "25 Cán bộ công chức", workingHours: "07:30 - 17:00 (Thứ 2 - Thứ 6)", image:"/images/ubnd.jpg", qrCode: "" },
+  { id: 2, name: "Đảng ủy xã Thạch Khê", type: "admin", category: "Hành chính", lat: 18.3998, lng: 105.9770, phone: "02393.850.112", info: "Trụ sở Đảng ủy xã Thạch Khê", scale: "15 Cán bộ", workingHours: "07:30 - 17:00 (Thứ 2 - Thứ 6)", image: "", qrCode: "" },
+  { id: 3, name: "Công an xã Thạch Khê", type: "security", category: "An ninh trật tự", lat: 18.4058, lng: 105.9336, phone: "02393.850.333", info: "Trụ sở Công an xã Thạch Khê", scale: "8 Đồng chí công an", workingHours: "24/7", image: "", qrCode: "" },
+  { id: 4, name: "Đền thờ Đại học sĩ Trương Quốc Dụng", type: "temple", category: "Di tích - Tâm linh", lat: 18.3819, lng: 105.9567, phone: "---", info: "Di tích lịch sử văn hóa cấp quốc gia", scale: "Khu di tích lịch sử", workingHours: "08:00 - 17:00 hàng ngày", image: "", qrCode: "" },
+  { id: 5, name: "Chùa Tam Bảo", type: "temple", category: "Di tích - Tâm linh", lat: 18.416488, lng: 105.964081, phone: "---", info: "Ngôi chùa gắn kết các hoạt động sinh hoạt tâm linh của cộng đồng.", scale: "Khuôn viên chùa", workingHours: "06:00 - 20:00 hàng ngày", image: "", qrCode: "" },
+  { id: 6, name: "Nhà Văn Hoá Thôn Liên Hải", type: "culture", category: "Văn hóa - Thể thao", lat: 18.3910, lng: 105.9691, phone: "---", info: "Sinh hoạt cộng đồng thôn Liên Hải", scale: "Sức chứa 200 chỗ ngồi", workingHours: "Cả ngày", image: "", qrCode: "" },
+  { id: 7, name: "Nhà Văn Hoá Thôn Phúc Thanh", type: "culture", category: "Văn hóa - Thể thao", lat: 18.3931, lng: 105.9378, phone: "---", info: "Sinh hoạt cộng đồng thôn Phúc Thanh", scale: "Sức chứa 200 chỗ ngồi", workingHours: "Cả ngày", image: "", qrCode: "" },
+  { id: 8, name: "Nhà Văn Hoá Thôn Đan Khê", type: "culture", category: "Văn hóa - Thể thao", lat: 18.3971, lng: 105.9433, phone: "---", info: "Sinh hoạt cộng đồng thôn Đan Khê", scale: "Sức chứa 200 chỗ ngồi", workingHours: "Cả ngày", image: "", qrCode: "" },
+  { id: 9, name: "Nhà Văn Hoá Thôn Thanh Lan", type: "culture", category: "Văn hóa - Thể thao", lat: 18.3925, lng: 105.9468, phone: "---", info: "Sinh hoạt cộng đồng thôn Thanh Lan", scale: "Sức chứa 200 chỗ ngồi", workingHours: "Cả ngày", image: "", qrCode: "" },
+  { id: 10, name: "Nhà văn hoá thôn Thanh Long", type: "culture", category: "Văn hóa - Thể thao", lat: 18.4199, lng: 105.9367, phone: "---", info: "Sinh hoạt cộng đồng thôn Thanh Long", scale: "Sức chứa 200 chỗ ngồi", workingHours: "Cả ngày", image: "", qrCode: "" },
+  { id: 11, name: "Đồi Hoa Cát Biển - Thạch Hải", type: "tourism", category: "Du lịch - Bãi biển", lat: 18.3989, lng: 105.9653, phone: "---", info: "Khu du lịch sinh thái, điểm check-in nổi tiếng", scale: "Khu du lịch rộng lớn", workingHours: "07:00 - 18:00", image: "", qrCode: "" },
+  { id: 12, name: "Tuyệt Tình Cốc Hà Tĩnh", type: "tourism", category: "Du lịch - Bãi biển", lat: 18.430114, lng: 105.942922, phone: "---", info: "Thắng cảnh nổi tiếng với làn nước trong xanh ngắt, điểm check-in cực hot.", scale: "Danh lam thắng cảnh", workingHours: "Cả ngày", image: "", qrCode: "" },
+  { id: 13, name: "Bãi sú vẹt", type: "eco", category: "Sinh thái - Môi trường", lat: 18.4192, lng: 105.9212, phone: "---", info: "Khu vực hệ sinh thái bãi sú vẹt phòng hộ", scale: "Hệ sinh thái ngập mặn", workingHours: "Cả ngày", image: "", qrCode: "" },
+  { id: 14, name: "Rú Bể (rú voi)", type: "eco", category: "Sinh thái - Môi trường", lat: 18.4412, lng: 105.9332, phone: "---", info: "Khu vực địa danh Rú Bể sinh thái", scale: "Rừng phòng hộ", workingHours: "Cả ngày", image: "", qrCode: "" },
+  { id: 15, name: "Ngoại Resort", type: "hotel", category: "Lưu trú - Khách sạn", lat: 18.4263, lng: 105.9368, phone: "02393.999.888", info: "Khu nghỉ dưỡng ven biển cao cấp", scale: "50 phòng nghỉ", workingHours: "24/7", image: "", qrCode: "" },
+  { id: 16, name: "Nhà hàng Hồng Ngọc", type: "restaurant", category: "Ẩm thực - Nhà hàng", lat: 18.4011, lng: 105.9785, phone: "0912333444", info: "Hải sản và ẩm thực địa phương tươi sống", scale: "Phục vụ 200 khách", workingHours: "09:00 - 22:00", image: "", qrCode: "" },
+  { id: 17, name: "Nhà Hàng Thái Ất", type: "restaurant", category: "Ẩm thực - Nhà hàng", lat: 18.4013, lng: 105.9783, phone: "0912333555", info: "Chuyên hải sản biển tươi ngon", scale: "Phục vụ 150 khách", workingHours: "09:00 - 22:00", image: "", qrCode: "" },
+  { id: 18, name: "Nhà hàng Nga Sự", type: "restaurant", category: "Ẩm thực - Nhà hàng", lat: 18.4014, lng: 105.9782, phone: "0912333666", info: "Ẩm thực hải sản phong phú", scale: "Phục vụ 150 khách", workingHours: "09:00 - 22:00", image: "", qrCode: "" },
+  { id: 19, name: "Nhà hàng Nhật Hạnh", type: "restaurant", category: "Ẩm thực - Nhà hàng", lat: 18.4016, lng: 105.9781, phone: "0912333777", info: "Đặc sản biển tươi sống chất lượng", scale: "Phục vụ 180 khách", workingHours: "09:00 - 22:00", image: "", qrCode: "" },
+  { id: 20, name: "Nhà Hàng Nhà Nghỉ Mạnh Hướng", type: "hotel", category: "Lưu trú - Khách sạn", lat: 18.4032, lng: 105.9766, phone: "0912333888", info: "Lưu trú kết hợp nhà hàng hải sản", scale: "20 phòng nghỉ", workingHours: "24/7", image: "", qrCode: "" },
+  { id: 21, name: "Nhà Hàng Tri Kỉ", type: "restaurant", category: "Ẩm thực - Nhà hàng", lat: 18.4007, lng: 105.9787, phone: "0912333999", info: "Ẩm thực ven biển uy tín", scale: "Phục vụ 120 khách", workingHours: "09:00 - 22:00", image: "", qrCode: "" },
+  { id: 22, name: "Nhà Hàng Hào Giáp", type: "restaurant", category: "Ẩm thực - Nhà hàng", lat: 18.4003, lng: 105.9790, phone: "0912334000", info: "Ăn uống uy tín khu vực biển Thạch Khê", scale: "Phục vụ 200 khách", workingHours: "09:00 - 22:00", image: "", qrCode: "" },
+  { id: 23, name: "Nhà Hàng Hiền Thành", type: "restaurant", category: "Ẩm thực - Nhà hàng", lat: 18.4000, lng: 105.9792, phone: "0912334111", info: "Hải sản tươi ngon giá bình dân", scale: "Phục vụ 150 khách", workingHours: "09:00 - 22:00", image: "", qrCode: "" },
+  { id: 24, name: "Chùa Bụt Mọoc", type: "temple", category: "Di tích - Tâm linh", lat: 18.398630, lng: 105.971401, phone: "---", info: "Ngôi chùa cổ kính, không gian thanh tịnh phục vụ sinh hoạt tín ngưỡng.", scale: "Khuôn viên chùa", workingHours: "06:00 - 20:00 hàng ngày", image: "", qrCode: "" },
+  { id: 25, name: "Chợ Thạch Khê", type: "market", category: "Mua sắm - Chợ", lat: 18.386001, lng: 105.951717, phone: "---", info: "Trung tâm mua sắm sầm uất, cung cấp đầy đủ nhu yếu phẩm và hàng hóa thiết yếu.", scale: "Chợ dân sinh", workingHours: "06:00 - 18:00", image: "", qrCode: "" },
+  { id: 26, name: "Trường THPT Nguyễn Trung Thiên", type: "school", category: "Giáo dục", lat: 18.386773, lng: 105.949423, phone: "---", info: "Ngôi trường trung học phổ thông giàu truyền thống học tập của địa phương.", scale: "Trường học cấp 3", workingHours: "07:00 - 17:00 (Thứ 2 - Thứ 7)", image: "", qrCode: "" },
+  { id: 27, name: "Trường Tiểu Học Thạch Khê", type: "school", category: "Giáo dục", lat: 18.385584, lng: 105.949587, phone: "---", info: "Cơ sở giáo dục tiểu học ươm mầm thế hệ trẻ xã Thạch Khê.", scale: "Trường học cấp 1", workingHours: "07:00 - 17:00 (Thứ 2 - Thứ 7)", image: "", qrCode: "" },
+  { id: 28, name: "Nhà Văn Hoá Thôn Đồng Giang", type: "culture", category: "Văn hóa - Thể thao", lat: 18.383759, lng: 105.948044, phone: "---", info: "Không gian sinh hoạt cộng đồng, hội họp và tổ chức hoạt động văn hóa thôn.", scale: "Sức chứa 200 chỗ ngồi", workingHours: "Cả ngày", image: "", qrCode: "" },
+  { id: 29, name: "Hồ Sen Thạch Khê", type: "eco", category: "Sinh thái - Môi trường", lat: 18.384112, lng: 105.951351, phone: "---", info: "Cảnh quan hồ nước nên thơ, mùa sen nở rộ tỏa hương thơm ngát.", scale: "Cảnh quan sinh thái", workingHours: "Cả ngày", image: "", qrCode: "" },
+  { id: 30, name: "Trường THCS Thạch Khê", type: "school", category: "Giáo dục", lat: 18.388031, lng: 105.958351, phone: "---", info: "Nơi đào tạo và giáo dục học sinh bậc trung học cơ sở trên địa bàn.", scale: "Trường học cấp 2", workingHours: "07:00 - 17:00 (Thứ 2 - Thứ 7)", image: "", qrCode: "" },
+  { id: 31, name: "Nhà thờ dòng họ Trương Quốc Chi Mậu", type: "temple", category: "Di tích - Tâm linh", lat: 18.389783, lng: 105.969811, phone: "---", info: "Không gian tâm linh gắn liền với lịch sử và truyền thống dòng họ.", scale: "Không gian tâm linh dòng họ", workingHours: "Cả ngày", image: "", qrCode: "" },
+  { id: 32, name: "Nhà Thờ Họ Hồ Quang Lạc", type: "temple", category: "Di tích - Tâm linh", lat: 18.387693, lng: 105.971740, phone: "---", info: "Di tích nhà thờ tộc mang đậm dấu ấn văn hóa gia tộc lâu đời.", scale: "Không gian tâm linh dòng họ", workingHours: "Cả ngày", image: "", qrCode: "" },
+  { id: 33, name: "Khu Vui Chơi Quang Lạc", type: "tourism", category: "Vui chơi - Giải trí", lat: 18.386610, lng: 105.972383, phone: "---", info: "Điểm hẹn vui chơi, giải trí và sinh hoạt cộng đồng náo nhiệt.", scale: "Khu vực dịch vụ", workingHours: "08:00 - 22:00", image: "", qrCode: "" },
+  { id: 34, name: "Hải sản HOÀI YẾN", type: "restaurant", category: "Ẩm thực - Nhà hàng", lat: 18.394182, lng: 105.980916, phone: "---", info: "Quán hải sản tươi ngon, đa dạng các món đặc sản biển hấp dẫn.", scale: "Phục vụ ăn uống", workingHours: "09:00 - 22:00", image: "", qrCode: "" },
+  { id: 35, name: "Đền thờ vọng Chiêu Trưng Đại vương Lê Khôi", type: "temple", category: "Di tích - Tâm linh", lat: 18.400238, lng: 105.975206, phone: "---", info: "Đền thờ linh thiêng tưởng nhớ danh tướng triều Lê - Chiêu Trưng Đại vương.", scale: "Đền thờ danh nhân", workingHours: "08:00 - 17:00", image:"/images/dttqd.jpg", qrCode: "" },
+  { id: 36, name: "Mỏ sắt Thạch Khê", type: "industry", category: "Khu vực kinh tế", lat: 18.403114, lng: 105.957650, phone: "---", info: "Khu vực mỏ khoáng sản quy mô lớn của tỉnh Hà Tĩnh.", scale: "Khu công nghiệp/khai thác", workingHours: "Giờ hành chính", image: "", qrCode: "" },
+  { id: 37, name: "Quynh Vien Resort", type: "hotel", category: "Lưu trú - Khách sạn", lat: 18.4605, lng: 105.9392, phone: "---", info: "Khu nghỉ dưỡng ven biển Quỳnh Viên", scale: "Khu du lịch nghỉ dưỡng", workingHours: "24/7", image: "", qrCode: "" },
+  { id: 38, name: "Ban Chỉ huy Quân sự xã", type: "security", category: "An ninh trật tự", lat: 18.4000, lng: 105.9734, phone: "---", info: "Trụ sở Ban Chỉ huy Quân sự xã Thạch Khê", scale: "Cơ quan quân sự địa phương", workingHours: "07:30 - 17:00 (Thứ 2 - Thứ 6)", image: "", qrCode: "" },
+  { id: 39, name: "Nhà Nghỉ Thanh Hải", type: "hotel", category: "Lưu trú - Khách sạn", lat: 18.4002, lng: 105.9780, phone: "---", info: "Dịch vụ lưu trú tại khu vực biển", scale: "Nhà nghỉ", workingHours: "24/7", image: "", qrCode: "" },
+  { id: 40, name: "Nhà nghỉ Sóng Biển", type: "hotel", category: "Lưu trú - Khách sạn", lat: 18.4011, lng: 105.9780, phone: "---", info: "Dịch vụ lưu trú du lịch biển", scale: "Nhà nghỉ", workingHours: "24/7", image: "", qrCode: "" },
+  { id: 41, name: "Nhà nghỉ đặng gia", type: "hotel", category: "Lưu trú - Khách sạn", lat: 18.4010, lng: 105.9780, phone: "---", info: "Dịch vụ lưu trú bình dân", scale: "Nhà nghỉ", workingHours: "24/7", image: "", qrCode: "" },
+  { id: 42, name: "Đồ khô mắm ruốc Hợi Cảnh", type: "market", category: "Mua sắm - Chợ", lat: 18.4020, lng: 105.9736, phone: "---", info: "Cơ sở cung cấp đặc sản đồ khô, mắm ruốc địa phương", scale: "Cửa hàng đặc sản", workingHours: "07:00 - 19:00", image: "", qrCode: "" },
+  { id: 43, name: "Trường Tiểu học Thạch Khê phân hiệu 1", type: "school", category: "Giáo dục", lat: 18.4034, lng: 105.9294, phone: "---", info: "Cơ sở phân hiệu trường tiểu học", scale: "Điểm trường", workingHours: "07:00 - 17:00 (Thứ 2 - Thứ 7)", image: "", qrCode: "" },
+  { id: 44, name: "Trường THCS Thạch Khê phân hiệu 1", type: "school", category: "Giáo dục", lat: 18.4044, lng: 105.9316, phone: "---", info: "Cơ sở phân hiệu trường trung học cơ sở", scale: "Điểm trường", workingHours: "07:00 - 17:00 (Thứ 2 - Thứ 7)", image: "", qrCode: "" },
+  { id: 45, name: "Chợ Sơn", type: "market", category: "Mua sắm - Chợ", lat: 18.4072, lng: 105.9359, phone: "---", info: "Chợ dân sinh phục vụ cộng đồng khu vực", scale: "Chợ truyền thống", workingHours: "06:00 - 18:00", image: "", qrCode: "" },
+  { id: 46, name: "NVH Trường Xuan", type: "culture", category: "Văn hóa - Thể thao", lat: 18.3973, lng: 105.9241, phone: "---", info: "Nhà văn hóa thôn Trường Xuân", scale: "Sức chứa 200 chỗ ngồi", workingHours: "Cả ngày", image: "", qrCode: "" },
+  { id: 47, name: "Di tích lịch sử nhà thờ Nguyễn Lý", type: "temple", category: "Di tích - Tâm linh", lat: 18.3948, lng: 105.9270, phone: "---", info: "Di tích lịch sử văn hóa dòng họ Nguyễn Lý", scale: "Không gian tâm linh dòng họ", workingHours: "Cả ngày", image: "", qrCode: "" },
+  { id: 48, name: "Đền Thánh Mẫu", type: "temple", category: "Di tích - Tâm linh", lat: 18.4046, lng: 105.9078, phone: "---", info: "Không gian sinh hoạt tín ngưỡng tâm linh", scale: "Đền thờ", workingHours: "08:00 - 17:00", image: "", qrCode: "" },
+  { id: 49, name: "Đèn biển Cửa Sót", type: "tourism", category: "Du lịch - Bãi biển", lat: 18.4684, lng: 105.9412, phone: "---", info: "Ngọn hải đăng Cửa Sót lịch sử", scale: "Danh lam thắng cảnh", workingHours: "Cả ngày", image: "", qrCode: "" },
+  { id: 50, name: "Mũi Ót", type: "tourism", category: "Du lịch - Bãi biển", lat: 18.4652, lng: 105.9383, phone: "---", info: "Khu vực mũi biển phong cảnh đẹp", scale: "Danh lam thắng cảnh", workingHours: "Cả ngày", image: "", qrCode: "" },
+  { id: 51, name: "Quỳnh Viên Tự", type: "temple", category: "Di tích - Tâm linh", lat: 18.4610, lng: 105.9366, phone: "---", info: "Ngôi chùa cổ vùng Quỳnh Viên", scale: "Khuôn viên chùa", workingHours: "06:00 - 20:00", image: "", qrCode: "" },
+  { id: 52, name: "Đền Thờ Thánh Mẫu", type: "temple", category: "Di tích - Tâm linh", lat: 18.4573, lng: 105.9322, phone: "---", info: "Đền thờ linh thiêng tại khu vực núi Quỳnh Viên", scale: "Đền thờ", workingHours: "08:00 - 17:00", image: "", qrCode: "" },
+  { id: 53, name: "Chùa Thanh Quang (Phật Quang)", type: "temple", category: "Di tích - Tâm linh", lat: 18.4115, lng: 105.9387, phone: "---", info: "Cơ sở tôn giáo, sinh hoạt phật giáo", scale: "Khuôn viên chùa", workingHours: "06:00 - 20:00", image: "", qrCode: "" },
+  { id: 54, name: "Trạm Y tế xã thạch Khê", type: "admin", category: "Y tế - Sức khỏe", lat: 18.3855, lng: 105.9514, phone: "---", info: "Trạm y tế chăm sóc sức khỏe ban đầu cho nhân dân", scale: "Cơ sở y tế xã", workingHours: "24/7", image: "", qrCode: "" },
+  { id: 55, name: "Diệp Trung Penthouse", type: "hotel", category: "Lưu trú - Khách sạn", lat: 18.4098, lng: 105.9673, phone: "---", info: "Khu căn hộ lưu trú cao cấp", scale: "Lưu trú dịch vụ", workingHours: "24/7", image: "", qrCode: "" },
+  { id: 56, name: "Homestay Thạch Hải", type: "hotel", category: "Lưu trú - Khách sạn", lat: 18.4061, lng: 105.9739, phone: "---", info: "Dịch vụ homestay du lịch biển Thạch Hải", scale: "Cơ sở lưu trú", workingHours: "24/7", image: "", qrCode: "" },
+  { id: 57, name: "Cfee Biển Thạch Hải", type: "restaurant", category: "Ẩm thực - Nhà hàng", lat: 18.4027, lng: 105.9769, phone: "---", info: "Quán cà phê ngắm cảnh biển Thạch Hải", scale: "Quán nước / Cafe", workingHours: "07:00 - 22:00", image: "", qrCode: "" }
+];
 // ==========================================
 // 5. TÀI KHOẢN QUẢN TRỊ HỆ THỐNG
 // ==========================================

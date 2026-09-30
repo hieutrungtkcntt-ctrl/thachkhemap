@@ -75,7 +75,7 @@ const createPinIcon = (loc, isSelected) => {
   let bgColor = '#3b82f6';
 
   switch (loc.type) {
-    case 'admin': emoji = '🏛️'; bgColor = '#2563eb'; break;
+    case 'admin': emoji = '🏛'; bgColor = '#2563eb'; break;
     case 'security': emoji = '🛡️'; bgColor = '#1e3a8a'; break;
     case 'culture': emoji = '🏮'; bgColor = '#0284c7'; break;
     case 'health': emoji = '🏥'; bgColor = '#dc2626'; break;
@@ -182,6 +182,7 @@ export default function MapComponent({
   selectedLocation, 
   onSelectLocation, 
   onDirectGPSRoute, 
+  onOpenDetail, 
   getCategoryName,
   reports = [] 
 }) {
@@ -241,11 +242,8 @@ export default function MapComponent({
           }} 
         />
 
-        {/* HIỂN THỊ CÁC BÁO CÁO PHẢN ÁNH ĐÃ GỬI TRÊN BẢN ĐỒ */}
         {!isPickingMap && reports && reports.map((rep, index) => {
           if (!rep.lat || !rep.lng) return null;
-          
-          {/* 🛑 BỎ QUA KHÔNG VẼ NẾU ADMIN ĐÃ BẬT TRẠNG THÁI ẨN */}
           if (rep.isMapHidden === true) return null;
 
           const latNum = parseFloat(rep.lat);
@@ -310,9 +308,17 @@ export default function MapComponent({
         )}
 
         {mapStyle === 'satellite' ? (
-          <TileLayer attribution='Tiles &copy; Esri' url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}" maxZoom={19} />
+          <TileLayer 
+            attribution='&copy; Google Maps' 
+            url="https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}" 
+            maxZoom={20} 
+          />
         ) : (
-          <TileLayer attribution='&copy; CARTO' url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png" maxZoom={19} />
+          <TileLayer 
+            attribution='Map tiles by Stamen Design, under CC BY 3.0. Data by OpenStreetMap' 
+            url="https://tiles.stadiamaps.com/tiles/stamen_toner_lite/{z}/{x}/{y}{r}.png" 
+            maxZoom={20} 
+          />
         )}
         
         {communeBoundary && communeBoundary.length > 0 && (
@@ -321,20 +327,42 @@ export default function MapComponent({
 
         {villages && villages.map((village, idx) => {
           if (!village.boundary || village.boundary.length === 0) return null;
-          const isSelected = selectedVillage && selectedVillage.name === village.name;
+          
+          const isSelected = selectedVillage && (selectedVillage.name === village.name || selectedVillage.id === village.id);
+          const isAnyVillageSelected = selectedVillage !== null && selectedVillage !== undefined;
+
+          let polygonColor = village.color || '#3b82f6';
+          let fillColor = village.color || '#3b82f6';
+          let fillOpacity = 0.25;
+          let weight = 1.5;
+
+          if (isAnyVillageSelected) {
+            if (isSelected) {
+              polygonColor = '#f59e0b';
+              fillColor = village.color || '#3b82f6';
+              fillOpacity = 0.6;
+              weight = 3;
+            } else {
+              polygonColor = '#94a3b8';
+              fillColor = '#cbd5e1';
+              fillOpacity = 0.15;
+              weight = 1;
+            }
+          }
+
           const centerCoord = getPolygonCenter(village.boundary);
 
           const labelIcon = L.divIcon({
             className: 'village-name-label-fixed',
             html: `
               <div style="
-                background: #ffffff;
+                background: ${isSelected ? '#eff6ff' : '#ffffff'};
                 padding: 5px 12px;
                 border-radius: 8px;
-                border: 2px solid ${village.color || '#2563eb'};
+                border: 2px solid ${isSelected ? '#f59e0b' : (village.color || '#2563eb')};
                 font-size: 13px;
                 font-weight: 800;
-                color: #1e3a8a;
+                color: ${isSelected ? '#1d4ed8' : '#1e3a8a'};
                 white-space: nowrap;
                 box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
                 display: flex;
@@ -342,6 +370,7 @@ export default function MapComponent({
                 gap: 6px;
                 width: max-content;
                 pointer-events: none;
+                opacity: ${isAnyVillageSelected && !isSelected ? '0.4' : '1'};
               ">
                 <span style="font-size: 14px;">📍</span>
                 <span>${village.name}</span>
@@ -357,10 +386,10 @@ export default function MapComponent({
                 positions={village.boundary} 
                 interactive={!isPickingMap}
                 pathOptions={{ 
-                  color: isSelected ? '#f59e0b' : (village.color || '#3b82f6'), 
-                  weight: isSelected ? 3 : 1.5, 
-                  fillColor: village.color || '#3b82f6', 
-                  fillOpacity: isSelected ? 0.5 : 0.25 
+                  color: polygonColor, 
+                  weight: weight, 
+                  fillColor: fillColor, 
+                  fillOpacity: fillOpacity 
                 }}
               >
                 {!isPickingMap && (
@@ -377,35 +406,61 @@ export default function MapComponent({
           );
         })}
 
-        {filteredLocations.map((loc) => {
-          const isSelected = selectedLocation?.id === loc.id;
-          return (
-            <Marker 
-              key={loc.id} 
-              position={[loc.lat, loc.lng]} 
-              icon={createPinIcon(loc, isSelected)}
-              eventHandlers={{ click: () => { if (!isPickingMap) onSelectLocation(loc); } }}
-            >
-              {!isPickingMap && (
-                <Popup>
-                  <div className="p-1 min-w-[180px] flex flex-col gap-1.5">
-                    <div>
-                      <span className="text-[10px] bg-blue-50 text-blue-700 font-semibold px-1.5 py-0.5 rounded">{getCategoryName(loc.type)}</span>
-                      <h4 className="font-bold text-blue-900 text-xs mt-1">{loc.name}</h4>
-                      <p className="text-[11px] text-slate-600 mt-0.5">{loc.info}</p>
-                    </div>
-                    <button 
-                      onClick={() => onDirectGPSRoute(loc.lat, loc.lng, loc)}
-                      className="w-full bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-semibold py-1 px-2 rounded flex items-center justify-center gap-1 transition"
-                    >
-                      🧭 Chỉ đường đường bộ (GPS)
-                    </button>
-                  </div>
-                </Popup>
-              )}
-            </Marker>
-          );
-        })}
+      {filteredLocations.map((loc) => {
+  const isSelected = selectedLocation?.id === loc.id;
+  return (
+    <Marker 
+      key={loc.id} 
+      position={[loc.lat, loc.lng]} 
+      icon={createPinIcon(loc, isSelected)}
+      eventHandlers={{ click: () => { if (!isPickingMap) onSelectLocation(loc); } }}
+    >
+      {!isPickingMap && (
+        <Popup>
+          <div className="p-1 min-w-[200px] max-w-[240px] flex flex-col gap-1.5">
+            
+            {/* Khung ảnh thông minh: Tự động lấy ảnh trong data.js hoặc dùng ảnh mặc định */}
+            <div className="w-full h-28 rounded-lg overflow-hidden border border-slate-200 bg-slate-100 shadow-xs relative">
+            <img 
+              src={loc.image && loc.image.trim() !== "" ? loc.image : "/images/default-map.jpg"} 
+              alt={loc.name} 
+              className="w-full h-full object-cover" 
+              onError={(e) => { 
+                // Nếu file ảnh trong public/images/ bị lỗi hoặc không tồn tại, tự động chuyển về ảnh mặc định dự phòng
+                e.target.src = "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=500"; 
+              }}
+            />
+            </div>
+
+            <div>
+              <span className="text-[10px] bg-blue-50 text-blue-700 font-semibold px-1.5 py-0.5 rounded">
+                {getCategoryName(loc.type)}
+              </span>
+              <h4 className="font-bold text-blue-900 text-xs mt-1">{loc.name}</h4>
+              <p className="text-[11px] text-slate-600 mt-0.5">{loc.info}</p>
+            </div>
+            
+            <div className="flex items-center gap-1.5 pt-1">
+              <button 
+                onClick={() => onOpenDetail && onOpenDetail(loc)}
+                className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-800 text-[11px] font-bold py-1.5 px-2 rounded transition flex items-center justify-center gap-1"
+              >
+                📖 Chi tiết
+              </button>
+
+              <button 
+                onClick={() => onDirectGPSRoute(loc.lat, loc.lng, loc)}
+                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-bold py-1.5 px-2 rounded flex items-center justify-center gap-1 transition"
+              >
+                🧭 Chỉ đường
+              </button>
+            </div>
+          </div>
+        </Popup>
+      )}
+    </Marker>
+  );
+})}
       </MapContainer>
     </div>
   );

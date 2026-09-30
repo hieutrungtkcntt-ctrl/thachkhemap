@@ -7,11 +7,12 @@ import 'leaflet/dist/leaflet.css';
 export default function App() {
   const [currentView, setCurrentView] = useState('client'); // 'client', 'admin-login', 'admin'
   
-  // Khởi tạo locations từ localStorage hoặc data.js
-  const [locations, setLocations] = useState(() => {
-    const saved = localStorage.getItem('thachkhe_locations');
-    return saved ? JSON.parse(saved) : mapLocations;
-  });
+// Luôn tự động đồng bộ và ưu tiên dữ liệu mới nhất từ data.js
+const [locations, setLocations] = useState(() => {
+  // Cập nhật thẳng dữ liệu mới từ data.js vào localStorage để mọi thay đổi về ảnh, tên, tọa độ đều được ăn ngay
+  localStorage.setItem('thachkhe_locations', JSON.stringify(mapLocations));
+  return mapLocations;
+});
 
   // Khởi tạo villages từ localStorage hoặc data.js
   const [villages, setVillages] = useState(() => {
