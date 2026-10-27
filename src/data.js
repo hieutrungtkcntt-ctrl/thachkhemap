@@ -478,7 +478,7 @@ export const villagesData = [
 // ==========================================
 // 4. DANH SÁCH ĐỊA ĐIỂM (36 ĐỊA ĐIỂM ĐẦY ĐỦ)
 export const mapLocations = [
-  { id: 1, name: "Ủy ban nhân dân xã Thạch Khê", type: "admin", category: "Hành chính", lat: 18.3858, lng: 105.9505, phone: "02393.850.111", info: "Trụ sở làm việc hành chính xã Thạch Khê", scale: "25 Cán bộ công chức", workingHours: "07:30 - 17:00 (Thứ 2 - Thứ 6)", image:"/images/ubnd.jpg", qrCode: "" },
+  { id: 1, name: "Ủy ban nhân dân xã Thạch Khê", type: "admin", category: "Hành chính", lat: 18.3858, lng: 105.9505, phone: "02393.850.111", info: "Trụ sở làm việc hành chính xã Thạch Khê", scale: "25 Cán bộ công chức", workingHours: "07:30 - 17:00 (Thứ 2 - Thứ 6)", image:"s", qrCode: "" },
   { id: 2, name: "Đảng ủy xã Thạch Khê", type: "admin", category: "Hành chính", lat: 18.3998, lng: 105.9770, phone: "02393.850.112", info: "Trụ sở Đảng ủy xã Thạch Khê", scale: "15 Cán bộ", workingHours: "07:30 - 17:00 (Thứ 2 - Thứ 6)", image: "", qrCode: "" },
   { id: 3, name: "Công an xã Thạch Khê", type: "security", category: "An ninh trật tự", lat: 18.4058, lng: 105.9336, phone: "02393.850.333", info: "Trụ sở Công an xã Thạch Khê", scale: "8 Đồng chí công an", workingHours: "24/7", image: "", qrCode: "" },
   { id: 4, name: "Đền thờ Đại học sĩ Trương Quốc Dụng", type: "temple", category: "Di tích - Tâm linh", lat: 18.3819, lng: 105.9567, phone: "---", info: "Di tích lịch sử văn hóa cấp quốc gia", scale: "Khu di tích lịch sử", workingHours: "08:00 - 17:00 hàng ngày", image: "", qrCode: "" },
