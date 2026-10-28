@@ -1,14 +1,121 @@
-import React from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { db } from '../../firebase';
 
-export default function LocationDetailModal({ isOpen = true, onClose, location, getCategoryName, onDirectGPSRoute }) {
+export default function LocationDetailModal({
+  isOpen = true,
+  onClose,
+  location,
+  getCategoryName,
+  onDirectGPSRoute
+}) {
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
+  const [isSlideshowPlaying, setIsSlideshowPlaying] = useState(true);
+
+  // Trích xuất và chuẩn hóa mảng ảnh siêu an toàn từ mọi định dạng Firestore trả về
+  const galleryImages = useMemo(() => {
+    if (!location) return [];
+
+    let candidates = [];
+
+    // 1. Kiểm tra trường images (hỗ trợ cả mảng chuẩn lẫn object map key số 0, 1...)
+    if (location.images) {
+      if (Array.isArray(location.images)) {
+        candidates = [...location.images];
+      } else if (typeof location.images === 'object') {
+        candidates = Object.values(location.images);
+      }
+    }
+
+    // 2. Kiểm tra các trường photos hoặc gallery
+    if (location.photos) {
+      if (Array.isArray(location.photos)) {
+        candidates = [...candidates, ...location.photos];
+      } else if (typeof location.photos === 'object') {
+        candidates = [...candidates, ...Object.values(location.photos)];
+      }
+    }
+
+    if (location.gallery) {
+      if (Array.isArray(location.gallery)) {
+        candidates = [...candidates, ...location.gallery];
+      } else if (typeof location.gallery === 'object') {
+        candidates = [...candidates, ...Object.values(location.gallery)];
+      }
+    }
+
+    // 3. Dự phòng các trường ảnh đơn lẻ khác
+    candidates = [
+      ...candidates,
+      location.mediaUrl,
+      location.image,
+      location.imageUrl,
+      location.photo,
+      location.photoUrl,
+      location.thumbnail
+    ];
+
+    const urls = candidates
+      .map((item) => {
+        if (typeof item === 'string') return item.trim();
+        if (item && typeof item === 'object') {
+          return (item.url || item.src || item.imageUrl || item.photoUrl || item.image || '').trim();
+        }
+        return '';
+      })
+      .filter((url) => {
+        if (!url) return false;
+        const lower = url.toLowerCase();
+        return (
+          lower !== 'null' &&
+          lower !== 'undefined' &&
+          lower !== '' &&
+          !lower.endsWith('/null') &&
+          !lower.endsWith('/undefined')
+        );
+      });
+
+    return [...new Set(urls)]; // Loại bỏ các URL trùng lặp
+  }, [location]);
+
+  useEffect(() => {
+    setActiveImageIndex(0);
+    setIsSlideshowPlaying(true);
+  }, [location]);
+
+  useEffect(() => {
+    if (!isOpen || galleryImages.length < 2 || !isSlideshowPlaying) return undefined;
+
+    const timer = window.setInterval(() => {
+      setActiveImageIndex((current) => (current + 1) % galleryImages.length);
+    }, 4000);
+
+    return () => window.clearInterval(timer);
+  }, [isOpen, galleryImages, isSlideshowPlaying]);
+
   if (!isOpen || !location) return null;
 
-  const mapEmbedUrl = `https://maps.google.com/maps?q=${location.lat},${location.lng}&z=15&output=embed`;
+  const lat = location.lat || '18.4250';
+  const lng = location.lng || '105.9550';
+  const mapEmbedUrl = `https://maps.google.com/maps?q=${lat},${lng}&z=15&output=embed`;
+
+  const showPreviousImage = () => {
+    setActiveImageIndex((current) =>
+      current === 0 ? galleryImages.length - 1 : current - 1
+    );
+  };
+
+  const showNextImage = () => {
+    setActiveImageIndex((current) => (current + 1) % galleryImages.length);
+  };
+
+  const categoryLabel = typeof getCategoryName === 'function' 
+    ? getCategoryName(location.type || location.category) 
+    : (location.type || location.category || 'Địa điểm khác');
 
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-xs p-3 sm:p-4 animate-fadeIn">
       <div className="bg-white w-full max-w-xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
-        
+
         {/* Header xanh đậm */}
         <div className="bg-[#0f2942] text-white p-4 sm:p-5 flex items-start justify-between relative">
           <div className="space-y-1.5 pr-6">
@@ -18,13 +125,15 @@ export default function LocationDetailModal({ isOpen = true, onClose, location, 
             </div>
             <div>
               <span className="inline-block text-[11px] bg-white/10 text-slate-200 px-2.5 py-0.5 rounded-full font-medium">
-                🏷️ Lĩnh vực: {typeof getCategoryName === 'function' ? getCategoryName(location.type) : location.type}
+                🏷️ Lĩnh vực: {categoryLabel}
               </span>
             </div>
           </div>
-          <button 
+          <button
+            type="button"
             onClick={onClose}
-            className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white font-bold transition absolute top-4 right-4"
+            aria-label="Đóng bảng chi tiết"
+            className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white font-bold transition absolute top-4 right-4 cursor-pointer"
           >
             ✕
           </button>
@@ -32,17 +141,82 @@ export default function LocationDetailModal({ isOpen = true, onClose, location, 
 
         {/* Nội dung cuộn */}
         <div className="p-4 sm:p-6 overflow-y-auto space-y-5 text-slate-700 text-xs sm:text-sm">
-          
-          {location.image && (
-            <div className="rounded-xl overflow-hidden shadow-sm border border-slate-200 bg-slate-100">
-              <img src={location.image} alt={location.name} className="w-full h-48 sm:h-64 object-cover" />
-            </div>
+
+          {/* THƯ VIỆN ẢNH / SLIDESHOW HOẶC ẢNH ĐƠN */}
+          {galleryImages.length > 0 && (
+            <section className="space-y-2" aria-label="Thư viện hình ảnh địa điểm">
+              <div className="flex items-center justify-between gap-2">
+                <h3 className="font-bold text-slate-900 text-xs sm:text-sm flex items-center gap-2">
+                  <span>🖼️</span> Hình ảnh địa điểm ({galleryImages.length} ảnh)
+                </h3>
+                {galleryImages.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => setIsSlideshowPlaying((playing) => !playing)}
+                    className="text-xs font-semibold text-blue-600 hover:text-blue-800 cursor-pointer"
+                  >
+                    {isSlideshowPlaying ? '⏸ Tạm dừng' : '▶ Trình chiếu'}
+                  </button>
+                )}
+              </div>
+
+              <div className="relative overflow-hidden rounded-xl border border-slate-200 bg-slate-100 shadow-sm">
+                <img
+                  key={galleryImages[activeImageIndex]}
+                  src={galleryImages[activeImageIndex]}
+                  alt={`${location.name} ảnh ${activeImageIndex + 1}`}
+                  className="w-full h-48 sm:h-64 object-cover"
+                  onError={(event) => {
+                    event.currentTarget.parentElement.style.display = 'none';
+                  }}
+                />
+
+                {galleryImages.length > 1 && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={showPreviousImage}
+                      aria-label="Ảnh trước"
+                      className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/55 hover:bg-black/75 text-white text-xl flex items-center justify-center shadow transition cursor-pointer"
+                    >‹</button>
+                    <button
+                      type="button"
+                      onClick={showNextImage}
+                      aria-label="Ảnh tiếp theo"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/55 hover:bg-black/75 text-white text-xl flex items-center justify-center shadow transition cursor-pointer"
+                    >›</button>
+                    <div className="absolute bottom-3 left-1/2 -translate-x-1/2 rounded-full bg-black/65 text-white px-3 py-1 text-[11px] font-semibold">
+                      {activeImageIndex + 1} / {galleryImages.length}
+                    </div>
+                  </>
+                )}
+              </div>
+
+              {/* Danh sách thumbnail thu nhỏ khi có từ 2 ảnh trở lên */}
+              {galleryImages.length > 1 && (
+                <div className="flex gap-2 overflow-x-auto pb-1">
+                  {galleryImages.map((imageUrl, index) => (
+                    <button
+                      type="button"
+                      key={`${imageUrl}-${index}`}
+                      onClick={() => setActiveImageIndex(index)}
+                      aria-label={`Xem ảnh ${index + 1}`}
+                      className={`shrink-0 w-16 h-12 sm:w-20 sm:h-14 rounded-lg overflow-hidden border-2 transition cursor-pointer ${
+                        activeImageIndex === index
+                          ? 'border-blue-600 ring-2 ring-blue-100'
+                          : 'border-transparent opacity-75 hover:opacity-100'
+                      }`}
+                    >
+                      <img src={imageUrl} alt="" className="w-full h-full object-cover" />
+                    </button>
+                  ))}
+                </div>
+              )}
+            </section>
           )}
 
           {/* Danh sách thông tin chi tiết */}
           <div className="bg-white rounded-xl border border-slate-100 shadow-xs divide-y divide-slate-100">
-            
-            {/* Điện thoại */}
             <div className="flex items-start gap-3 p-3">
               <span className="text-base text-slate-400 mt-0.5">📞</span>
               <div>
@@ -53,55 +227,51 @@ export default function LocationDetailModal({ isOpen = true, onClose, location, 
               </div>
             </div>
 
-            {/* Địa bàn */}
             <div className="flex items-start gap-3 p-3">
               <span className="text-base text-slate-400 mt-0.5">📍</span>
               <div>
                 <span className="block text-[10px] uppercase font-bold text-slate-400 tracking-wider">Địa bàn hoạt động</span>
-                <span className="font-semibold text-slate-800">{location.village || location.locationName || 'Xã Thạch Khê'}</span>
+                <span className="font-semibold text-slate-800">{location.village || location.locationName || location.address || 'Xã Thạch Khê'}</span>
               </div>
             </div>
 
-            {/* Tọa độ / Địa chỉ */}
             <div className="flex items-start gap-3 p-3">
               <span className="text-base text-slate-400 mt-0.5">🗺️</span>
               <div className="flex-1">
-                <span className="block text-[10px] uppercase font-bold text-slate-400 tracking-wider">Vị trí / Địa chỉ chi tiết</span>
+                <span className="block text-[10px] uppercase font-bold text-slate-400 tracking-wider">Vị trí / Tọa độ GPS</span>
                 <div className="font-medium text-slate-800">
-                  Định vị: <span className="font-mono text-slate-900">{location.lat}, {location.lng}</span>
+                  Định vị: <span className="font-mono text-slate-900">{lat}, {lng}</span>
                 </div>
                 <button
+                  type="button"
                   onClick={() => {
                     if (typeof onDirectGPSRoute === 'function') {
-                      onDirectGPSRoute(location.lat, location.lng, location);
+                      onDirectGPSRoute(lat, lng, location);
                     }
                     onClose();
                   }}
-                  className="text-blue-600 hover:underline font-semibold text-xs mt-1 inline-flex items-center gap-1"
+                  className="text-blue-600 hover:underline font-semibold text-xs mt-1 inline-flex items-center gap-1 cursor-pointer"
                 >
                   🧭 Xem bản đồ định vị GPS
                 </button>
               </div>
             </div>
 
-            {/* Thời gian hoạt động */}
             <div className="flex items-start gap-3 p-3">
               <span className="text-base text-slate-400 mt-0.5">⏰</span>
               <div>
                 <span className="block text-[10px] uppercase font-bold text-slate-400 tracking-wider">Thời gian hoạt động</span>
-                <span className="font-semibold text-slate-800">{location.openTime || '7:00 - 22:00'}</span>
+                <span className="font-semibold text-slate-800">{location.workingHours || location.openTime || '7:30 - 17:00'}</span>
               </div>
             </div>
 
-            {/* Ghi chú / Thông tin đặc trưng */}
             <div className="flex items-start gap-3 p-3">
               <span className="text-base text-slate-400 mt-0.5">🏷️</span>
               <div>
-                <span className="block text-[10px] uppercase font-bold text-slate-400 tracking-wider">Thông tin đặc trưng / Ghi chú</span>
-                <span className="text-slate-600">{location.description || location.info || 'Hỗ trợ 24/7'}</span>
+                <span className="block text-[10px] uppercase font-bold text-slate-400 tracking-wider">Thông tin chi tiết / Ghi chú</span>
+                <span className="text-slate-600">{location.description || location.info || location.desc || 'Hỗ trợ 24/7'}</span>
               </div>
             </div>
-
           </div>
 
           {/* VỊ TRÍ ĐÁNH DẤU TRÊN BẢN ĐỒ */}
@@ -110,9 +280,9 @@ export default function LocationDetailModal({ isOpen = true, onClose, location, 
               <h3 className="font-bold text-slate-900 text-xs sm:text-sm flex items-center gap-1.5">
                 <span>📍</span> Vị trí đánh dấu trên bản đồ
               </h3>
-              <a 
-                href={`https://www.google.com/maps/search/?api=1&query=${location.lat},${location.lng}`} 
-                target="_blank" 
+              <a
+                href={`https://www.google.com/maps/search/?api=1&query=${lat},${lng}`}
+                target="_blank"
                 rel="noreferrer"
                 className="text-xs text-blue-600 hover:underline font-semibold"
               >
@@ -132,7 +302,7 @@ export default function LocationDetailModal({ isOpen = true, onClose, location, 
             </div>
           </div>
 
-          {/* MÃ QR CHIA SẺ DỊCH VỤ */}
+          {/* MÃ QR CHIA SẺ DỊCH VỤ (ĐÃ TÁCH BẠCH HOÀN TOÀN KHÔNG BỊ DÍNH ẢNH ĐỊA ĐIỂM) */}
           <div className="bg-slate-50 rounded-2xl border border-slate-200 p-4 sm:p-5 text-center space-y-3">
             <div className="flex items-center justify-between border-b border-slate-200 pb-2">
               <span className="font-bold text-slate-800 text-xs sm:text-sm flex items-center gap-1.5">
@@ -143,12 +313,12 @@ export default function LocationDetailModal({ isOpen = true, onClose, location, 
 
             <div className="max-w-[260px] mx-auto bg-gradient-to-b from-[#991b1b] to-[#0f172a] rounded-xl p-4 text-white shadow-md space-y-3">
               <div className="text-[10px] uppercase tracking-wider font-semibold text-red-200">
-                Cổng thông tin địa bàn và dịch vụ tiện ích[cite: 4]
+                Cổng thông tin địa bàn và dịch vụ tiện ích
               </div>
               <div className="bg-white p-2.5 rounded-lg w-36 h-36 mx-auto flex items-center justify-center shadow">
-                <img 
-                  src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(window.location.href)}`} 
-                  alt="QR Code" 
+                <img
+                  src={location.qrCode && location.qrCode.trim() !== '' ? location.qrCode : `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(window.location.href)}`}
+                  alt="QR Code"
                   className="w-full h-full object-contain"
                 />
               </div>
@@ -156,17 +326,18 @@ export default function LocationDetailModal({ isOpen = true, onClose, location, 
                 {location.name}
               </div>
               <div className="text-[9px] text-slate-300 border-t border-white/10 pt-1.5">
-                Quét mã QR để xem thông tin dịch vụ[cite: 4]
+                Quét mã QR để xem thông tin dịch vụ
               </div>
             </div>
 
             <p className="text-[11px] text-slate-500">
-              Mã QR chia sẻ thông tin <strong className="text-slate-700">{location.name}</strong>[cite: 4]. Người dùng quét mã để xem chi tiết dịch vụ[cite: 4].
+              Mã QR chia sẻ thông tin <strong className="text-slate-700">{location.name}</strong>. Người dùng quét mã để xem chi tiết dịch vụ.
             </p>
 
-            <button 
+            <button
+              type="button"
               onClick={() => alert('Chức năng tải về mã QR đang được thực hiện!')}
-              className="inline-flex items-center justify-center gap-2 bg-[#0f2942] hover:bg-[#1e3a8a] text-white font-bold text-xs py-2 px-5 rounded-xl shadow transition"
+              className="inline-flex items-center justify-center gap-2 bg-[#0f2942] hover:bg-[#1e3a8a] text-white font-bold text-xs py-2 px-5 rounded-xl shadow transition cursor-pointer"
             >
               📥 Tải về
             </button>
@@ -177,8 +348,9 @@ export default function LocationDetailModal({ isOpen = true, onClose, location, 
         {/* Footer đóng modal */}
         <div className="p-3 sm:p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-2">
           <button
+            type="button"
             onClick={onClose}
-            className="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-2 px-5 rounded-xl transition text-xs sm:text-sm"
+            className="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-2 px-5 rounded-xl transition text-xs sm:text-sm cursor-pointer"
           >
             Đóng
           </button>

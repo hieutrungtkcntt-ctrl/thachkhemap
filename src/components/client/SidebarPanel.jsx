@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { villagesData } from '../../data';
+
 
 export default function SidebarPanel({ 
   navigatingTarget, 

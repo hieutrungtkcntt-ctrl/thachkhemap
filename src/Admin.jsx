@@ -1,23 +1,52 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { collection, getDocs, addDoc, setDoc, deleteDoc, doc } from 'firebase/firestore';
+import { db } from '../firebase'; // Đảm bảo đường dẫn này trỏ đúng tới file firebase.js của bạn
 
-export default function Admin({ initialPois, onSavePoi, onDeletePoi }) {
+// Import các module quản trị con
+import DashboardOverview from './admin/DashboardOverview';
+import LocationManagement from './admin/LocationManagement';
+import VillageManagement from './admin/VillageManagement';
+import ReportManagement from './admin/ReportManagement';
+
+export default function Admin({ reports = [], setReports, communeInfo, villagesData = [], onLocationsUpdate }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [pin, setPin] = useState('');
   const [error, setError] = useState(false);
-  const [activeTab, setActiveTab] = useState('pois');
-  
-  // State modal thêm/sửa điểm
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [currentPoi, setCurrentPoi] = useState({ id: '', name: '', category: 'hanh-chinh', lat: '', lng: '', desc: '' });
+  const [activeTab, setActiveTab] = useState('overview'); // overview, locations, villages, reports
 
-  // Dữ liệu phản ánh mẫu (có thể tích hợp API sau)
-  const [reports, setReports] = useState([
-    { id: 1, time: "2026-09-25 08:30", content: "Đèn chiếu sáng tuyến đường thôn Đông bị hỏng bóng.", image: "#", status: "Chờ xử lý" }
-  ]);
+  const [locations, setLocations] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  // Tải danh sách Địa điểm và Danh mục từ Firebase Firestore khi đăng nhập thành công
+  useEffect(() => {
+    async function fetchAdminData() {
+      try {
+        setLoading(true);
+        // Tải danh sách địa điểm
+        const locSnap = await getDocs(collection(db, "locations"));
+        const locList = locSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+        setLocations(locList);
+        if (onLocationsUpdate) onLocationsUpdate(locList);
+
+        // Tải danh mục
+        const catSnap = await getDocs(collection(db, "categories"));
+        setCategories(catSnap.docs.map(d => ({ id: d.id, ...d.data() })));
+      } catch (err) {
+        console.error("Lỗi tải dữ liệu quản trị từ Firebase:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    if (isAuthenticated) {
+      fetchAdminData();
+    }
+  }, [isAuthenticated]);
 
   const handleLogin = (e) => {
     e.preventDefault();
-    if (pin === '123456') { // Mã PIN mặc định của xã, anh có thể đổi ở đây
+    if (pin === '123456') { // Mã PIN mặc định của xã
       setIsAuthenticated(true);
       setError(false);
     } else {
@@ -25,19 +54,53 @@ export default function Admin({ initialPois, onSavePoi, onDeletePoi }) {
     }
   };
 
-  const handleOpenModal = (poi = null) => {
-    if (poi) {
-      setCurrentPoi(poi);
-    } else {
-      setCurrentPoi({ id: Date.now(), name: '', category: 'hanh-chinh', lat: '', lng: '', desc: '' });
+  // 1. Thêm địa điểm mới lên Firestore
+  const handleAddLocation = async (newLoc) => {
+    try {
+      const { id, ...locData } = newLoc;
+      const docRef = await addDoc(collection(db, "locations"), locData);
+      const updatedList = [...locations, { id: docRef.id, ...locData }];
+      setLocations(updatedList);
+      if (onLocationsUpdate) onLocationsUpdate(updatedList);
+      alert('Thêm địa điểm và lưu hình ảnh thành công!');
+    } catch (err) {
+      console.error("Lỗi khi thêm địa điểm:", err);
+      alert('Thêm địa điểm thất bại: ' + err.message);
     }
-    setIsModalOpen(true);
   };
 
-  const handleFormSubmit = (e) => {
-    e.preventDefault();
-    onSavePoi(currentPoi);
-    setIsModalOpen(false);
+  // 2. Cập nhật địa điểm lên Firestore (Dùng setDoc với merge: true)
+  const handleUpdateLocation = async (updatedLoc) => {
+    try {
+      const { id, ...locData } = updatedLoc;
+      const locRef = doc(db, "locations", String(id));
+      
+      // Ghi trực tiếp lên Firestore
+      await setDoc(locRef, locData, { merge: true });
+      
+      const updatedList = locations.map(item => item.id === id ? updatedLoc : item);
+      setLocations(updatedList);
+      if (onLocationsUpdate) onLocationsUpdate(updatedList);
+      
+      alert('Cập nhật thông tin và hình ảnh lên Firebase thành công!');
+    } catch (err) {
+      console.error("Lỗi khi cập nhật địa điểm:", err);
+      alert('Cập nhật thất bại: ' + err.message);
+    }
+  };
+
+  // 3. Xóa địa điểm khỏi Firestore
+  const handleDeleteLocation = async (id) => {
+    try {
+      await deleteDoc(doc(db, "locations", String(id)));
+      const updatedList = locations.filter(item => item.id !== id);
+      setLocations(updatedList);
+      if (onLocationsUpdate) onLocationsUpdate(updatedList);
+      alert('Đã xóa địa điểm thành công!');
+    } catch (err) {
+      console.error("Lỗi khi xóa địa điểm:", err);
+      alert('Xóa thất bại!');
+    }
   };
 
   if (!isAuthenticated) {
@@ -57,7 +120,7 @@ export default function Admin({ initialPois, onSavePoi, onDeletePoi }) {
               className="w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none"
               autoFocus
             />
-            <button type="submit" className="w-full bg-blue-600 text-white py-3 rounded-xl font-semibold hover:bg-blue-700 transition">
+            <button type="submit" className="w-full bg-blue-600 text-white py-3 rounded-xl font-semibold hover:bg-blue-700 transition cursor-pointer">
               Truy cập hệ thống
             </button>
             {error && <p className="text-red-500 text-sm text-center">Mã PIN không chính xác!</p>}
@@ -77,174 +140,68 @@ export default function Admin({ initialPois, onSavePoi, onDeletePoi }) {
         </div>
         <button 
           onClick={() => setIsAuthenticated(false)} 
-          className="bg-red-600 px-4 py-2 rounded-lg text-sm font-medium hover:bg-red-700 transition"
+          className="bg-red-600 px-4 py-2 rounded-lg text-sm font-medium hover:bg-red-700 transition cursor-pointer"
         >
           Đăng xuất
         </button>
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 max-w-7xl w-full mx-auto p-8">
+      <main className="flex-1 max-w-7xl w-full mx-auto p-6 space-y-6">
         {/* Tabs */}
-        <div className="flex space-x-4 mb-6 border-b pb-3">
+        <div className="flex space-x-3 border-b pb-3 overflow-x-auto">
           <button 
-            onClick={() => setActiveTab('pois')}
-            className={`px-5 py-2.5 rounded-xl font-semibold transition ${activeTab === 'pois' ? 'bg-blue-600 text-white shadow' : 'bg-white text-gray-600 hover:bg-gray-100'}`}
+            onClick={() => setActiveTab('overview')}
+            className={`px-4 py-2.5 rounded-xl font-semibold text-xs transition cursor-pointer ${activeTab === 'overview' ? 'bg-blue-600 text-white shadow' : 'bg-white text-gray-600 hover:bg-gray-100'}`}
           >
-            📍 Quản lý Điểm (POI)
+            📊 Tổng quan
+          </button>
+          <button 
+            onClick={() => setActiveTab('locations')}
+            className={`px-4 py-2.5 rounded-xl font-semibold text-xs transition cursor-pointer ${activeTab === 'locations' ? 'bg-blue-600 text-white shadow' : 'bg-white text-gray-600 hover:bg-gray-100'}`}
+          >
+            📍 Quản lý Địa điểm ({locations.length})
+          </button>
+          <button 
+            onClick={() => setActiveTab('villages')}
+            className={`px-4 py-2.5 rounded-xl font-semibold text-xs transition cursor-pointer ${activeTab === 'villages' ? 'bg-blue-600 text-white shadow' : 'bg-white text-gray-600 hover:bg-gray-100'}`}
+          >
+            🏘️ Quản lý 11 Thôn
           </button>
           <button 
             onClick={() => setActiveTab('reports')}
-            className={`px-5 py-2.5 rounded-xl font-semibold transition flex items-center ${activeTab === 'reports' ? 'bg-blue-600 text-white shadow' : 'bg-white text-gray-600 hover:bg-gray-100'}`}
+            className={`px-4 py-2.5 rounded-xl font-semibold text-xs transition flex items-center cursor-pointer ${activeTab === 'reports' ? 'bg-blue-600 text-white shadow' : 'bg-white text-gray-600 hover:bg-gray-100'}`}
           >
             💬 Phản ánh hiện trường 
-            <span className="ml-2 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">{reports.length}</span>
+            <span className="ml-2 bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-full">{reports.length}</span>
           </button>
         </div>
 
-        {/* Tab 1: Quản lý POI */}
-        {activeTab === 'pois' && (
-          <div className="space-y-6">
-            <div className="flex justify-between items-center">
-              <h2 className="text-xl font-bold text-gray-800">Danh sách điểm dịch vụ & hạ tầng ({initialPois.length})</h2>
-              <button 
-                onClick={() => handleOpenModal()} 
-                className="bg-green-600 text-white px-4 py-2.5 rounded-xl font-medium hover:bg-green-700 shadow transition flex items-center space-x-2"
-              >
-                <span>➕ Thêm điểm mới</span>
-              </button>
-            </div>
-
-            <div className="bg-white rounded-2xl shadow-sm border overflow-hidden">
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="bg-gray-50 text-gray-700 border-b text-sm">
-                    <th className="p-4">Tên địa điểm</th>
-                    <th className="p-4">Danh mục</th>
-                    <th className="p-4">Tọa độ</th>
-                    <th className="p-4">Mô tả</th>
-                    <th className="p-4 text-center">Thao tác</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y text-sm text-gray-600">
-                  {initialPois.map((p) => (
-                    <tr key={p.id} className="hover:bg-gray-50 transition">
-                      <td className="p-4 font-semibold text-gray-900">{p.name}</td>
-                      <td className="p-4"><span className="bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-xs font-medium">{p.category}</span></td>
-                      <td className="p-4 font-mono text-xs">{p.lat}, {p.lng}</td>
-                      <td className="p-4">{p.desc}</td>
-                      <td className="p-4 text-center space-x-3">
-                        <button onClick={() => handleOpenModal(p)} className="text-blue-600 hover:text-blue-800 font-medium">Sửa</button>
-                        <button onClick={() => onDeletePoi(p.id)} className="text-red-600 hover:text-red-800 font-medium">Xóa</button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-
-        {/* Tab 2: Quản lý Phản ánh */}
-        {activeTab === 'reports' && (
-          <div className="space-y-6">
-            <h2 className="text-xl font-bold text-gray-800">Danh sách phản ánh, kiến nghị từ người dân</h2>
-            <div className="bg-white rounded-2xl shadow-sm border overflow-hidden">
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="bg-gray-50 text-gray-700 border-b text-sm">
-                    <th className="p-4">Thời gian</th>
-                    <th className="p-4">Nội dung phản ánh</th>
-                    <th className="p-4">Trạng thái</th>
-                    <th className="p-4 text-center">Thao tác</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y text-sm text-gray-600">
-                  {reports.map((r) => (
-                    <tr key={r.id} className="hover:bg-gray-50">
-                      <td className="p-4">{r.time}</td>
-                      <td className="p-4 font-medium text-gray-900">{r.content}</td>
-                      <td className="p-4"><span className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-xs font-medium">{r.status}</span></td>
-                      <td className="p-4 text-center">
-                        <button onClick={() => alert("Đã cập nhật trạng thái xử lý phản ánh!")} className="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-xs hover:bg-blue-700">Đổi trạng thái</button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
+        {loading ? (
+          <div className="text-center py-12 text-gray-500 text-sm animate-pulse">Đang đồng bộ dữ liệu với cơ sở dữ liệu đám mây...</div>
+        ) : (
+          <>
+            {activeTab === 'overview' && (
+              <DashboardOverview reports={reports} communeInfo={communeInfo} villagesData={villagesData} />
+            )}
+            {activeTab === 'locations' && (
+              <LocationManagement 
+                locations={locations} 
+                categories={categories} 
+                onAddLocation={handleAddLocation} 
+                onUpdateLocation={handleUpdateLocation} 
+                onDeleteLocation={handleDeleteLocation} 
+              />
+            )}
+            {activeTab === 'villages' && (
+              <VillageManagement villagesData={villagesData} />
+            )}
+            {activeTab === 'reports' && (
+              <ReportManagement reports={reports} setReports={setReports} />
+            )}
+          </>
         )}
       </main>
-
-      {/* Modal Thêm/Sửa */}
-      {isModalOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white p-6 rounded-2xl shadow-xl w-full max-w-md">
-            <h3 className="text-lg font-bold text-gray-800 mb-4">{currentPoi.id ? 'Cập nhật điểm bản đồ' : 'Thêm điểm bản đồ mới'}</h3>
-            <form onSubmit={handleFormSubmit} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Tên địa điểm</label>
-                <input 
-                  type="text" 
-                  value={currentPoi.name} 
-                  onChange={(e) => setCurrentPoi({...currentPoi, name: e.target.value})} 
-                  required 
-                  className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none" 
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Danh mục</label>
-                <select 
-                  value={currentPoi.category} 
-                  onChange={(e) => setCurrentPoi({...currentPoi, category: e.target.value})}
-                  className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                >
-                  <option value="hanh-chinh">Hành chính công</option>
-                  <option value="giao-duc">Trường học</option>
-                  <option value="y-te">Y tế</option>
-                  <option value="ha-tang">Hạ tầng</option>
-                </select>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Vĩ độ (Lat)</label>
-                  <input 
-                    type="text" 
-                    value={currentPoi.lat} 
-                    onChange={(e) => setCurrentPoi({...currentPoi, lat: e.target.value})} 
-                    required 
-                    className="w-full px-3 py-2 border rounded-xl" 
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Kinh độ (Lng)</label>
-                  <input 
-                    type="text" 
-                    value={currentPoi.lng} 
-                    onChange={(e) => setCurrentPoi({...currentPoi, lng: e.target.value})} 
-                    required 
-                    className="w-full px-3 py-2 border rounded-xl" 
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Mô tả chi tiết</label>
-                <textarea 
-                  rows="3" 
-                  value={currentPoi.desc} 
-                  onChange={(e) => setCurrentPoi({...currentPoi, desc: e.target.value})}
-                  className="w-full px-3 py-2 border rounded-xl"
-                ></textarea>
-              </div>
-              <div className="flex justify-end space-x-3 pt-2">
-                <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200">Hủy</button>
-                <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700">Lưu lại</button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

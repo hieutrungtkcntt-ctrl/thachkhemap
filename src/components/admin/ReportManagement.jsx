@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
-import { mapLocations } from '../../data';
 
 export default function ReportManagement({ reports = [], onUpdateReportStatus, onToggleHideReport }) {
   const [statusFilter, setStatusFilter] = useState('all');
