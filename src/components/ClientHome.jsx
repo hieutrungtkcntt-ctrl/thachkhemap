@@ -1,19 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../firebase';
-import ReportModal from './client/ReportModal';
-import SearchProgressModal from './client/SearchProgressModal';
 import MapComponent from './client/MapComponent';
 import LocationDetailModal from './client/LocationDetailModal';
 
 const IconSearch = ({ className = "w-4 h-4" }) => (
   <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-);
-const IconPhone = ({ className = "w-4 h-4" }) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
-);
-const IconAlert = ({ className = "w-4 h-4" }) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
 );
 const IconMapPin = ({ className = "w-4 h-4" }) => (
   <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
@@ -26,9 +18,6 @@ const IconBuilding = ({ className = "w-4 h-4 text-blue-700" }) => (
 );
 const IconZap = ({ className = "w-4 h-4" }) => (
   <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-);
-const IconChevronDown = ({ className = "w-4 h-4" }) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
 );
 const IconFileText = ({ className = "w-4 h-4" }) => (
   <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
@@ -49,12 +38,9 @@ const IconVolumeOff = ({ className = "w-5 h-5" }) => (
 export default function ClientHome({ 
   locations = [], 
   villages = [], 
-  communeBoundary = [],
   searchTerm = '', 
   setSearchTerm, 
-  onGoToAdmin,
-  onAddNewReport,
-  reports = []
+  onGoToAdmin
 }) {
   const [villagesData, setVillagesData] = useState(villages);
   const [categories, setCategories] = useState([]);
@@ -63,6 +49,35 @@ export default function ClientHome({
 
   const [activeTab, setActiveTab] = useState('villages');
   
+  // State thời tiết Thạch Khê
+  const [weather, setWeather] = useState({ temp: '27°C', condition: 'Đang cập nhật...', icon: '🌤️' });
+
+  useEffect(() => {
+    async function fetchWeather() {
+      try {
+        const res = await fetch('https://wttr.in/Ha+Tinh?format=j1');
+        if (!res.ok) throw new Error('Network response was not ok');
+        const data = await res.json();
+        
+        if (data && data.current_condition && data.current_condition[0]) {
+          const current = data.current_condition[0];
+          const temp = current.temp_C;
+          const desc = current.weatherDesc && current.weatherDesc[0] ? current.weatherDesc[0].value : 'Quang mây';
+          
+          setWeather({ 
+            temp: `${temp}°C`, 
+            condition: desc.includes('Cloud') ? 'Có mây' : (desc.includes('Rain') ? 'Có mưa' : 'Trời quang'), 
+            icon: desc.includes('Rain') ? '🌧️' : (desc.includes('Cloud') ? '⛅' : '☀️') 
+          });
+        }
+      } catch (err) {
+        console.warn("Lỗi gọi API thời tiết:", err);
+        setWeather({ temp: '28°C', condition: 'Thạch Khê', icon: '🌤️' });
+      }
+    }
+    fetchWeather();
+  }, []);
+
   const [isMusicPlaying, setIsMusicPlaying] = useState(false);
   const backgroundMusicRef = useRef(null);
 
@@ -121,26 +136,15 @@ export default function ClientHome({
   const [selectedVillage, setSelectedVillage] = useState(null);
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [overviewSelectedLocation, setOverviewSelectedLocation] = useState(null);
-
-  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
-  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
-  const [isActionMenuOpen, setIsActionMenuOpen] = useState(false);
-  const [searchPhone, setSearchPhone] = useState('');
-  const [searchResult, setSearchResult] = useState(null);
   const [villageSearch, setVillageSearch] = useState('');
 
   const [activeLocationDetail, setActiveLocationDetail] = useState(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
 
-  
-  // 🛠️ Chuẩn hóa và quét toàn diện để lấy đầy đủ mảng images cho Modal chi tiết
   const handleOpenDetailModal = (loc) => {
-    // Tìm địa điểm cập nhật mới nhất từ state locations của app
     const rawLoc = locations.find(l => String(l.id) === String(loc?.id)) || loc;
     
     let allImages = [];
-    
-    // 1. Lấy từ mảng hoặc object images
     if (rawLoc.images) {
       if (Array.isArray(rawLoc.images)) {
         allImages = [...rawLoc.images];
@@ -149,11 +153,9 @@ export default function ClientHome({
       }
     }
 
-    // 2. Lấy thêm từ photos hoặc gallery nếu có
     if (Array.isArray(rawLoc.photos)) allImages = [...allImages, ...rawLoc.photos];
     if (Array.isArray(rawLoc.gallery)) allImages = [...allImages, ...rawLoc.gallery];
 
-    // 3. Dự phòng các trường ảnh đơn lẻ
     allImages = [
       ...allImages,
       rawLoc.mediaUrl,
@@ -163,7 +165,6 @@ export default function ClientHome({
       rawLoc.thumbnail
     ];
 
-    // Lọc sạch các url hợp lệ, loại bỏ trùng lặp và rỗng
     const cleanImages = [...new Set(
       allImages
         .map(item => {
@@ -188,17 +189,13 @@ export default function ClientHome({
 
     const freshLoc = {
       ...rawLoc,
-      images: cleanImages, // Đảm bảo gán mảng đầy đủ nhiều ảnh vào đây
+      images: cleanImages,
       mediaUrl: cleanImages.length > 0 ? cleanImages[0] : (rawLoc.mediaUrl || '')
     };
 
     setActiveLocationDetail(freshLoc);
     setIsDetailModalOpen(true);
   };
-
-  const [isPickingMap, setIsPickingMap] = useState(false);
-  const [pickedLatLng, setPickedLatLng] = useState(null);
-  const [detectedLocationName, setDetectedLocationName] = useState('');
 
   const [mapCenter, setMapCenter] = useState([18.3950, 105.9550]);
   const [overviewMapCenter, setOverviewMapCenter] = useState([18.3950, 105.9550]);
@@ -211,36 +208,64 @@ export default function ClientHome({
   const [routeCoordinates, setRouteCoordinates] = useState([]);
   const [selectedCats, setSelectedCats] = useState([]);
 
-  const [reportForm, setReportForm] = useState({
-    sender: '',
-    phone: '',
-    category: 'Hạ tầng / Giao thông',
-    content: '',
-    lat: '18.4250',
-    lng: '105.9160',
-    image: null
-  });
-
   const defaultCenter = [18.3950, 105.9550];
 
   const filteredLocations = locations.filter(loc => {
-    const locType = String(loc.type || loc.category || '');
-    const matchesCategory = selectedCats.length === 0 || selectedCats.includes(locType);
+    const locType = String(loc.type || loc.category || '').trim().toLowerCase();
+    
+    const matchesCategory = selectedCats.length === 0 || selectedCats.some(catKey => {
+      const matchedCat = categories.find(c => 
+        String(c.id).trim().toLowerCase() === String(catKey).trim().toLowerCase() ||
+        String(c.label).trim().toLowerCase() === String(catKey).trim().toLowerCase()
+      );
+      if (!matchedCat) return locType === String(catKey).trim().toLowerCase();
+      
+      return locType === String(matchedCat.id).trim().toLowerCase() ||
+             locType === String(matchedCat.label).trim().toLowerCase();
+    });
 
     const locName = (loc.name || '').toLocaleLowerCase('vi-VN');
     const locInfo = (loc.info || loc.desc || '').toLocaleLowerCase('vi-VN');
     const query = (searchTerm || '').trim().toLocaleLowerCase('vi-VN');
 
-    const matchesSearch = locName.includes(query) || locInfo.includes(query);
+    const matchesSearch = !query || locName.includes(query) || locInfo.includes(query);
     return matchesCategory && matchesSearch;
   });
 
-  const handleToggleCategory = (categoryId) => {
-    const id = String(categoryId);
+  const handleToggleCategory = (cat) => {
+    const identifier = String(cat.id || cat.label).trim();
     setSelectedCats(current =>
-      current.includes(id) ? current.filter(item => item !== id) : [...current, id]
+      current.includes(identifier) 
+        ? current.filter(item => item !== identifier) 
+        : [...current, identifier]
     );
   };
+
+  const scrollCarousel = (direction) => {
+    const container = document.getElementById('location-carousel');
+    if (!container) return;
+    const scrollAmount = 320; 
+    container.scrollBy({
+      left: direction === 'left' ? -scrollAmount : scrollAmount,
+      behavior: 'smooth'
+    });
+  };
+
+  useEffect(() => {
+    const container = document.getElementById('location-carousel');
+    if (!container || filteredLocations.length === 0) return;
+
+    const interval = setInterval(() => {
+      if (!container) return;
+      if (container.scrollLeft + container.clientWidth >= container.scrollWidth - 10) {
+        container.scrollTo({ left: 0, behavior: 'smooth' });
+      } else {
+        container.scrollBy({ left: 300, behavior: 'smooth' });
+      }
+    }, 4500);
+
+    return () => clearInterval(interval);
+  }, [filteredLocations]);
 
   const handleSelectLocation = (loc) => {
     setSelectedVillage(null);
@@ -280,11 +305,16 @@ export default function ClientHome({
     }
   };
 
+  // HÀM CHỈ ĐƯỜNG: Tự động chuyển sang Tab "Địa điểm" để hiển thị bản đồ chỉ đường riêng biệt
   const handleDirectGPSRoute = (lat, lng, targetObj) => {
+    setActiveTab('overview');
+    setSelectedLocation(null);
+    setOverviewSelectedLocation(null);
+
     const numLat = parseFloat(lat);
     const numLng = parseFloat(lng);
-    setMapCenter([numLat, numLng]);
-    setMapZoom(16);
+    setOverviewMapCenter([numLat, numLng]);
+    setOverviewMapZoom(16);
 
     if (!navigator.geolocation) {
       alert('Trình duyệt không hỗ trợ GPS!');
@@ -308,49 +338,14 @@ export default function ClientHome({
     );
   };
 
-  const handleReportSubmit = (e) => {
-    e.preventDefault();
-    const sender = (reportForm.sender || '').trim();
-    const phone = (reportForm.phone || '').trim();
-    const content = (reportForm.content || '').trim();
-
-    if (!sender || !phone || !content) {
-      alert('Vui lòng điền đầy đủ Họ tên, Số điện thoại và Nội dung phản ánh!');
-      return;
-    }
-
-    try {
-      if (onAddNewReport && typeof onAddNewReport === 'function') {
-        onAddNewReport({
-          ...reportForm,
-          id: Date.now(),
-          time: new Date().toLocaleString('vi-VN'),
-          status: 'Chờ xử lý',
-          note: '',
-          locationName: detectedLocationName
-        });
-      }
-
-      setIsReportModalOpen(false);
-      setPickedLatLng(null);
-      setDetectedLocationName('');
-      setReportForm({ sender: '', phone: '', category: 'Hạ tầng / Giao thông', content: '', lat: '18.4250', lng: '105.9160', image: null });
-      alert('Gửi phản ánh thành công! UBND xã đã ghi nhận thông tin.');
-    } catch (err) {
-      console.error("Lỗi khi gửi phản ánh:", err);
-      alert('Đã xảy ra lỗi khi gửi phản ánh.');
-    }
-  };
-
-  const handleSearchProgress = (e) => {
-    e.preventDefault();
-    const inputPhone = (searchPhone || '').trim();
-    const found = reports.filter(r => r.phone && r.phone.trim() === inputPhone);
-    setSearchResult(found);
+  // HÀM TẮT / HỦY LỘ TRÌNH CHỈ ĐƯỜNG
+  const handleClearRoute = () => {
+    setRouteCoordinates([]);
+    setUserLocation(null);
   };
 
   const getCategoryName = (typeId) => {
-    const found = categories?.find(c => String(c.id) === String(typeId));
+    const found = categories?.find(c => String(c.id) === String(typeId) || String(c.label) === String(typeId));
     return found ? found.label : (typeId || 'Địa điểm khác');
   };
 
@@ -384,8 +379,9 @@ export default function ClientHome({
   }
 
   return (
-    <div className="min-h-screen bg-[#f4f7fb] flex flex-col font-sans text-slate-800 antialiased selection:bg-blue-600 selection:text-white relative">
+    <div className="h-full min-h-0 bg-[#f4f7fb] flex flex-col font-sans text-slate-800 antialiased selection:bg-blue-600 selection:text-white relative">
       
+      {/* Header */}
       <header className="bg-white text-slate-900 shadow-sm px-4 sm:px-7 py-3 sm:py-4 flex flex-col md:flex-row justify-between items-stretch md:items-center gap-3 z-30 shrink-0 border-b border-slate-200">
         <div className="flex items-center justify-between md:justify-start space-x-3">
           <div className="flex items-center space-x-3">
@@ -396,69 +392,41 @@ export default function ClientHome({
               onError={(e) => { e.currentTarget.style.display = 'none'; }}
             />
             <div>
-              <h1 className="text-xs sm:text-sm font-bold tracking-wide text-slate-900 flex items-center gap-1.5">
+              <h1 className="text-sm sm:text-base font-extrabold tracking-tight text-slate-900 flex items-center gap-1.5">
                 <IconCompass className="w-4 h-4 text-amber-400" />
                 <span>Bản Đồ Số Xã Thạch Khê</span>
               </h1>
-              <p className="text-xs text-slate-500 hidden sm:block">Ứng dụng tích hợp thông tin địa bàn và tra cứu thuận tiện.</p>
+              <p className="text-xs sm:text-sm text-slate-600 hidden sm:block">Ứng dụng tích hợp thông tin địa bàn và tra cứu thuận tiện.</p>
             </div>
           </div>
         </div>
 
-        <div className="flex items-center justify-between md:justify-end gap-2 relative flex-wrap">
-          <a 
-            href="tel:02393888111" 
-            className="bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-white text-xs px-3.5 py-2.5 rounded-xl font-bold shadow-sm transition-all flex items-center gap-2 whitespace-nowrap"
-          >
-            <IconPhone className="w-3.5 h-3.5" />
-            <span>Hotline: <strong>0239.3.888.111</strong></span>
-          </a>
-
-          <div className="hidden xl:flex items-center gap-3 bg-slate-50 px-3.5 py-2 rounded-xl border border-slate-200 text-xs">
-            <span className="text-slate-600">Diện tích: <strong className="text-blue-700 font-extrabold">{communeInfo?.area || '4,631.8 ha'}</strong></span>
-            <span className="text-slate-600">•</span>
-            <span className="text-slate-600">Số hộ: <strong className="text-blue-700 font-extrabold">{communeInfo?.households || '4,639'}</strong></span>
-            <span className="text-slate-600">•</span>
-            <span className="text-slate-600">Nhân khẩu: <strong className="text-blue-700 font-extrabold">{communeInfo?.population || '17,515'}</strong></span>
+        <div className="flex items-center justify-between md:justify-end gap-2.5 relative flex-wrap">
+          
+          {/* WIDGET THỜI TIẾT (Đã đồng bộ chiều cao h-11) */}
+          <div className="h-11 bg-gradient-to-r from-blue-50 to-sky-50 text-slate-700 text-xs px-3.5 rounded-xl font-semibold border border-blue-100 shadow-2xs flex items-center gap-2.5 whitespace-nowrap">
+            <span className="text-xl leading-none">{weather.icon}</span>
+            <div className="flex flex-col justify-center leading-tight">
+              <span className="text-[9px] text-slate-400 font-extrabold uppercase tracking-wider">Thạch Khê</span>
+              <span className="font-extrabold text-blue-800 text-xs mt-0.5">
+                {weather.temp} • {weather.condition}
+              </span>
+            </div>
           </div>
 
-          <div className="relative flex-1 sm:flex-initial">
-            <button 
-              type="button"
-              onClick={() => setIsActionMenuOpen(!isActionMenuOpen)}
-              className="w-full sm:w-auto bg-blue-700 hover:bg-blue-800 active:bg-blue-900 text-white text-xs px-3.5 py-2.5 rounded-xl font-bold shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer"
-            >
-              <IconAlert className="w-3.5 h-3.5" />
-              <span>Phản Ánh & Tra Cứu</span>
-              <IconChevronDown className="w-3.5 h-3.5 ml-0.5" />
-            </button>
-
-            {isActionMenuOpen && (
-              <div className="absolute right-0 mt-2 w-52 bg-white rounded-2xl shadow-xl border border-slate-200 py-2 z-50 text-slate-800 text-xs">
-                <button 
-                  type="button"
-                  onClick={() => { setIsActionMenuOpen(false); setIsReportModalOpen(true); }}
-                  className="w-full text-left px-4 py-2.5 hover:bg-rose-50 hover:text-rose-600 font-semibold flex items-center gap-2.5 transition-colors cursor-pointer"
-                >
-                  <IconAlert className="w-4 h-4 text-rose-500" />
-                  <span>Gửi phản ánh sự cố mới</span>
-                </button>
-                <button 
-                  type="button"
-                  onClick={() => { setIsActionMenuOpen(false); setIsSearchModalOpen(true); }}
-                  className="w-full text-left px-4 py-2.5 hover:bg-indigo-50 hover:text-blue-700 font-semibold flex items-center gap-2.5 transition-colors border-t border-slate-100 cursor-pointer"
-                >
-                  <IconSearch className="w-4 h-4 text-indigo-500" />
-                  <span>Tra cứu tiến độ xử lý</span>
-                </button>
-              </div>
-            )}
+          {/* KHUNG THÔNG TIN XÃ (Đã đồng bộ chiều cao h-11) */}
+          <div className="hidden xl:flex h-11 bg-gradient-to-r from-blue-50 to-sky-50 text-slate-700 text-xs px-3.5 rounded-xl font-semibold border border-blue-100 shadow-2xs flex items-center gap-2.5 whitespace-nowrap">
+            <span className="text-slate-600">Diện tích: <strong className="text-blue-700 font-extrabold">{communeInfo?.area || '4,631.8 ha'}</strong></span>
+            <span className="text-slate-300">•</span>
+            <span className="text-slate-600">Số hộ: <strong className="text-blue-700 font-extrabold">{communeInfo?.households || '4,639'}</strong></span>
+            <span className="text-slate-300">•</span>
+            <span className="text-slate-600">Nhân khẩu: <strong className="text-blue-700 font-extrabold">{communeInfo?.population || '17,515'}</strong></span>
           </div>
 
           <button 
             type="button"
             onClick={onGoToAdmin}
-            className="bg-white hover:bg-slate-50 active:bg-slate-100 text-slate-700 text-xs px-3.5 py-2.5 rounded-xl font-semibold border border-slate-200 shadow-sm transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer"
+            className="h-11 bg-white hover:bg-slate-50 active:bg-slate-100 text-slate-700 text-xs px-3.5 rounded-xl font-semibold border border-slate-200 shadow-2xs transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer"
           >
             <IconLock className="w-3.5 h-3.5 text-slate-400" />
             <span>Quản trị</span>
@@ -466,22 +434,23 @@ export default function ClientHome({
         </div>
       </header>
 
+      {/* Tab điều hướng */}
       <div className="bg-white border-b border-slate-200 px-4 sm:px-7 py-3 shadow-sm z-10 shrink-0">
         <div className="max-w-5xl mx-auto flex items-center justify-center">
-          <div className="inline-flex items-center gap-1.5 p-1.5 bg-slate-100 rounded-2xl border border-slate-200 w-full sm:w-auto justify-stretch sm:justify-center overflow-x-auto scrollbar-none">
+          <div className="grid grid-cols-3 items-center gap-1.5 p-1.5 bg-slate-100 rounded-2xl border border-slate-200 w-full sm:inline-flex sm:w-auto sm:justify-center">
             
             <button 
               type="button"
               onClick={() => setActiveTab('villages')}
-              className={`flex-1 sm:flex-initial px-5 py-3 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2 whitespace-nowrap cursor-pointer ${
+              className={`min-w-0 px-3 sm:px-5 py-2.5 sm:py-3 rounded-xl font-bold text-xs sm:text-sm transition-all flex items-center justify-center gap-2 whitespace-nowrap cursor-pointer focus-visible:z-10 ${
                 activeTab === 'villages' 
                   ? 'bg-blue-700 text-white shadow-sm shadow-blue-900/15' 
                   : 'text-slate-600 hover:text-blue-800 hover:bg-white'
               }`}
             >
-              <IconUsers className={`w-4.5 h-4.5 ${activeTab === 'villages' ? 'text-amber-400' : 'text-slate-500'}`} />
+              <IconUsers className={`w-4 h-4 sm:w-4.5 sm:h-4.5 shrink-0 ${activeTab === 'villages' ? 'text-amber-400' : 'text-slate-500'}`} />
               <span>11 Thôn</span>
-              <span className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${
+              <span className={`px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-bold ${
                 activeTab === 'villages' ? 'bg-blue-800 text-white' : 'bg-white text-slate-600 border border-slate-200'
               }`}>
                 {villagesData.length}
@@ -491,15 +460,15 @@ export default function ClientHome({
             <button 
               type="button"
               onClick={() => setActiveTab('overview')}
-              className={`flex-1 sm:flex-initial px-5 py-3 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2 whitespace-nowrap cursor-pointer ${
+              className={`min-w-0 px-3 sm:px-5 py-2.5 sm:py-3 rounded-xl font-bold text-xs sm:text-sm transition-all flex items-center justify-center gap-2 whitespace-nowrap cursor-pointer focus-visible:z-10 ${
                 activeTab === 'overview' 
                   ? 'bg-blue-700 text-white shadow-sm shadow-blue-900/15' 
                   : 'text-slate-600 hover:text-blue-800 hover:bg-white'
               }`}
             >
-              <IconMapPin className={`w-4.5 h-4.5 ${activeTab === 'overview' ? 'text-amber-400' : 'text-slate-500'}`} />
+              <IconMapPin className={`w-4 h-4 sm:w-4.5 sm:h-4.5 shrink-0 ${activeTab === 'overview' ? 'text-amber-400' : 'text-slate-500'}`} />
               <span>Địa điểm</span>
-              <span className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${
+              <span className={`px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-bold ${
                 activeTab === 'overview' ? 'bg-blue-800 text-white' : 'bg-white text-slate-600 border border-slate-200'
               }`}>
                 {locations.length}
@@ -509,13 +478,13 @@ export default function ClientHome({
             <button 
               type="button"
               onClick={() => setActiveTab('utilities')}
-              className={`flex-1 sm:flex-initial px-5 py-3 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2 whitespace-nowrap cursor-pointer ${
+              className={`min-w-0 px-3 sm:px-5 py-2.5 sm:py-3 rounded-xl font-bold text-xs sm:text-sm transition-all flex items-center justify-center gap-2 whitespace-nowrap cursor-pointer focus-visible:z-10 ${
                 activeTab === 'utilities' 
                   ? 'bg-blue-700 text-white shadow-sm shadow-blue-900/15' 
                   : 'text-slate-600 hover:text-blue-800 hover:bg-white'
               }`}
             >
-              <IconZap className={`w-4.5 h-4.5 ${activeTab === 'utilities' ? 'text-amber-400' : 'text-slate-500'}`} />
+              <IconZap className={`w-4 h-4 sm:w-4.5 sm:h-4.5 shrink-0 ${activeTab === 'utilities' ? 'text-amber-400' : 'text-slate-500'}`} />
               <span>Tiện ích số</span>
             </button>
 
@@ -523,39 +492,44 @@ export default function ClientHome({
         </div>
       </div>
 
+      {/* TAB 1: 11 THÔN */}
       {activeTab === 'villages' && (
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
-          <div className="w-full max-w-[1800px] mx-auto px-0 sm:px-2 space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
-              <div className="lg:col-span-8 h-[400px] lg:h-[calc(100vh-220px)] bg-white rounded-2xl p-2.5 border border-slate-200 shadow-sm overflow-hidden relative flex flex-col">
+        <div className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-6 space-y-6">
+          <div className="w-full max-w-[1800px] mx-auto px-0 sm:px-2 space-y-5 sm:space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-5 items-stretch">
+              <div className="lg:col-span-8 h-[clamp(20rem,55vh,32rem)] lg:h-[calc(100vh-220px)] bg-white rounded-2xl p-2.5 border border-slate-200 shadow-sm overflow-hidden relative flex flex-col">
                 <div className="w-full h-full rounded-xl overflow-hidden relative flex-1">
                   <MapComponent 
                     key="villages-map"
                     villages={villagesData}
+                    communeBoundary={communeInfo?.boundary}
                     defaultCenter={defaultCenter}
                     currentCenter={mapCenter}
                     mapZoom={mapZoom}
                     mapStyle={mapStyle}
                     setMapStyle={setMapStyle}
-                    isPickingMap={isPickingMap}
-                    setIsPickingMap={setIsPickingMap}
-                    setIsReportModalOpen={setIsReportModalOpen}
-                    setReportForm={setReportForm}
-                    setPickedLatLng={setPickedLatLng}
-                    setDetectedLocationName={setDetectedLocationName}
-                    pickedLatLng={pickedLatLng}
-                    userLocation={userLocation}
-                    routeCoordinates={routeCoordinates}
+                    isPickingMap={false}
+                    setIsPickingMap={() => {}}
+                    setIsReportModalOpen={() => {}}
+                    setReportForm={() => {}}
+                    setPickedLatLng={() => {}}
+                    setDetectedLocationName={() => {}}
+                    pickedLatLng={null}
+                    userLocation={null}
+                    routeCoordinates={[]}
                     selectedVillage={selectedVillage}
                     onSelectVillage={handleSelectVillage}
-                    fixedVillageOverview={true}
+                    fixedVillageOverview={false}
+                    hideVillageNames={false}
+                    hideLocationPins={true}
                     filteredLocations={filteredLocations}
                     selectedLocation={selectedLocation}
                     onSelectLocation={handleSelectLocation}
                     onDirectGPSRoute={handleDirectGPSRoute}
                     getCategoryName={getCategoryName}
-                    reports={reports}
+                    reports={[]}
                     onOpenDetail={handleOpenDetailModal}
+                    onClearRoute={handleClearRoute}
                   />
                 </div>
               </div>
@@ -568,7 +542,7 @@ export default function ClientHome({
                   </span>
                 </div>
 
-                <div className="p-3.5 overflow-y-auto space-y-2 max-h-[260px] lg:max-h-none lg:h-1/2 border-b border-slate-200 scrollbar-thin">
+                <div className="p-3 overflow-y-auto space-y-2 max-h-[260px] lg:max-h-none lg:h-1/2 border-b border-slate-200 scrollbar-thin sm:p-3.5">
                   {villagesData.map(v => {
                     const isSelected = selectedVillage?.id === v.id;
                     return (
@@ -577,7 +551,7 @@ export default function ClientHome({
                         key={v.id}
                         onClick={() => handleSelectVillage(v)}
                         aria-pressed={isSelected}
-                        className={`w-full text-left px-4 py-3 rounded-xl border font-semibold cursor-pointer transition-all flex items-center justify-between gap-3 ${
+                        className={`w-full min-h-12 text-left px-3.5 py-3 rounded-xl border font-semibold cursor-pointer transition-all flex items-center justify-between gap-3 focus-visible:z-10 ${
                           isSelected
                             ? 'bg-blue-50 border-blue-400 text-blue-950 shadow-sm ring-2 ring-blue-100'
                             : 'bg-white border-slate-200/70 text-slate-700 hover:bg-slate-50'
@@ -587,7 +561,7 @@ export default function ClientHome({
                           <span className="w-3.5 h-3.5 rounded-full border border-black/10 shrink-0" style={{ backgroundColor: v.color || '#64748b', boxShadow: isSelected ? '0 0 0 4px rgba(59,130,246,0.16)' : 'none' }} />
                           <span className="truncate text-sm font-bold">{v.name || v.tenThon}</span>
                         </span>
-                        <span className={`text-[10px] font-bold uppercase tracking-wide ${isSelected ? 'text-blue-700' : 'text-slate-400'}`}>{isSelected ? 'Đang chọn' : 'Chọn'}</span>
+                        <span className={`shrink-0 text-[11px] font-bold ${isSelected ? 'text-blue-700' : 'text-slate-500'}`}>{isSelected ? 'Đang chọn' : 'Chọn'}</span>
                       </button>
                     );
                   })}
@@ -604,14 +578,14 @@ export default function ClientHome({
                       </div>
 
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div className="bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
+                        <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm">
                           <span className="text-[11px] text-slate-500 block uppercase font-extrabold tracking-wider">Dân số</span>
                           <span className="text-sm font-extrabold text-slate-900 block mt-0.5">
                             {selectedVillage.population !== undefined ? selectedVillage.population : '---'} 
                             {selectedVillage.households !== undefined ? ` (${selectedVillage.households} hộ)` : ''}
                           </span>
                         </div>
-                        <div className="bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
+                        <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm">
                           <span className="text-[11px] text-slate-500 block uppercase font-extrabold tracking-wider">Diện tích</span>
                           <span className="text-sm font-extrabold text-slate-900 block mt-0.5">
                             {selectedVillage.area || '---'}
@@ -622,7 +596,7 @@ export default function ClientHome({
                       <div className="space-y-2 pt-1">
                         <span className="text-[11px] text-slate-500 block uppercase font-extrabold tracking-wider">Ban điều hành thôn</span>
                         
-                        <div className="flex items-center justify-between p-2.5 rounded-xl bg-white border border-slate-200">
+                        <div className="flex items-center justify-between p-3 rounded-xl bg-white border border-slate-200">
                           <div>
                             <span className="text-[11px] text-slate-400 block font-medium">Bí thư chi bộ</span>
                             <span className="font-bold text-slate-900 text-xs sm:text-sm">
@@ -631,7 +605,7 @@ export default function ClientHome({
                           </div>
                         </div>
 
-                        <div className="flex items-center justify-between p-2.5 rounded-xl bg-white border border-slate-200">
+                        <div className="flex items-center justify-between p-3 rounded-xl bg-white border border-slate-200">
                           <div>
                             <span className="text-[11px] text-slate-400 block font-medium">Thôn trưởng</span>
                             <span className="font-bold text-slate-900 text-xs sm:text-sm">
@@ -649,7 +623,7 @@ export default function ClientHome({
             </div>
 
             {selectedVillage && (
-              <div className="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200 shadow-sm space-y-5">
+              <div className="bg-white rounded-2xl p-4 sm:p-6 border border-slate-200 shadow-sm space-y-5">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 pb-3 gap-2">
                   <div>
                     <h3 className="font-extrabold text-slate-900 text-sm sm:text-base uppercase tracking-wider flex items-center gap-2">
@@ -663,10 +637,10 @@ export default function ClientHome({
                 </div>
 
                 {villageLocations.length > 0 ? (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-5">
                     {villageLocations.map(loc => (
-                      <article key={loc.id} className="overflow-hidden rounded-xl bg-white border border-slate-200 shadow-sm hover:shadow-md transition-all flex flex-col">
-                        <div className="h-32 w-full bg-slate-100 relative overflow-hidden">
+                      <article key={loc.id} className="overflow-hidden rounded-xl bg-white border border-slate-200 shadow-sm hover:border-blue-300 hover:shadow-md transition-all flex flex-col">
+                        <div className="h-50 w-full bg-slate-100 relative overflow-hidden">
                           <img 
                             src={loc.mediaUrl || loc.image || loc.imageUrl || "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=500"} 
                             alt={loc.name} 
@@ -674,13 +648,13 @@ export default function ClientHome({
                           />
                         </div>
                         <div className="p-3 flex flex-col flex-1">
-                          <p className="text-[9px] uppercase tracking-wide font-bold text-slate-500 mb-1">{getCategoryName(loc.type || loc.category)}</p>
-                          <h4 className="font-extrabold text-blue-700 text-xs leading-snug">{loc.name}</h4>
-                          <p className="text-[10px] text-slate-500 mt-2 line-clamp-2">{loc.info || loc.desc}</p>
+                          <p className="text-[11px] uppercase tracking-wide font-bold text-slate-600 mb-1">{getCategoryName(loc.type || loc.category)}</p>
+                          <h4 className="font-extrabold text-blue-800 text-sm leading-snug">{loc.name}</h4>
+                          <p className="text-xs text-slate-600 mt-2 line-clamp-2">{loc.info || loc.desc}</p>
                           <button
                             type="button"
                             onClick={() => handleOpenDetailModal(loc)}
-                            className="mt-3 pt-2.5 border-t border-slate-100 w-full flex items-center justify-between text-[10px] font-bold text-blue-700 hover:text-blue-900 cursor-pointer"
+                            className="mt-3 min-h-11 pt-2.5 border-t border-slate-100 w-full flex items-center justify-between text-xs font-bold text-blue-700 hover:text-blue-900 cursor-pointer"
                           >
                             <span>Chi tiết tiện ích</span><span className="text-sm leading-none">›</span>
                           </button>
@@ -697,8 +671,9 @@ export default function ClientHome({
         </div>
       )}
 
+      {/* TAB 2: ĐỊA ĐIỂM & CƠ SỞ */}
       {activeTab === 'overview' && (
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
+        <div className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-6 space-y-6">
           <div className="w-full max-w-[1800px] mx-auto px-0 sm:px-2 space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
               <aside className="lg:col-span-3 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
@@ -718,7 +693,7 @@ export default function ClientHome({
                   )}
                 </div>
 
-                <div className="p-4 space-y-4">
+                <div className="p-4 sm:p-5 space-y-5">
                   <label className="block">
                     <span className="text-xs font-bold text-slate-700 mb-1.5 block">Từ khóa</span>
                     <div className="relative">
@@ -727,9 +702,9 @@ export default function ClientHome({
                         value={searchTerm || ''}
                         onChange={(e) => setSearchTerm && setSearchTerm(e.target.value)}
                         placeholder="Nhập tên địa điểm..."
-                        className="w-full pl-9 pr-3 py-2 border border-slate-200 rounded-xl text-xs bg-slate-50 focus:bg-white focus:outline-none"
+                        className="w-full min-h-11 pl-10 pr-3 py-2.5 border border-slate-300 rounded-xl text-sm bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
-                      <IconSearch className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+                      <IconSearch className="w-4 h-4 text-slate-500 absolute left-3 top-3" />
                     </div>
                   </label>
 
@@ -739,15 +714,15 @@ export default function ClientHome({
                       <span className="text-[10px] text-slate-400">({selectedCats.length} chọn)</span>
                     </div>
                     
-                    <div className="flex flex-wrap gap-1.5 max-h-[280px] overflow-y-auto pr-1">
+                    <div className="flex flex-wrap gap-2 max-h-[280px] overflow-y-auto pr-1">
                       {(categories || []).map(cat => {
-                        const isSelected = selectedCats.includes(String(cat.id));
+                        const isSelected = selectedCats.includes(String(cat.id)) || selectedCats.includes(String(cat.label));
                         return (
                           <button
                             type="button"
                             key={cat.id}
-                            onClick={() => handleToggleCategory(cat.id)}
-                            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                            onClick={() => handleToggleCategory(cat)}
+                            className={`min-h-10 px-3 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 focus-visible:z-10 ${
                               isSelected 
                                 ? 'bg-blue-700 text-white shadow-sm ring-2 ring-blue-200' 
                                 : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200/60'
@@ -763,11 +738,12 @@ export default function ClientHome({
                 </div>
               </aside>
 
-              <section className="lg:col-span-9 h-[420px] sm:h-[500px] lg:h-[calc(100vh-260px)] bg-white rounded-2xl p-2.5 border border-slate-200 shadow-sm overflow-hidden relative flex flex-col">
+              <section className="lg:col-span-9 h-[clamp(22rem,58vh,34rem)] lg:h-[calc(100vh-260px)] bg-white rounded-2xl p-2 sm:p-2.5 border border-slate-200 shadow-sm overflow-hidden relative flex flex-col">
                 <div className="w-full rounded-xl overflow-hidden relative flex-1 min-h-0">
                   <MapComponent
                     key="overview-map"
                     villages={villagesData}
+                    communeBoundary={communeInfo?.boundary}
                     defaultCenter={defaultCenter}
                     currentCenter={overviewMapCenter}
                     mapZoom={overviewMapZoom}
@@ -775,33 +751,56 @@ export default function ClientHome({
                     setMapStyle={setMapStyle}
                     isPickingMap={false}
                     setIsPickingMap={() => {}}
-                    setIsReportModalOpen={setIsReportModalOpen}
-                    setReportForm={setReportForm}
+                    setIsReportModalOpen={() => {}}
+                    setReportForm={() => {}}
                     setPickedLatLng={() => {}}
                     setDetectedLocationName={() => {}}
                     pickedLatLng={null}
                     userLocation={userLocation}
                     routeCoordinates={routeCoordinates}
                     selectedVillage={null}
+                    hideVillageNames={true}
+                    hideLocationPins={false}
                     filteredLocations={filteredLocations}
                     selectedLocation={overviewSelectedLocation}
                     onSelectLocation={handleSelectOverviewLocation}
                     onDirectGPSRoute={handleDirectGPSRoute}
                     getCategoryName={getCategoryName}
-                    reports={reports}
+                    reports={[]}
                     onOpenDetail={handleOpenDetailModal}
+                    onClearRoute={handleClearRoute}
                   />
                 </div>
               </section>
             </div>
 
             <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-sm space-y-4">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-slate-100 pb-3">
                 <h3 className="font-extrabold text-slate-900 text-sm sm:text-base flex items-center gap-2">
                   <IconMapPin className="w-4.5 h-4.5 text-blue-700" />
                   <span>Danh sách địa điểm & Cơ sở ({filteredLocations.length})</span>
                 </h3>
-                <span className="text-xs text-slate-500">Tự động trượt mượt mà ↔</span>
+
+                {filteredLocations.length > 1 && (
+                  <div className="flex items-center gap-1.5 self-end sm:self-auto">
+                    <button
+                      type="button"
+                      onClick={() => scrollCarousel('left')}
+                      className="w-8 h-8 rounded-full bg-slate-100 hover:bg-blue-600 hover:text-white text-slate-700 flex items-center justify-center text-xs font-bold transition shadow-xs cursor-pointer"
+                      title="Trượt sang trái"
+                    >
+                      ‹
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => scrollCarousel('right')}
+                      className="w-8 h-8 rounded-full bg-slate-100 hover:bg-blue-600 hover:text-white text-slate-700 flex items-center justify-center text-xs font-bold transition shadow-xs cursor-pointer"
+                      title="Trượt sang phải"
+                    >
+                      ›
+                    </button>
+                  </div>
+                )}
               </div>
 
               {filteredLocations.length > 0 ? (
@@ -814,10 +813,10 @@ export default function ClientHome({
                       <div 
                         key={loc.id} 
                         onClick={() => handleSelectOverviewLocation(loc)}
-                        className="snap-start shrink-0 w-[260px] sm:w-[280px] bg-white rounded-2xl border border-slate-200 hover:border-blue-500 overflow-hidden shadow-xs hover:shadow-xl transition-all duration-300 cursor-pointer flex flex-col justify-between group/card"
+                        className="snap-start shrink-0 w-[min(82vw,18rem)] sm:w-[280px] bg-white rounded-2xl border border-slate-200 hover:border-blue-500 overflow-hidden shadow-xs hover:shadow-lg transition-all duration-300 cursor-pointer flex flex-col justify-between group/card"
                       >
                         <div>
-                          <div className="h-32 w-full bg-slate-100 relative overflow-hidden">
+                          <div className="h-40 w-full bg-slate-100 relative overflow-hidden">
                             <img 
                               src={loc.mediaUrl || loc.image || loc.imageUrl || "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=500"} 
                               alt={loc.name} 
@@ -841,7 +840,7 @@ export default function ClientHome({
                               e.stopPropagation();
                               handleOpenDetailModal(loc);
                             }}
-                            className="text-blue-600 hover:text-blue-800 font-bold text-[11px] cursor-pointer"
+                            className="min-h-10 text-blue-700 hover:text-blue-900 font-bold text-xs cursor-pointer"
                           >
                             Xem chi tiết →
                           </button>
@@ -852,7 +851,7 @@ export default function ClientHome({
                                 e.stopPropagation();
                                 handleDirectGPSRoute(loc.lat, loc.lng, loc);
                               }}
-                              className="bg-emerald-600 hover:bg-emerald-700 text-white px-2.5 py-1 rounded-lg font-bold text-[10px] transition shadow-xs cursor-pointer"
+                              className="min-h-10 bg-emerald-700 hover:bg-emerald-800 text-white px-3 py-2 rounded-lg font-bold text-xs transition shadow-xs cursor-pointer"
                             >
                               🧭 Chỉ đường
                             </button>
@@ -870,14 +869,31 @@ export default function ClientHome({
         </div>
       )}
 
+      {/* TAB 3: TIỆN ÍCH SỐ */}
       {activeTab === 'utilities' && (
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-5">
-          <div className="max-w-4xl mx-auto bg-white rounded-2xl p-5 sm:p-6 border border-slate-200 shadow-sm space-y-5">
-            <h3 className="font-extrabold text-slate-900 text-sm uppercase tracking-wider">Tiện ích số & Dịch vụ công trực tuyến</h3>
+        <div className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-6">
+          <div className="max-w-4xl mx-auto bg-white rounded-2xl p-5 sm:p-8 border border-slate-200 shadow-sm">
+            <div className="max-w-2xl space-y-3">
+              <h3 className="font-extrabold text-slate-900 text-xl sm:text-2xl tracking-tight">Tiện ích số & Dịch vụ công trực tuyến</h3>
+              <p className="text-sm sm:text-base leading-relaxed text-slate-600">
+                Cung cấp các liên kết và công cụ tra cứu số phục vụ người dân và cán bộ xã Thạch Khê.
+              </p>
+            </div>
+            <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+              <div className="min-h-14 rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 text-left font-semibold text-slate-800">
+                <span className="block text-sm font-bold text-blue-700">Cổng Dịch Vụ Công Trực Tuyến</span>
+                <span className="mt-0.5 block text-xs font-normal text-slate-600">Thực hiện các thủ tục hành chính công mức độ 3, 4</span>
+              </div>
+              <div className="min-h-14 rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 text-left font-semibold text-slate-800">
+                <span className="block text-sm font-bold text-blue-700">Tra cứu quy hoạch đất đai</span>
+                <span className="mt-0.5 block text-xs font-normal text-slate-600">Thông tin bản đồ địa chính và thông số quy hoạch</span>
+              </div>
+            </div>
           </div>
         </div>
       )}
 
+      {/* Nút bật/tắt nhạc nền */}
       <div className="fixed bottom-5 right-5 z-50">
         <button
           type="button"
@@ -910,28 +926,7 @@ export default function ClientHome({
         preload="auto"
       />
 
-      <ReportModal 
-        isOpen={isReportModalOpen}
-        onClose={() => setIsReportModalOpen(false)}
-        reportForm={reportForm}
-        setReportForm={setReportForm}
-        onSubmit={handleReportSubmit}
-        id="report-modal"
-        isPickingMap={isPickingMap}
-        setIsPickingMap={setIsPickingMap}
-        pickedLatLng={pickedLatLng}
-        detectedLocationName={detectedLocationName}
-      />
-
-      <SearchProgressModal 
-        isOpen={isSearchModalOpen}
-        onClose={() => setIsSearchModalOpen(false)}
-        searchPhone={searchPhone}
-        setSearchPhone={setSearchPhone}
-        onSearch={handleSearchProgress}
-        searchResult={searchResult}
-      />
-
+      {/* Modal chi tiết địa điểm */}
       <LocationDetailModal 
         isOpen={isDetailModalOpen}
         onClose={() => setIsDetailModalOpen(false)}

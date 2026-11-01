@@ -32,7 +32,7 @@ export default function AdminProfile({ currentUser, onUpdateProfile }) {
   };
 
   return (
-    <div className="p-6 space-y-6 text-xs max-h-[calc(100vh-60px)] overflow-y-auto max-w-2xl">
+    <div className="h-full min-h-0 overflow-y-auto p-4 sm:p-6 space-y-6 text-sm max-w-2xl">
       <div>
         <h1 className="text-lg font-bold text-slate-900">⚙️ Thông Tin Cá Nhân & Đổi Mật Khẩu</h1>
         <p className="text-slate-500 text-xs">Quản lý hồ sơ tài khoản đang đăng nhập và bảo mật mật khẩu hệ thống.</p>

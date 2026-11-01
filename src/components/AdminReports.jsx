@@ -32,7 +32,7 @@ export default function AdminReports({
   const pendingCount = reports.filter(r => r.status === 'Chờ xử lý').length;
 
   return (
-    <div className="min-h-screen bg-slate-100 flex flex-col md:flex-row font-sans">
+    <div className="h-full min-h-0 bg-slate-100 flex flex-col md:flex-row font-sans">
       <AdminSidebar 
         activeTab={activeTab}
         setActiveTab={setActiveTab}
@@ -42,7 +42,7 @@ export default function AdminReports({
         currentUser={currentUser}
       />
 
-      <div className="flex-1 overflow-hidden">
+      <div className="flex-1 min-h-0 min-w-0 overflow-hidden">
         {activeTab === 'overview' && (
           <DashboardOverview reports={reports} villages={villages} />
         )}

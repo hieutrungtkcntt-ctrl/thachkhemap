@@ -48,7 +48,7 @@ export default function ReportManagement({ reports = [], onUpdateReportStatus, o
   };
 
   return (
-    <div className="p-6 space-y-4 text-xs max-h-[calc(100vh-60px)] overflow-y-auto">
+    <div className="h-full min-h-0 overflow-y-auto p-4 sm:p-6 space-y-4 text-sm">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
         <div>
           <h1 className="text-lg font-bold text-slate-900">🚨 Quản Lý Phản Ánh Sự Cố</h1>

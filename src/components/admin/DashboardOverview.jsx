@@ -6,7 +6,7 @@ export default function DashboardOverview({ reports = [], communeInfo = null, vi
   const completedReports = reports.filter(r => r.status === 'Đã hoàn thành').length;
 
   return (
-    <div className="p-6 space-y-6 text-xs max-h-[calc(100vh-60px)] overflow-y-auto">
+    <div className="h-full min-h-0 overflow-y-auto p-4 sm:p-6 space-y-6 text-sm">
       <div>
         <h1 className="text-lg font-bold text-slate-900">📊 Tổng Quan Hệ Thống Quản Trị</h1>
         <p className="text-slate-500 text-xs">Số liệu hành chính và thống kê tình hình tiếp nhận phản ánh sự cố trên địa bàn xã Thạch Khê.</p>

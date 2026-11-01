@@ -182,7 +182,7 @@ export default function LocationManagement({ locations = [], categories = [], on
   };
 
   return (
-    <div className="p-6 space-y-4 text-xs max-h-[calc(100vh-60px)] overflow-y-auto">
+    <div className="h-full min-h-0 overflow-y-auto p-4 sm:p-6 space-y-4 text-sm">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
         <div>
           <h1 className="text-lg font-bold text-slate-900">📍 Quản Lý Danh Mục & Địa Điểm</h1>
@@ -330,12 +330,18 @@ export default function LocationManagement({ locations = [], categories = [], on
                       ))
                     ) : (
                       <>
-                        <option value="Hành chính">Hành chính</option>
-                        <option value="Y tế">Y tế</option>
-                        <option value="Giáo dục">Giáo dục</option>
-                        <option value="Văn hóa - Thể thao">Văn hóa - Thể thao</option>
-                        <option value="Hạ tầng - Môi trường">Hạ tầng - Môi trường</option>
-                        <option value="Du lịch - Di tích">Du lịch - Di tích</option>
+                      <option value="admin">Hành chính</option>
+                        <option value="culture">Văn hóa - Thể thao</option>
+                        <option value="eco">Môi trường - Sinh thái</option>
+                        <option value="health">Y tế</option>
+                        <option value="hotel">Cơ sở lưu trú</option>
+                        <option value="industry">Sản xuất - Công nghiệp</option>
+                        <option value="market">Chợ - Thương mại</option>
+                        <option value="restaurant">Ẩm thực - Nhà hàng</option>
+                        <option value="school">Giáo dục - Trường học</option>
+                        <option value="security">An ninh trật tự</option>
+                        <option value="temple">Đền, Chùa, Di tích</option>
+                        <option value="tourism">Du lịch</option>
                       </>
                     )}
                   </select>

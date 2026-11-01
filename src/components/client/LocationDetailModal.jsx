@@ -9,7 +9,6 @@ export default function LocationDetailModal({
   onDirectGPSRoute
 }) {
   const [activeImageIndex, setActiveImageIndex] = useState(0);
-  const [isSlideshowPlaying, setIsSlideshowPlaying] = useState(true);
 
   // Trích xuất và chuẩn hóa mảng ảnh siêu an toàn từ mọi định dạng Firestore trả về
   const galleryImages = useMemo(() => {
@@ -17,7 +16,6 @@ export default function LocationDetailModal({
 
     let candidates = [];
 
-    // 1. Kiểm tra trường images (hỗ trợ cả mảng chuẩn lẫn object map key số 0, 1...)
     if (location.images) {
       if (Array.isArray(location.images)) {
         candidates = [...location.images];
@@ -26,7 +24,6 @@ export default function LocationDetailModal({
       }
     }
 
-    // 2. Kiểm tra các trường photos hoặc gallery
     if (location.photos) {
       if (Array.isArray(location.photos)) {
         candidates = [...candidates, ...location.photos];
@@ -43,7 +40,6 @@ export default function LocationDetailModal({
       }
     }
 
-    // 3. Dự phòng các trường ảnh đơn lẻ khác
     candidates = [
       ...candidates,
       location.mediaUrl,
@@ -74,23 +70,23 @@ export default function LocationDetailModal({
         );
       });
 
-    return [...new Set(urls)]; // Loại bỏ các URL trùng lặp
+    return [...new Set(urls)];
   }, [location]);
 
   useEffect(() => {
     setActiveImageIndex(0);
-    setIsSlideshowPlaying(true);
   }, [location]);
 
+  // Tự động chuyển ảnh slideshow nhẹ nhàng khi có từ 2 ảnh trở lên
   useEffect(() => {
-    if (!isOpen || galleryImages.length < 2 || !isSlideshowPlaying) return undefined;
+    if (!isOpen || galleryImages.length < 2) return undefined;
 
     const timer = window.setInterval(() => {
       setActiveImageIndex((current) => (current + 1) % galleryImages.length);
     }, 4000);
 
     return () => window.clearInterval(timer);
-  }, [isOpen, galleryImages, isSlideshowPlaying]);
+  }, [isOpen, galleryImages]);
 
   if (!isOpen || !location) return null;
 
@@ -113,18 +109,18 @@ export default function LocationDetailModal({
     : (location.type || location.category || 'Địa điểm khác');
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-xs p-3 sm:p-4 animate-fadeIn">
-      <div className="bg-white w-full max-w-xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-xs p-3 sm:p-5 animate-fadeIn">
+      <div className="bg-white w-full max-w-xl rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
 
         {/* Header xanh đậm */}
-        <div className="bg-[#0f2942] text-white p-4 sm:p-5 flex items-start justify-between relative">
-          <div className="space-y-1.5 pr-6">
-            <h2 className="text-lg sm:text-xl font-bold tracking-wide">{location.name}</h2>
+        <div className="bg-[#0f2942] text-white p-4 sm:p-5 flex items-start justify-between relative shrink-0">
+          <div className="space-y-1.5 pr-8">
+            <h2 className="text-base sm:text-lg font-extrabold tracking-wide leading-snug">{location.name}</h2>
             <div className="flex items-center gap-1 text-amber-400 text-xs">
               <span>★</span><span>★</span><span>★</span><span className="text-slate-400">★</span><span className="text-slate-400">★</span>
             </div>
             <div>
-              <span className="inline-block text-[11px] bg-white/10 text-slate-200 px-2.5 py-0.5 rounded-full font-medium">
+              <span className="inline-block text-[11px] bg-white/10 text-slate-200 px-3 py-0.5 rounded-full font-semibold">
                 🏷️ Lĩnh vực: {categoryLabel}
               </span>
             </div>
@@ -139,108 +135,111 @@ export default function LocationDetailModal({
           </button>
         </div>
 
-        {/* Nội dung cuộn */}
-        <div className="p-4 sm:p-6 overflow-y-auto space-y-5 text-slate-700 text-xs sm:text-sm">
+        {/* Nội dung cuộn chính */}
+        <div className="p-4 sm:p-6 overflow-y-auto space-y-5 text-slate-700 text-xs sm:text-sm scrollbar-thin">
 
-          {/* THƯ VIỆN ẢNH / SLIDESHOW HOẶC ẢNH ĐƠN */}
-          {galleryImages.length > 0 && (
-            <section className="space-y-2" aria-label="Thư viện hình ảnh địa điểm">
-              <div className="flex items-center justify-between gap-2">
-                <h3 className="font-bold text-slate-900 text-xs sm:text-sm flex items-center gap-2">
-                  <span>🖼️</span> Hình ảnh địa điểm ({galleryImages.length} ảnh)
-                </h3>
-                {galleryImages.length > 1 && (
-                  <button
-                    type="button"
-                    onClick={() => setIsSlideshowPlaying((playing) => !playing)}
-                    className="text-xs font-semibold text-blue-600 hover:text-blue-800 cursor-pointer"
-                  >
-                    {isSlideshowPlaying ? '⏸ Tạm dừng' : '▶ Trình chiếu'}
-                  </button>
-                )}
-              </div>
+          {/* KHUNG TRÌNH DIỄN HÌNH ẢNH */}
+          <section className="space-y-2.5" aria-label="Thư viện hình ảnh địa điểm">
+            <div className="flex items-center justify-between gap-2 px-0.5">
+              <h3 className="font-extrabold text-slate-900 text-xs sm:text-sm flex items-center gap-2">
+                <span>🖼️</span> Hình ảnh địa điểm {galleryImages.length > 0 ? `(${galleryImages.length} ảnh)` : ''}
+              </h3>
+            </div>
 
-              <div className="relative overflow-hidden rounded-xl border border-slate-200 bg-slate-100 shadow-sm">
-                <img
-                  key={galleryImages[activeImageIndex]}
-                  src={galleryImages[activeImageIndex]}
-                  alt={`${location.name} ảnh ${activeImageIndex + 1}`}
-                  className="w-full h-48 sm:h-64 object-cover"
-                  onError={(event) => {
-                    event.currentTarget.parentElement.style.display = 'none';
-                  }}
-                />
+            {galleryImages.length > 0 ? (
+              <div className="space-y-2">
+                {/* Ảnh chính tỷ lệ cân đối 16:10 */}
+                <div className="relative w-full aspect-[16/10] overflow-hidden rounded-2xl border border-slate-200 bg-slate-900 shadow-sm">
+                  <img
+                    key={galleryImages[activeImageIndex]}
+                    src={galleryImages[activeImageIndex]}
+                    alt={`${location.name} ảnh ${activeImageIndex + 1}`}
+                    className="w-full h-full object-cover transition-opacity duration-500"
+                    onError={(event) => {
+                      event.currentTarget.parentElement.style.display = 'none';
+                    }}
+                  />
 
-                {galleryImages.length > 1 && (
-                  <>
-                    <button
-                      type="button"
-                      onClick={showPreviousImage}
-                      aria-label="Ảnh trước"
-                      className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/55 hover:bg-black/75 text-white text-xl flex items-center justify-center shadow transition cursor-pointer"
-                    >‹</button>
-                    <button
-                      type="button"
-                      onClick={showNextImage}
-                      aria-label="Ảnh tiếp theo"
-                      className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/55 hover:bg-black/75 text-white text-xl flex items-center justify-center shadow transition cursor-pointer"
-                    >›</button>
-                    <div className="absolute bottom-3 left-1/2 -translate-x-1/2 rounded-full bg-black/65 text-white px-3 py-1 text-[11px] font-semibold">
-                      {activeImageIndex + 1} / {galleryImages.length}
-                    </div>
-                  </>
-                )}
-              </div>
-
-              {/* Danh sách thumbnail thu nhỏ khi có từ 2 ảnh trở lên */}
-              {galleryImages.length > 1 && (
-                <div className="flex gap-2 overflow-x-auto pb-1">
-                  {galleryImages.map((imageUrl, index) => (
-                    <button
-                      type="button"
-                      key={`${imageUrl}-${index}`}
-                      onClick={() => setActiveImageIndex(index)}
-                      aria-label={`Xem ảnh ${index + 1}`}
-                      className={`shrink-0 w-16 h-12 sm:w-20 sm:h-14 rounded-lg overflow-hidden border-2 transition cursor-pointer ${
-                        activeImageIndex === index
-                          ? 'border-blue-600 ring-2 ring-blue-100'
-                          : 'border-transparent opacity-75 hover:opacity-100'
-                      }`}
-                    >
-                      <img src={imageUrl} alt="" className="w-full h-full object-cover" />
-                    </button>
-                  ))}
+                  {galleryImages.length > 1 && (
+                    <>
+                      <button
+                        type="button"
+                        onClick={showPreviousImage}
+                        aria-label="Ảnh trước"
+                        className="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/60 hover:bg-black/80 text-white text-base flex items-center justify-center shadow transition cursor-pointer"
+                      >‹</button>
+                      <button
+                        type="button"
+                        onClick={showNextImage}
+                        aria-label="Ảnh tiếp theo"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/60 hover:bg-black/80 text-white text-base flex items-center justify-center shadow transition cursor-pointer"
+                      >›</button>
+                      <div className="absolute bottom-3 left-1/2 -translate-x-1/2 rounded-full bg-black/70 text-white px-3 py-0.5 text-[10px] font-bold tracking-wide">
+                        {activeImageIndex + 1} / {galleryImages.length}
+                      </div>
+                    </>
+                  )}
                 </div>
-              )}
-            </section>
-          )}
 
-          {/* Danh sách thông tin chi tiết */}
-          <div className="bg-white rounded-xl border border-slate-100 shadow-xs divide-y divide-slate-100">
-            <div className="flex items-start gap-3 p-3">
+                {/* Danh sách ảnh thu nhỏ (Thumbnails) cân đối */}
+                {galleryImages.length > 1 && (
+                  <div className="flex gap-2 overflow-x-auto pb-1 pt-0.5 scrollbar-thin">
+                    {galleryImages.map((imageUrl, index) => (
+                      <button
+                        type="button"
+                        key={`${imageUrl}-${index}`}
+                        onClick={() => setActiveImageIndex(index)}
+                        aria-label={`Xem ảnh ${index + 1}`}
+                        className={`shrink-0 w-16 h-12 sm:w-20 sm:h-14 rounded-xl overflow-hidden border-2 transition cursor-pointer shadow-2xs ${
+                          activeImageIndex === index
+                            ? 'border-blue-600 ring-2 ring-blue-100 scale-105'
+                            : 'border-slate-200 opacity-70 hover:opacity-100'
+                        }`}
+                      >
+                        <img src={imageUrl} alt="" className="w-full h-full object-cover" />
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ) : (
+              /* KHUNG THÔNG BÁO KHI CHƯA CÓ ẢNH */
+              <div className="w-full aspect-[16/10] rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 flex flex-col items-center justify-center text-center p-6 shadow-inner">
+                <span className="text-3xl mb-2 opacity-80">📷</span>
+                <span className="font-extrabold text-slate-800 text-xs sm:text-sm">Ảnh đang được bổ sung</span>
+                <p className="text-[11px] text-slate-400 mt-1 max-w-xs leading-relaxed">
+                  Hình ảnh thực tế của địa điểm này sẽ sớm được cập nhật đồng bộ lên hệ thống.
+                </p>
+              </div>
+            )}
+          </section>
+
+          {/* DANH SÁCH THÔNG TIN CHI TIẾT */}
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-2xs divide-y divide-slate-100 overflow-hidden">
+            <div className="flex items-start gap-3.5 p-3.5">
               <span className="text-base text-slate-400 mt-0.5">📞</span>
               <div>
-                <span className="block text-[10px] uppercase font-bold text-slate-400 tracking-wider">Số điện thoại liên hệ</span>
-                <a href={`tel:${location.phone || ''}`} className="font-bold text-blue-600 hover:underline text-sm">
+                <span className="block text-[10px] uppercase font-extrabold text-slate-400 tracking-wider">Số điện thoại liên hệ</span>
+                <a href={`tel:${location.phone || ''}`} className="font-bold text-blue-600 hover:underline text-xs sm:text-sm mt-0.5 inline-block">
                   {location.phone || 'Đang cập nhật'}
                 </a>
               </div>
             </div>
 
-            <div className="flex items-start gap-3 p-3">
+            <div className="flex items-start gap-3.5 p-3.5">
               <span className="text-base text-slate-400 mt-0.5">📍</span>
               <div>
-                <span className="block text-[10px] uppercase font-bold text-slate-400 tracking-wider">Địa bàn hoạt động</span>
-                <span className="font-semibold text-slate-800">{location.village || location.locationName || location.address || 'Xã Thạch Khê'}</span>
+                <span className="block text-[10px] uppercase font-extrabold text-slate-400 tracking-wider">Địa bàn hoạt động</span>
+                <span className="font-bold text-slate-800 text-xs sm:text-sm mt-0.5 inline-block">{location.village || location.locationName || location.address || 'Xã Thạch Khê'}</span>
               </div>
             </div>
 
-            <div className="flex items-start gap-3 p-3">
+            <div className="flex items-start gap-3.5 p-3.5">
               <span className="text-base text-slate-400 mt-0.5">🗺️</span>
               <div className="flex-1">
-                <span className="block text-[10px] uppercase font-bold text-slate-400 tracking-wider">Vị trí / Tọa độ GPS</span>
-                <div className="font-medium text-slate-800">
-                  Định vị: <span className="font-mono text-slate-900">{lat}, {lng}</span>
+                <span className="block text-[10px] uppercase font-extrabold text-slate-400 tracking-wider">Vị trí / Tọa độ GPS</span>
+                <div className="font-medium text-slate-800 text-xs sm:text-sm mt-0.5">
+                  Định vị: <span className="font-mono font-bold text-slate-900">{lat}, {lng}</span>
                 </div>
                 <button
                   type="button"
@@ -250,46 +249,46 @@ export default function LocationDetailModal({
                     }
                     onClose();
                   }}
-                  className="text-blue-600 hover:underline font-semibold text-xs mt-1 inline-flex items-center gap-1 cursor-pointer"
+                  className="text-blue-600 hover:underline font-extrabold text-xs mt-1.5 inline-flex items-center gap-1 cursor-pointer bg-blue-50 px-2.5 py-1 rounded-lg transition"
                 >
                   🧭 Xem bản đồ định vị GPS
                 </button>
               </div>
             </div>
 
-            <div className="flex items-start gap-3 p-3">
+            <div className="flex items-start gap-3.5 p-3.5">
               <span className="text-base text-slate-400 mt-0.5">⏰</span>
               <div>
-                <span className="block text-[10px] uppercase font-bold text-slate-400 tracking-wider">Thời gian hoạt động</span>
-                <span className="font-semibold text-slate-800">{location.workingHours || location.openTime || '7:30 - 17:00'}</span>
+                <span className="block text-[10px] uppercase font-extrabold text-slate-400 tracking-wider">Thời gian hoạt động</span>
+                <span className="font-bold text-slate-800 text-xs sm:text-sm mt-0.5 inline-block">{location.workingHours || location.openTime || '7:30 - 17:00'}</span>
               </div>
             </div>
 
-            <div className="flex items-start gap-3 p-3">
+            <div className="flex items-start gap-3.5 p-3.5">
               <span className="text-base text-slate-400 mt-0.5">🏷️</span>
               <div>
-                <span className="block text-[10px] uppercase font-bold text-slate-400 tracking-wider">Thông tin chi tiết / Ghi chú</span>
-                <span className="text-slate-600">{location.description || location.info || location.desc || 'Hỗ trợ 24/7'}</span>
+                <span className="block text-[10px] uppercase font-extrabold text-slate-400 tracking-wider">Thông tin chi tiết / Ghi chú</span>
+                <span className="text-slate-600 text-xs sm:text-sm mt-0.5 inline-block leading-relaxed">{location.description || location.info || location.desc || 'Hỗ trợ 24/7'}</span>
               </div>
             </div>
           </div>
 
           {/* VỊ TRÍ ĐÁNH DẤU TRÊN BẢN ĐỒ */}
           <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <h3 className="font-bold text-slate-900 text-xs sm:text-sm flex items-center gap-1.5">
+            <div className="flex items-center justify-between px-0.5">
+              <h3 className="font-extrabold text-slate-900 text-xs sm:text-sm flex items-center gap-1.5">
                 <span>📍</span> Vị trí đánh dấu trên bản đồ
               </h3>
               <a
                 href={`https://www.google.com/maps/search/?api=1&query=${lat},${lng}`}
                 target="_blank"
                 rel="noreferrer"
-                className="text-xs text-blue-600 hover:underline font-semibold"
+                className="text-xs text-blue-600 hover:underline font-bold"
               >
                 Mở bằng Google Maps ↗
               </a>
             </div>
-            <div className="w-full h-48 rounded-xl overflow-hidden border border-slate-200 shadow-inner relative">
+            <div className="w-full h-44 sm:h-48 rounded-2xl overflow-hidden border border-slate-200 shadow-inner relative bg-slate-100">
               <iframe
                 title="Google Map Marker"
                 width="100%"
@@ -302,27 +301,27 @@ export default function LocationDetailModal({
             </div>
           </div>
 
-          {/* MÃ QR CHIA SẺ DỊCH VỤ (ĐÃ TÁCH BẠCH HOÀN TOÀN KHÔNG BỊ DÍNH ẢNH ĐỊA ĐIỂM) */}
-          <div className="bg-slate-50 rounded-2xl border border-slate-200 p-4 sm:p-5 text-center space-y-3">
-            <div className="flex items-center justify-between border-b border-slate-200 pb-2">
-              <span className="font-bold text-slate-800 text-xs sm:text-sm flex items-center gap-1.5">
+          {/* MÃ QR CHIA SẺ DỊCH VỤ */}
+          <div className="bg-slate-50/80 rounded-2xl border border-slate-200 p-4 sm:p-5 text-center space-y-3 shadow-2xs">
+            <div className="flex items-center justify-between border-b border-slate-200/80 pb-2.5">
+              <span className="font-extrabold text-slate-800 text-xs sm:text-sm flex items-center gap-1.5">
                 <span>📱</span> Chia sẻ dịch vụ
               </span>
-              <span className="text-[11px] text-slate-500">Quét mã QR để truy cập</span>
+              <span className="text-[11px] text-slate-500 font-medium">Quét mã QR để truy cập</span>
             </div>
 
-            <div className="max-w-[260px] mx-auto bg-gradient-to-b from-[#991b1b] to-[#0f172a] rounded-xl p-4 text-white shadow-md space-y-3">
-              <div className="text-[10px] uppercase tracking-wider font-semibold text-red-200">
+            <div className="max-w-[260px] mx-auto bg-gradient-to-b from-[#991b1b] to-[#0f172a] rounded-2xl p-4 text-white shadow-md space-y-3">
+              <div className="text-[10px] uppercase tracking-wider font-extrabold text-red-200">
                 Cổng thông tin địa bàn và dịch vụ tiện ích
               </div>
-              <div className="bg-white p-2.5 rounded-lg w-36 h-36 mx-auto flex items-center justify-center shadow">
+              <div className="bg-white p-2.5 rounded-xl w-32 h-32 mx-auto flex items-center justify-center shadow">
                 <img
                   src={location.qrCode && location.qrCode.trim() !== '' ? location.qrCode : `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(window.location.href)}`}
                   alt="QR Code"
                   className="w-full h-full object-contain"
                 />
               </div>
-              <div className="font-bold text-xs tracking-wide uppercase text-amber-300">
+              <div className="font-extrabold text-xs tracking-wide uppercase text-amber-300 truncate">
                 {location.name}
               </div>
               <div className="text-[9px] text-slate-300 border-t border-white/10 pt-1.5">
@@ -330,27 +329,27 @@ export default function LocationDetailModal({
               </div>
             </div>
 
-            <p className="text-[11px] text-slate-500">
-              Mã QR chia sẻ thông tin <strong className="text-slate-700">{location.name}</strong>. Người dùng quét mã để xem chi tiết dịch vụ.
+            <p className="text-[11px] text-slate-500 leading-relaxed max-w-md mx-auto">
+              Mã QR chia sẻ thông tin <strong className="text-slate-700">{location.name}</strong>. Người dùng có thể quét mã trực tiếp bằng điện thoại.
             </p>
 
             <button
               type="button"
               onClick={() => alert('Chức năng tải về mã QR đang được thực hiện!')}
-              className="inline-flex items-center justify-center gap-2 bg-[#0f2942] hover:bg-[#1e3a8a] text-white font-bold text-xs py-2 px-5 rounded-xl shadow transition cursor-pointer"
+              className="inline-flex items-center justify-center gap-2 bg-[#0f2942] hover:bg-[#1e3a8a] text-white font-extrabold text-xs py-2.5 px-6 rounded-xl shadow transition cursor-pointer"
             >
-              📥 Tải về
+              📥 Tải về mã QR
             </button>
           </div>
 
         </div>
 
         {/* Footer đóng modal */}
-        <div className="p-3 sm:p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-2">
+        <div className="p-3 sm:p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-end gap-2 shrink-0">
           <button
             type="button"
             onClick={onClose}
-            className="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-2 px-5 rounded-xl transition text-xs sm:text-sm cursor-pointer"
+            className="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-2.5 px-6 rounded-xl transition text-xs sm:text-sm cursor-pointer shadow-2xs"
           >
             Đóng
           </button>

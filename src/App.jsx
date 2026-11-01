@@ -90,29 +90,7 @@ export default function App() {
         }
 
         // 4. Lấy reports phản ánh
-        const repSnap = await getDocs(collection(db, "reports"));
-        if (!repSnap.empty) {
-          setReports(repSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-        } else {
-          setReports([
-            {
-              id: 1740000001001,
-              sender: 'Nguyễn Văn Hùng',
-              phone: '0912345678',
-              category: 'Hạ tầng / Giao thông',
-              content: 'Ổ gà lớn xuất hiện giữa đường liên thôn gây nguy hiểm.',
-              lat: '18.3971',
-              lng: '105.9433',
-              locationName: 'Trường Xuân',
-              time: '24/09/2026 14:30:00',
-              status: 'Chờ xử lý',
-              note: '',
-              image: null,
-              resultImage: null,
-              isMapHidden: false
-            }
-          ]);
-        }
+        
 
         // 5. Lấy ranh giới xã communeBoundary
         const communeSnap = await getDocs(collection(db, "commune_info"));
@@ -151,7 +129,7 @@ export default function App() {
       const docRef = await addDoc(collection(db, "locations"), payload);
       const savedLoc = { id: docRef.id, ...payload };
       setLocations(prev => [savedLoc, ...prev]);
-      alert('Thêm địa điểm và bộ sưu tập hình ảnh lên Firebase thành công!');
+      alert('Thêm địa điểm và bộ sưu tập hình ảnh lên Kho dữ liệu thành công!');
     } catch (error) {
       console.error("Lỗi khi thêm địa điểm:", error);
       alert('Thêm địa điểm thất bại: ' + error.message);
@@ -243,17 +221,17 @@ export default function App() {
 
   if (loadingApp) {
     return (
-      <div className="h-screen w-screen bg-slate-900 flex flex-col items-center justify-center text-white gap-3 font-sans">
+      <div className="h-dvh w-full bg-slate-900 flex flex-col items-center justify-center text-white gap-3 font-sans">
         <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-        <p className="text-sm font-semibold">Đang khởi tạo hệ thống Bản đồ số Thạch Khê từ Firebase...</p>
+        <p className="text-sm font-semibold">Đang khởi tạo hệ thống Bản đồ số Thạch Khê ...</p>
       </div>
     );
   }
 
   if (currentView === 'admin-login') {
     return (
-      <div className="h-screen w-screen bg-slate-900 flex items-center justify-center p-4 font-sans overflow-hidden">
-        <div className="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-md relative">
+      <div className="h-dvh w-full bg-slate-950 flex items-center justify-center p-4 font-sans overflow-y-auto">
+        <div className="bg-white p-6 sm:p-8 rounded-2xl shadow-2xl w-full max-w-md relative">
           <button 
             type="button"
             onClick={() => { setCurrentView('client'); setLoginError(''); }}
@@ -261,43 +239,43 @@ export default function App() {
           >
             ✕
           </button>
-          <div className="text-center mb-6">
-            <span className="text-4xl">🔐</span>
-            <h2 className="text-lg font-bold text-slate-900 mt-2">Đăng Nhập Cổng Quản Trị</h2>
-            <p className="text-xs text-slate-500 mt-1">Dành riêng cho cán bộ UBND xã Thạch Khê</p>
+          <div className="text-center mb-7">
+            <img src="/logo.png" alt="Logo Xã Thạch Khê" className="mx-auto h-12 w-12 object-contain" />
+            <h2 className="text-xl font-bold text-slate-900 mt-3">Đăng Nhập Cổng Quản Trị</h2>
+            <p className="text-sm text-slate-600 mt-1">Dành riêng cho cán bộ UBND xã Thạch Khê</p>
           </div>
           {loginError && (
-            <div className="mb-4 bg-red-50 border border-red-200 text-red-700 text-xs p-3 rounded-xl font-medium text-center">
+            <div className="mb-4 bg-red-50 border border-red-200 text-red-800 text-sm p-3 rounded-xl font-medium text-center">
               {loginError}
             </div>
           )}
-          <form onSubmit={handleAdminLogin} className="space-y-4 text-xs">
+          <form onSubmit={handleAdminLogin} className="space-y-5 text-sm">
             <div>
-              <label className="block font-semibold text-slate-700 mb-1">Tên đăng nhập</label>
+              <label className="block font-semibold text-slate-700 mb-1.5">Tên đăng nhập</label>
               <input 
                 type="text" 
                 required 
                 placeholder="Nhập tên đăng nhập..."
                 value={loginForm.username}
                 onChange={(e) => setLoginForm({...loginForm, username: e.target.value})}
-                className="w-full px-3.5 py-2.5 border rounded-xl outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50 font-mono"
+                className="w-full min-h-11 px-3.5 py-2.5 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50 font-mono"
               />
             </div>
             <div>
-              <label className="block font-semibold text-slate-700 mb-1">Mật khẩu</label>
+              <label className="block font-semibold text-slate-700 mb-1.5">Mật khẩu</label>
               <input 
                 type="password" 
                 required 
                 placeholder="••••••••"
                 value={loginForm.password}
                 onChange={(e) => setLoginForm({...loginForm, password: e.target.value})}
-                className="w-full px-3.5 py-2.5 border rounded-xl outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50"
+                className="w-full min-h-11 px-3.5 py-2.5 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50"
               />
             </div>
             <div className="pt-2">
               <button 
                 type="submit" 
-                className="w-full bg-blue-900 hover:bg-blue-800 text-white font-bold py-2.5 rounded-xl shadow transition text-xs cursor-pointer"
+                className="w-full min-h-11 bg-blue-900 hover:bg-blue-800 text-white font-bold py-2.5 rounded-xl shadow transition text-sm cursor-pointer"
               >
                 Đăng Nhập Hệ Thống
               </button>
@@ -310,7 +288,7 @@ export default function App() {
 
   if (currentView === 'admin') {
     return (
-      <div className="h-screen w-screen overflow-hidden flex flex-col">
+      <div className="h-dvh w-full min-h-0 overflow-hidden flex flex-col">
         <AdminReports 
           reports={reports}
           onUpdateReportStatus={handleUpdateReportStatus}
@@ -339,7 +317,7 @@ export default function App() {
   }
 
   return (
-    <div className="h-screen w-screen overflow-hidden flex flex-col bg-slate-100 font-sans">
+    <div className="h-dvh w-full min-h-0 overflow-hidden flex flex-col bg-slate-100 font-sans">
       <ClientHome 
         locations={locations}
         villages={villages}

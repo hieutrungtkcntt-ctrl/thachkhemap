@@ -88,9 +88,7 @@ function parseBoundary(boundary) {
 
 function getPolygonCenter(boundary) {
     const coords = parseBoundary(boundary);
-    if (coords.length === 0) {
-        return [18.3858, 105.9505];
-    }
+    if (coords.length === 0) return [18.3858, 105.9505];
 
     let latSum = 0;
     let lngSum = 0;
@@ -121,7 +119,6 @@ function getVillageNameByCoord(lat, lng, villagesList) {
   return "Khu vực trung tâm / Địa bàn xã Thạch Khê";
 }
 
-// 🛠️ HÀM TRÍCH XUẤT ĐÚNG 1 ẢNH DUY NHẤT AN TOÀN TỪ MỌI ĐỊNH DẠNG FIRESTORE
 function getSingleImage(loc) {
   if (!loc) return "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=500";
 
@@ -267,13 +264,18 @@ function LocationMarker({ loc, isSelected, isDimmed, onSelectLocation, getCatego
           if (!isPickingMap && !isVillageMode && onSelectLocation) {
             onSelectLocation(loc); 
           }
-        } 
+        },
+        popupclose: () => {
+          if (!isPickingMap && !isVillageMode && onSelectLocation && isSelected) {
+            onSelectLocation(null); 
+          }
+        }
       }}
     >
       {!isPickingMap && !isVillageMode && (
         <Popup>
           <div className="min-w-[240px] max-w-[285px] flex flex-col font-sans text-xs bg-white rounded-2xl">
-            <div className="w-full h-32 rounded-xl overflow-hidden bg-slate-100 relative mb-2.5 shadow-xs">
+            <div className="w-full h-40 rounded-xl overflow-hidden bg-slate-100 relative mb-2.5 shadow-xs">
               <img 
                 src={singleImageUrl} 
                 alt={loc.name} 
@@ -377,10 +379,50 @@ export default function MapComponent({
   onDirectGPSRoute, 
   onOpenDetail, 
   getCategoryName,
-  reports = [] 
+  reports = [],
+  hideVillageNames = false,
+  hideLocationPins = false,
+  onClearRoute // <-- Nhận hàm xóa lộ trình từ cha
 }) {
   const [zoomLevel, setZoomLevel] = useState(mapZoom || 12);
   const [hoveredVillageKey, setHoveredVillageKey] = useState(null);
+
+  const [routeSteps, setRouteSteps] = useState([]);
+  const [showRoutePanel, setShowRoutePanel] = useState(false);
+
+  useEffect(() => {
+    async function fetchDetailedRouteSteps() {
+      if (!userLocation || !selectedLocation) {
+        setRouteSteps([]);
+        setShowRoutePanel(false);
+        return;
+      }
+      try {
+        const [startLat, startLng] = userLocation;
+        const destLat = selectedLocation.lat;
+        const destLng = selectedLocation.lng;
+        const url = `https://router.project-osrm.org/route/v1/driving/${startLng},${startLat};${destLng},${destLat}?overview=full&geometries=geojson&steps=true`;
+        const res = await fetch(url);
+        const data = await res.json();
+        if (data.routes && data.routes[0] && data.routes[0].legs[0]) {
+          const steps = data.routes[0].legs[0].steps || [];
+          const formattedSteps = steps.map((s, idx) => ({
+            id: idx,
+            instruction: s.maneuver.instruction || 'Tiếp tục di chuyển',
+            distance: s.distance > 1000 ? `${(s.distance / 1000).toFixed(1)} km` : `${Math.round(s.distance)} m`,
+            name: s.name ? `trên đường ${s.name}` : ''
+          }));
+          setRouteSteps(formattedSteps);
+          setShowRoutePanel(true);
+        }
+      } catch (err) {
+        console.error("Lỗi lấy chi tiết bước đi:", err);
+      }
+    }
+    if (routeCoordinates && routeCoordinates.length > 0) {
+      fetchDetailedRouteSteps();
+    }
+  }, [routeCoordinates, userLocation, selectedLocation]);
 
   const safeCenter = (currentCenter && Array.isArray(currentCenter) && !isNaN(currentCenter[0]) && !isNaN(currentCenter[1])) 
     ? currentCenter 
@@ -388,7 +430,6 @@ export default function MapComponent({
 
   const currentVillageName = selectedVillage?.name || selectedVillage?.tenThon || '';
   const isVillageMode = Boolean(selectedVillage) && !selectedLocation;
-
   const parsedCommuneBoundary = parseBoundary(communeBoundary);
 
   return (
@@ -426,6 +467,50 @@ export default function MapComponent({
           line-height: 1.4 !important;
         }
       `}</style>
+
+      {/* BẢNG HƯỚNG DẪN CHỈ ĐƯỜNG CHI TIẾT & NÚT THOÁT */}
+      {showRoutePanel && routeSteps.length > 0 && (
+        <div className="absolute top-16 left-3 z-[1000] w-80 max-h-[65vh] bg-white/95 backdrop-blur-md rounded-2xl shadow-xl border border-slate-200 flex flex-col overflow-hidden animate-fadeIn">
+          <div className="bg-emerald-600 text-white px-4 py-3 flex items-center justify-between shrink-0">
+            <div className="flex items-center gap-2">
+              <span className="text-lg">🧭</span>
+              <div>
+                <h4 className="font-extrabold text-xs uppercase tracking-wide">Hướng dẫn chỉ đường</h4>
+                <p className="text-[10px] opacity-90 truncate max-w-[160px]">Đến: {selectedLocation?.name}</p>
+              </div>
+            </div>
+            
+            <button
+              type="button"
+              onClick={() => {
+                setShowRoutePanel(false);
+                if (onClearRoute) onClearRoute();
+              }}
+              className="bg-black/20 hover:bg-black/40 text-white px-2.5 py-1 rounded-lg text-[11px] font-bold transition cursor-pointer flex items-center gap-1"
+              title="Tắt chỉ đường"
+            >
+              <span>✕ Thoát</span>
+            </button>
+          </div>
+
+          <div className="p-3 overflow-y-auto space-y-2.5 max-h-[250px] scrollbar-thin">
+            {routeSteps.map((step, idx) => (
+              <div 
+                key={step.id} 
+                className="p-2.5 rounded-xl bg-slate-50 border border-slate-200/70 flex items-start gap-2.5"
+              >
+                <span className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-800 font-extrabold text-[10px] flex items-center justify-center shrink-0 mt-0.5">
+                  {idx + 1}
+                </span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-bold text-slate-800 leading-snug">{step.instruction}</p>
+                  <span className="text-[10px] text-slate-500 font-semibold mt-0.5 block">{step.distance} {step.name}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Banner chọn điểm phản ánh */}
       {isPickingMap && (
@@ -503,7 +588,6 @@ export default function MapComponent({
           }} 
         />
 
-        {/* Báo cáo sự cố */}
         {!fixedVillageOverview && !isPickingMap && reports && reports.map((rep, index) => {
           if (!rep.lat || !rep.lng || rep.isMapHidden === true) return null;
           const latNum = parseFloat(rep.lat);
@@ -537,8 +621,12 @@ export default function MapComponent({
           </Marker>
         )}
 
+        {/* TUYẾN ĐƯỜNG CHỈ ĐƯỜNG */}
         {!fixedVillageOverview && routeCoordinates && routeCoordinates.length > 0 && (
-          <Polyline positions={routeCoordinates} pathOptions={{ color: '#0d9488', weight: 4, opacity: 0.9 }} />
+          <>
+            <Polyline positions={routeCoordinates} pathOptions={{ color: '#0284c7', weight: 6, opacity: 0.85, lineCap: 'round' }} />
+            <Polyline positions={routeCoordinates} pathOptions={{ color: '#38bdf8', weight: 3, opacity: 1, dashArray: '6, 10' }} />
+          </>
         )}
 
         {mapStyle === 'satellite' ? (
@@ -555,7 +643,6 @@ export default function MapComponent({
           />
         )}
         
-        {/* Ranh giới Toàn Xã */}
         {parsedCommuneBoundary.length > 0 && (
           <Polygon 
             positions={parsedCommuneBoundary} 
@@ -643,7 +730,8 @@ export default function MapComponent({
                   </Popup>
                 )}
               </Polygon>
-              {!fixedVillageOverview && (
+
+              {!fixedVillageOverview && !hideVillageNames && (
                 <Marker position={centerCoord} icon={labelIcon} interactive={false} />
               )}
             </React.Fragment>
@@ -651,7 +739,7 @@ export default function MapComponent({
         })}
 
         {/* Địa điểm (Locations) trên bản đồ */}
-        {(fixedVillageOverview || zoomLevel >= 13 || selectedVillage || selectedLocation) && filteredLocations && filteredLocations
+        {!hideLocationPins && (fixedVillageOverview || zoomLevel >= 13 || selectedVillage || selectedLocation) && filteredLocations && filteredLocations
           .filter((loc) => {
             if (!fixedVillageOverview) return true;
             const type = String(loc.type || loc.category || loc.categoryId || '').trim().toLowerCase();
