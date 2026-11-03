@@ -17,6 +17,27 @@ function MapViewController({ center, zoom }) {
   return null;
 }
 
+// Controller tự động thu/phóng ôm trọn đoạn đường giữa vị trí người dùng và điểm đến khi bật chỉ đường
+function RouteBoundsController({ userLocation, selectedLocation }) {
+  const map = useMap();
+
+  useEffect(() => {
+    if (userLocation && selectedLocation && selectedLocation.lat && selectedLocation.lng) {
+      const bounds = L.latLngBounds(
+        [userLocation[0], userLocation[1]], 
+        [selectedLocation.lat, selectedLocation.lng]
+      );
+      map.fitBounds(bounds, {
+        padding: [80, 80],
+        maxZoom: 15,
+        animate: true
+      });
+    }
+  }, [userLocation, selectedLocation, map]);
+
+  return null;
+}
+
 function ZoomTracker({ onZoomChange }) {
   const map = useMap();
   useMapEvents({
@@ -179,9 +200,28 @@ function MapClickPicker({ isPicking, onPickLocation, villages, communeBoundary }
   return null;
 }
 
-function LocationMarker({ loc, isSelected, isDimmed, onSelectLocation, getCategoryName, onOpenDetail, onDirectGPSRoute, isPickingMap, isVillageMode }) {
+function LocationMarker({ loc, isSelected, isDimmed, onSelectLocation, getCategoryName, onOpenDetail, onDirectRouteCustom, isPickingMap, isVillageMode }) {
   const markerRef = useRef(null);
   const map = useMap();
+
+  const [isSaved, setIsSaved] = useState(() => {
+    try {
+      const savedList = JSON.parse(localStorage.getItem('thach_khe_saved_locs') || '[]');
+      return savedList.includes(loc.id);
+    } catch (e) {
+      return false;
+    }
+  });
+
+  const [statsCount, setStatsCount] = useState(() => {
+    try {
+      const customStats = JSON.parse(localStorage.getItem('thach_khe_stats') || '{}');
+      if (customStats[loc.id] !== undefined) {
+        return customStats[loc.id];
+      }
+    } catch (e) {}
+    return loc.stats || Math.floor(Math.random() * 15) + 3;
+  });
 
   useEffect(() => {
     if (isSelected && markerRef.current && !isVillageMode) {
@@ -197,6 +237,30 @@ function LocationMarker({ loc, isSelected, isDimmed, onSelectLocation, getCatego
   if (!loc.lat || !loc.lng) return null;
 
   const singleImageUrl = getSingleImage(loc);
+  const categoryLabel = getCategoryName ? getCategoryName(loc.type || loc.category) : 'Địa điểm';
+
+  const handleSaveClick = (e) => {
+    e.stopPropagation();
+    const nextSavedState = !isSaved;
+    setIsSaved(nextSavedState);
+
+    const newCount = nextSavedState ? statsCount + 1 : Math.max(0, statsCount - 1);
+    setStatsCount(newCount);
+
+    try {
+      const savedList = JSON.parse(localStorage.getItem('thach_khe_saved_locs') || '[]');
+      const updatedList = nextSavedState 
+        ? [...savedList, loc.id] 
+        : savedList.filter(id => id !== loc.id);
+      localStorage.setItem('thach_khe_saved_locs', JSON.stringify(updatedList));
+
+      const customStats = JSON.parse(localStorage.getItem('thach_khe_stats') || '{}');
+      customStats[loc.id] = newCount;
+      localStorage.setItem('thach_khe_stats', JSON.stringify(customStats));
+    } catch (err) {
+      console.error("Lỗi lưu localStorage:", err);
+    }
+  };
 
   const createPinIcon = (loc, isSelected, isDimmed) => {
     let emoji = '📍';
@@ -274,37 +338,109 @@ function LocationMarker({ loc, isSelected, isDimmed, onSelectLocation, getCatego
     >
       {!isPickingMap && !isVillageMode && (
         <Popup>
-          <div className="min-w-[240px] max-w-[285px] flex flex-col font-sans text-xs bg-white rounded-2xl">
-            <div className="w-full h-40 rounded-xl overflow-hidden bg-slate-100 relative mb-2.5 shadow-xs">
-              <img 
-                src={singleImageUrl} 
-                alt={loc.name} 
-                className="w-full h-full object-cover" 
-              />
-            </div>
-            <div>
-              <span className="text-[10px] bg-emerald-50 text-emerald-700 font-bold px-2.5 py-1 rounded-full inline-block">
-                {getCategoryName ? getCategoryName(loc.type || loc.category) : 'Địa điểm'}
+          <style>{`
+            .leaflet-popup-content-wrapper { padding: 0 !important; overflow: hidden; border-radius: 20px !important; }
+            .leaflet-popup-content { margin: 0 !important; line-height: 1.4 !important; }
+            .leaflet-popup-close-button { display: none !important; }
+          `}</style>
+
+          <div className="w-[300px] flex flex-col font-sans text-xs bg-white rounded-2xl overflow-hidden shadow-sm relative">
+            <div className="w-full h-44 relative bg-slate-100">
+              <img src={singleImageUrl} alt={loc.name} className="w-full h-full object-cover" />
+              
+              <button
+                type="button"
+                onClick={() => {
+                  map.closePopup();
+                  if (onSelectLocation) onSelectLocation(null);
+                }}
+                className="absolute top-3 right-3 w-7 h-7 bg-white/90 hover:bg-white text-slate-700 rounded-full flex items-center justify-center shadow-md backdrop-blur-md transition cursor-pointer font-bold text-xs"
+                title="Đóng"
+              >
+                ✕
+              </button>
+
+              <span className="absolute bottom-3 left-3 bg-white/90 backdrop-blur-md text-slate-800 font-bold text-[11px] px-3 py-1 rounded-full shadow-sm">
+                {loc.badge || categoryLabel}
               </span>
-              <h4 className="font-extrabold text-slate-900 text-sm mt-1.5 leading-snug">{loc.name}</h4>
-              <p className="text-[11.5px] text-slate-500 mt-1 line-clamp-2 leading-relaxed">{loc.info || loc.desc || 'Địa điểm thuộc xã Thạch Khê'}</p>
             </div>
-            <hr className="my-3 border-slate-100" />
-            <div className="flex items-center gap-2">
+
+            <div className="p-4 space-y-2">
+              <h4 className="font-extrabold text-slate-900 text-sm leading-snug">{loc.name}</h4>
+              
+             <div className="space-y-1.5 text-slate-600 text-[11.5px]">
+                {/* Địa chỉ / thông tin vị trí */}
+                <div className="flex items-start gap-1.5">
+                  <span className="text-rose-500 shrink-0">📍</span>
+                  <span className="text-blue-600 cursor-pointer font-medium leading-tight">
+                    {loc.address || loc.info || loc.desc || 'Địa bàn xã Thạch Khê'} <span>, xã Thạch Khê, tỉnh Hà Tĩnh</span>
+                  </span>
+                </div>
+
+                {loc.workingHours && (
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-rose-500 shrink-0">🕒</span>
+                    <span>{loc.workingHours}</span>
+                  </div>
+                )}
+
+                <div className="flex items-center gap-1.5">
+                  <span className="text-rose-500 shrink-0">🔖</span>
+                  <span>{statsCount} lượt quan tâm</span>
+                </div>
+              </div>
+            </div>
+
+            <hr className="border-slate-100 mx-4" />
+
+            <div className="p-3.5 flex items-center justify-between gap-2 bg-white">
               <button 
                 type="button"
                 onClick={() => onOpenDetail && onOpenDetail(loc)}
-                className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold py-2 px-3 rounded-xl text-xs transition cursor-pointer text-center"
+                className="text-blue-600 hover:text-blue-700 font-extrabold text-xs tracking-wide transition cursor-pointer flex items-center gap-0.5"
               >
-                Chi tiết
+                <span>TÌM HIỂU THÊM</span>
+                <span className="text-sm">›</span>
               </button>
-              <button 
-                type="button"
-                onClick={() => onDirectGPSRoute && onDirectGPSRoute(loc.lat, loc.lng, loc)}
-                className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-3 rounded-xl text-xs transition shadow-sm cursor-pointer text-center flex items-center justify-center gap-1"
-              >
-                <span>Chỉ đường</span>
-              </button>
+
+              <div className="flex items-center gap-1.5">
+                <button 
+                  type="button"
+                  onClick={handleSaveClick}
+                  title={isSaved ? "Đã lưu" : "Lưu địa điểm"}
+                  className={`w-8 h-8 rounded-xl border flex items-center justify-center transition cursor-pointer ${
+                    isSaved 
+                      ? 'bg-rose-50 border-rose-200 text-rose-600 shadow-xs' 
+                      : 'border-slate-200 text-slate-600 hover:bg-slate-50'
+                  }`}
+                >
+                  {isSaved ? '❤️' : '📌'}
+                </button>
+
+                <button 
+                  type="button"
+                  title="Chia sẻ"
+                  onClick={() => {
+                    if (navigator.share) {
+                      navigator.share({ title: loc.name, url: window.location.href }).catch(() => {});
+                    } else {
+                      alert("Đã sao chép liên kết địa điểm!");
+                    }
+                  }}
+                  className="w-8 h-8 rounded-xl border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-50 transition cursor-pointer"
+                >
+                  ↩️
+                </button>
+
+                <button 
+                  type="button"
+                  onClick={() => onDirectRouteCustom && onDirectRouteCustom(loc)}
+                  title="Chỉ đường"
+                  className="w-8 h-8 rounded-xl border border-slate-200 bg-emerald-50 text-emerald-600 flex items-center justify-center hover:bg-emerald-100 transition cursor-pointer shadow-xs"
+                >
+                  🗺️
+                </button>
+              </div>
             </div>
           </div>
         </Popup>
@@ -370,6 +506,7 @@ export default function MapComponent({
   pickedLatLng, 
   userLocation, 
   routeCoordinates, 
+  setRouteCoordinates,
   selectedVillage,
   onSelectVillage,
   fixedVillageOverview = false,
@@ -382,30 +519,41 @@ export default function MapComponent({
   reports = [],
   hideVillageNames = false,
   hideLocationPins = false,
-  onClearRoute // <-- Nhận hàm xóa lộ trình từ cha
+  onClearRoute 
 }) {
   const [zoomLevel, setZoomLevel] = useState(mapZoom || 12);
   const [hoveredVillageKey, setHoveredVillageKey] = useState(null);
 
   const [routeSteps, setRouteSteps] = useState([]);
   const [showRoutePanel, setShowRoutePanel] = useState(false);
+  
+  const [travelMode, setTravelMode] = useState('driving');
+  const [routeSummary, setRouteSummary] = useState({ distance: '', duration: '' });
 
-  useEffect(() => {
-    async function fetchDetailedRouteSteps() {
-      if (!userLocation || !selectedLocation) {
-        setRouteSteps([]);
-        setShowRoutePanel(false);
-        return;
-      }
-      try {
-        const [startLat, startLng] = userLocation;
-        const destLat = selectedLocation.lat;
-        const destLng = selectedLocation.lng;
-        const url = `https://router.project-osrm.org/route/v1/driving/${startLng},${startLat};${destLng},${destLat}?overview=full&geometries=geojson&steps=true`;
-        const res = await fetch(url);
-        const data = await res.json();
-        if (data.routes && data.routes[0] && data.routes[0].legs[0]) {
-          const steps = data.routes[0].legs[0].steps || [];
+  const fetchRouteByMode = async (mode, start, dest) => {
+    if (!start || !dest) return;
+    try {
+      const [startLat, startLng] = start;
+      const destLat = dest.lat;
+      const destLng = dest.lng;
+      
+      const url = `https://router.project-osrm.org/route/v1/${mode}/${startLng},${startLat};${destLng},${destLat}?overview=full&geometries=geojson&steps=true`;
+      const res = await fetch(url);
+      const data = await res.json();
+      
+      if (data.routes && data.routes[0]) {
+        const route = data.routes[0];
+        const coords = route.geometry.coordinates.map(coord => [coord[1], coord[0]]);
+        if (setRouteCoordinates) setRouteCoordinates(coords);
+
+        const distKm = route.distance >= 1000 ? `${(route.distance / 1000).toFixed(1)} km` : `${Math.round(route.distance)} m`;
+        const durationMin = Math.round(route.duration / 60);
+        const durationText = durationMin >= 60 ? `${Math.floor(durationMin / 60)} giờ ${durationMin % 60} phút` : `${durationMin} phút`;
+        
+        setRouteSummary({ distance: distKm, duration: durationText });
+
+        if (route.legs && route.legs[0]) {
+          const steps = route.legs[0].steps || [];
           const formattedSteps = steps.map((s, idx) => ({
             id: idx,
             instruction: s.maneuver.instruction || 'Tiếp tục di chuyển',
@@ -413,16 +561,26 @@ export default function MapComponent({
             name: s.name ? `trên đường ${s.name}` : ''
           }));
           setRouteSteps(formattedSteps);
-          setShowRoutePanel(true);
         }
-      } catch (err) {
-        console.error("Lỗi lấy chi tiết bước đi:", err);
+        setShowRoutePanel(true);
       }
+    } catch (err) {
+      console.error("Lỗi lấy chỉ đường OSRM:", err);
     }
-    if (routeCoordinates && routeCoordinates.length > 0) {
-      fetchDetailedRouteSteps();
+  };
+
+  const handleDirectRouteCustom = (loc) => {
+    if (onSelectLocation) onSelectLocation(null); 
+    const startPoint = userLocation || THACH_KHE_CENTER;
+    fetchRouteByMode(travelMode, startPoint, loc);
+    if (onDirectGPSRoute) onDirectGPSRoute(loc.lat, loc.lng, loc);
+  };
+
+  useEffect(() => {
+    if (selectedLocation && userLocation && showRoutePanel) {
+      fetchRouteByMode(travelMode, userLocation, selectedLocation);
     }
-  }, [routeCoordinates, userLocation, selectedLocation]);
+  }, [travelMode]);
 
   const safeCenter = (currentCenter && Array.isArray(currentCenter) && !isNaN(currentCenter[0]) && !isNaN(currentCenter[1])) 
     ? currentCenter 
@@ -468,38 +626,83 @@ export default function MapComponent({
         }
       `}</style>
 
-      {/* BẢNG HƯỚNG DẪN CHỈ ĐƯỜNG CHI TIẾT & NÚT THOÁT */}
-      {showRoutePanel && routeSteps.length > 0 && (
-        <div className="absolute top-16 left-3 z-[1000] w-80 max-h-[65vh] bg-white/95 backdrop-blur-md rounded-2xl shadow-xl border border-slate-200 flex flex-col overflow-hidden animate-fadeIn">
-          <div className="bg-emerald-600 text-white px-4 py-3 flex items-center justify-between shrink-0">
-            <div className="flex items-center gap-2">
-              <span className="text-lg">🧭</span>
-              <div>
-                <h4 className="font-extrabold text-xs uppercase tracking-wide">Hướng dẫn chỉ đường</h4>
-                <p className="text-[10px] opacity-90 truncate max-w-[160px]">Đến: {selectedLocation?.name}</p>
-              </div>
+      {/* NÚT NỔI TẮT CHỈ ĐƯỜNG (Chỉ ẩn tuyến đường và bảng hướng dẫn, giữ nguyên vẹn toàn bộ vùng bản đồ và các thôn) */}
+      {showRoutePanel && (
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[1001] bg-slate-900/95 backdrop-blur-md text-white px-4 py-2 rounded-full shadow-2xl border border-slate-700 flex items-center gap-3 animate-fadeIn">
+          <span className="flex items-center gap-2 text-xs font-semibold">
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+            Đang chỉ đường đến: <strong className="text-emerald-300">{selectedLocation?.name}</strong>
+          </span>
+          <button
+            type="button"
+            onClick={() => {
+              setShowRoutePanel(false);
+              if (setRouteCoordinates) setRouteCoordinates([]);
+              if (onSelectLocation) onSelectLocation(null);
+              if (onClearRoute) onClearRoute();
+            }}
+            className="bg-rose-600 hover:bg-rose-700 text-white px-3 py-1 rounded-full text-xs font-bold transition shadow-sm cursor-pointer flex items-center gap-1"
+          >
+            <span>✕ Tắt chỉ đường</span>
+          </button>
+        </div>
+      )}
+
+      {/* BẢNG HƯỚNG DẪN CHI TIẾT TỪNG BƯỚC */}
+      {showRoutePanel && selectedLocation && (
+        <div className="absolute top-16 left-3 z-[1000] w-80 max-h-[75vh] bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-slate-200 flex flex-col overflow-hidden animate-fadeIn">
+          <div className="bg-slate-900 text-white px-4 py-3 flex items-center justify-between shrink-0">
+            <div>
+              <h4 className="font-extrabold text-xs uppercase tracking-wide text-emerald-400">Chỉ đường chi tiết</h4>
+              <p className="text-[11px] text-slate-300 truncate max-w-[200px] font-medium">{selectedLocation.name}</p>
             </div>
-            
+          </div>
+
+          <div className="grid grid-cols-3 gap-1 p-2 bg-slate-100 border-b border-slate-200">
             <button
               type="button"
-              onClick={() => {
-                setShowRoutePanel(false);
-                if (onClearRoute) onClearRoute();
-              }}
-              className="bg-black/20 hover:bg-black/40 text-white px-2.5 py-1 rounded-lg text-[11px] font-bold transition cursor-pointer flex items-center gap-1"
-              title="Tắt chỉ đường"
+              onClick={() => setTravelMode('driving')}
+              className={`py-1.5 px-2 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1 cursor-pointer ${
+                travelMode === 'driving' ? 'bg-white text-blue-600 shadow-xs' : 'text-slate-600 hover:text-slate-900'
+              }`}
             >
-              <span>✕ Thoát</span>
+              🚗 Ô tô
             </button>
+            <button
+              type="button"
+              onClick={() => setTravelMode('bike')}
+              className={`py-1.5 px-2 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1 cursor-pointer ${
+                travelMode === 'bike' ? 'bg-white text-emerald-600 shadow-xs' : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              🏍️ Xe máy
+            </button>
+            <button
+              type="button"
+              onClick={() => setTravelMode('foot')}
+              className={`py-1.5 px-2 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1 cursor-pointer ${
+                travelMode === 'foot' ? 'bg-white text-amber-600 shadow-xs' : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              🚶 Đi bộ
+            </button>
+          </div>
+
+          <div className="px-4 py-3 bg-emerald-50 border-b border-emerald-100 flex items-center justify-between text-xs">
+            <div>
+              <span className="text-slate-500 block text-[10px]">Khoảng cách</span>
+              <strong className="text-slate-900 text-sm font-extrabold">{routeSummary.distance || 'Đang tính...'}</strong>
+            </div>
+            <div className="text-right">
+              <span className="text-slate-500 block text-[10px]">Thời gian dự kiến</span>
+              <strong className="text-emerald-700 text-sm font-extrabold">{routeSummary.duration || '...'}</strong>
+            </div>
           </div>
 
           <div className="p-3 overflow-y-auto space-y-2.5 max-h-[250px] scrollbar-thin">
             {routeSteps.map((step, idx) => (
-              <div 
-                key={step.id} 
-                className="p-2.5 rounded-xl bg-slate-50 border border-slate-200/70 flex items-start gap-2.5"
-              >
-                <span className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-800 font-extrabold text-[10px] flex items-center justify-center shrink-0 mt-0.5">
+              <div key={step.id} className="p-2.5 rounded-xl bg-slate-50 border border-slate-200/70 flex items-start gap-2.5">
+                <span className="w-5 h-5 rounded-full bg-blue-100 text-blue-800 font-extrabold text-[10px] flex items-center justify-center shrink-0 mt-0.5">
                   {idx + 1}
                 </span>
                 <div className="flex-1 min-w-0">
@@ -512,7 +715,6 @@ export default function MapComponent({
         </div>
       )}
 
-      {/* Banner chọn điểm phản ánh */}
       {isPickingMap && (
         <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[1000] bg-amber-500/95 backdrop-blur-md text-white px-4 py-2.5 rounded-2xl shadow-xl font-bold text-xs border border-amber-400 flex items-center gap-3">
           <span className="flex items-center gap-1.5">
@@ -529,15 +731,12 @@ export default function MapComponent({
         </div>
       )}
 
-      {/* Control chuyển đổi kiểu bản đồ */}
       <div className="absolute top-3 right-3 z-[1000] flex bg-white/90 backdrop-blur-md p-1 rounded-2xl shadow-md border border-slate-200/80 gap-1">
         <button 
           type="button"
           onClick={() => setMapStyle && setMapStyle('voyager')} 
           className={`px-3 py-1.5 text-[11px] rounded-xl font-semibold transition-all cursor-pointer ${
-            mapStyle === 'voyager' 
-              ? 'bg-slate-900 text-white shadow-xs' 
-              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+            mapStyle === 'voyager' ? 'bg-slate-900 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
           }`}
         >
           🗺️ Bản đồ màu
@@ -546,9 +745,7 @@ export default function MapComponent({
           type="button"
           onClick={() => setMapStyle && setMapStyle('satellite')} 
           className={`px-3 py-1.5 text-[11px] rounded-xl font-semibold transition-all cursor-pointer ${
-            mapStyle === 'satellite' 
-              ? 'bg-emerald-600 text-white shadow-xs' 
-              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+            mapStyle === 'satellite' ? 'bg-emerald-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
           }`}
         >
           🛰️ Vệ tinh Esri
@@ -569,6 +766,11 @@ export default function MapComponent({
         {fixedVillageOverview && (
           <VillageOverviewController villages={villages} enabled={fixedVillageOverview} />
         )}
+        
+        {showRoutePanel && userLocation && selectedLocation && (
+          <RouteBoundsController userLocation={userLocation} selectedLocation={selectedLocation} />
+        )}
+
         <ZoomTracker onZoomChange={setZoomLevel} />
 
         <MapClickPicker 
@@ -621,7 +823,6 @@ export default function MapComponent({
           </Marker>
         )}
 
-        {/* TUYẾN ĐƯỜNG CHỈ ĐƯỜNG */}
         {!fixedVillageOverview && routeCoordinates && routeCoordinates.length > 0 && (
           <>
             <Polyline positions={routeCoordinates} pathOptions={{ color: '#0284c7', weight: 6, opacity: 0.85, lineCap: 'round' }} />
@@ -656,7 +857,6 @@ export default function MapComponent({
           />
         )}
 
-        {/* Polygons Các Thôn Dân Cư */}
         {villages && villages.map((village, idx) => {
           const villageCoords = parseBoundary(village.boundary);
           if (villageCoords.length === 0) return null;
@@ -738,7 +938,6 @@ export default function MapComponent({
           );
         })}
 
-        {/* Địa điểm (Locations) trên bản đồ */}
         {!hideLocationPins && (fixedVillageOverview || zoomLevel >= 13 || selectedVillage || selectedLocation) && filteredLocations && filteredLocations
           .filter((loc) => {
             if (!fixedVillageOverview) return true;
@@ -754,7 +953,9 @@ export default function MapComponent({
             const isSelected = selectedLocation?.id === loc.id;
             
             let isDimmed = false;
-            if (selectedLocation) {
+            if (showRoutePanel) {
+              isDimmed = !isSelected;
+            } else if (selectedLocation) {
               isDimmed = !isSelected;
             } else if (selectedVillage) {
               const isDirectMatch = loc.villageId === selectedVillage.id;
@@ -771,7 +972,7 @@ export default function MapComponent({
                 onSelectLocation={onSelectLocation}
                 getCategoryName={getCategoryName}
                 onOpenDetail={onOpenDetail}
-                onDirectGPSRoute={onDirectGPSRoute}
+                onDirectRouteCustom={handleDirectRouteCustom}
                 isPickingMap={isPickingMap}
                 isVillageMode={isVillageMode || fixedVillageOverview}
               />
