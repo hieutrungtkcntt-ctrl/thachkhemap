@@ -5,6 +5,7 @@ import L from 'leaflet';
 
 const THACH_KHE_CENTER = [18.3950, 105.9550];
 
+
 function MapViewController({ center, zoom }) {
   const map = useMap();
   useEffect(() => {
@@ -15,9 +16,9 @@ function MapViewController({ center, zoom }) {
     map.flyTo(targetCenter, zoom || 15, { duration: 1.2 });
   }, [center, zoom, map]);
   return null;
+  
 }
 
-// Controller tự động thu/phóng ôm trọn đoạn đường giữa vị trí người dùng và điểm đến khi bật chỉ đường
 function RouteBoundsController({ userLocation, selectedLocation }) {
   const map = useMap();
 
@@ -48,7 +49,7 @@ function ZoomTracker({ onZoomChange }) {
   return null;
 }
 
-function VillageOverviewController({ villages, enabled }) {
+/*function VillageOverviewController({ villages, enabled }) {
   const map = useMap();
   const hasFitted = useRef(false);
 
@@ -77,7 +78,7 @@ function VillageOverviewController({ villages, enabled }) {
   }, [enabled, villages, map]);
 
   return null;
-}
+}*/
 
 function isPointInPolygon(point, polygon) {
   if (!point || !polygon || !Array.isArray(polygon)) return false;
@@ -106,7 +107,6 @@ function parseBoundary(boundary) {
   }
   return [];
 }
-
 function getPolygonCenter(boundary) {
     const coords = parseBoundary(boundary);
     if (coords.length === 0) return [18.3858, 105.9505];
@@ -369,11 +369,10 @@ function LocationMarker({ loc, isSelected, isDimmed, onSelectLocation, getCatego
               <h4 className="font-extrabold text-slate-900 text-sm leading-snug">{loc.name}</h4>
               
              <div className="space-y-1.5 text-slate-600 text-[11.5px]">
-                {/* Địa chỉ / thông tin vị trí */}
                 <div className="flex items-start gap-1.5">
                   <span className="text-rose-500 shrink-0">📍</span>
                   <span className="text-blue-600 cursor-pointer font-medium leading-tight">
-                    {loc.address || loc.info || loc.desc || 'Địa bàn xã Thạch Khê'} <span>, xã Thạch Khê, tỉnh Hà Tĩnh</span>
+                    {loc.address || 'Địa bàn xã Thạch Khê'} <span>, xã Thạch Khê, tỉnh Hà Tĩnh</span>
                   </span>
                 </div>
 
@@ -519,8 +518,11 @@ export default function MapComponent({
   reports = [],
   hideVillageNames = false,
   hideLocationPins = false,
+  disableVillageHover = false, 
+  disableVillagePopup = false,
   onClearRoute 
 }) {
+  const [isMapStyleOpen, setIsMapStyleOpen] = useState(false);
   const [zoomLevel, setZoomLevel] = useState(mapZoom || 12);
   const [hoveredVillageKey, setHoveredVillageKey] = useState(null);
 
@@ -529,6 +531,12 @@ export default function MapComponent({
   
   const [travelMode, setTravelMode] = useState('driving');
   const [routeSummary, setRouteSummary] = useState({ distance: '', duration: '' });
+
+  // Xử lý chuẩn hóa ranh giới tổng xã Thạch Khê (đảo [lng, lat] thành [lat, lng] cho Leaflet)
+  const parsedCommuneBoundary = React.useMemo(() => {
+    const raw = parseBoundary(communeBoundary);
+    return raw.map(pt => (Array.isArray(pt) && pt.length >= 2 ? [pt[1], pt[0]] : pt));
+  }, [communeBoundary]);
 
   const fetchRouteByMode = async (mode, start, dest) => {
     if (!start || !dest) return;
@@ -588,12 +596,14 @@ export default function MapComponent({
 
   const currentVillageName = selectedVillage?.name || selectedVillage?.tenThon || '';
   const isVillageMode = Boolean(selectedVillage) && !selectedLocation;
-  const parsedCommuneBoundary = parseBoundary(communeBoundary);
 
   return (
     <div className="w-full h-full flex-1 relative bg-slate-100 z-0 min-h-[350px]">
       
       <style>{`
+        .leaflet-control-attribution {
+          display: none !important;
+        }
         .clean-light-map .leaflet-tile {
           filter: brightness(1.03) contrast(95%) saturate(75%);
         }
@@ -626,7 +636,6 @@ export default function MapComponent({
         }
       `}</style>
 
-      {/* NÚT NỔI TẮT CHỈ ĐƯỜNG (Chỉ ẩn tuyến đường và bảng hướng dẫn, giữ nguyên vẹn toàn bộ vùng bản đồ và các thôn) */}
       {showRoutePanel && (
         <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[1001] bg-slate-900/95 backdrop-blur-md text-white px-4 py-2 rounded-full shadow-2xl border border-slate-700 flex items-center gap-3 animate-fadeIn">
           <span className="flex items-center gap-2 text-xs font-semibold">
@@ -648,7 +657,6 @@ export default function MapComponent({
         </div>
       )}
 
-      {/* BẢNG HƯỚNG DẪN CHI TIẾT TỪNG BƯỚC */}
       {showRoutePanel && selectedLocation && (
         <div className="absolute top-16 left-3 z-[1000] w-80 max-h-[75vh] bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-slate-200 flex flex-col overflow-hidden animate-fadeIn">
           <div className="bg-slate-900 text-white px-4 py-3 flex items-center justify-between shrink-0">
@@ -731,41 +739,68 @@ export default function MapComponent({
         </div>
       )}
 
-      <div className="absolute top-3 right-3 z-[1000] flex bg-white/90 backdrop-blur-md p-1 rounded-2xl shadow-md border border-slate-200/80 gap-1">
-        <button 
-          type="button"
-          onClick={() => setMapStyle && setMapStyle('voyager')} 
-          className={`px-3 py-1.5 text-[11px] rounded-xl font-semibold transition-all cursor-pointer ${
-            mapStyle === 'voyager' ? 'bg-slate-900 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-          }`}
-        >
-          🗺️ Bản đồ màu
-        </button>
-        <button 
-          type="button"
-          onClick={() => setMapStyle && setMapStyle('satellite')} 
-          className={`px-3 py-1.5 text-[11px] rounded-xl font-semibold transition-all cursor-pointer ${
-            mapStyle === 'satellite' ? 'bg-emerald-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-          }`}
-        >
-          🛰️ Vệ tinh Esri
-        </button>
-      </div>
+      <div className="absolute top-3 right-3 z-[1000] group">
+  
+  
+{/* Khối bọc chính (thay thế thẻ group cũ bằng việc quản lý bằng state) */}
+<div className="absolute top-1 right-1 z-[1000]">
+  <button 
+    type="button"
+    title="Chọn kiểu bản đồ"
+    onClick={() => setIsMapStyleOpen(!isMapStyleOpen)}
+    className="w-10 h-10 bg-white/95 backdrop-blur-md hover:bg-white text-slate-700 rounded-xl shadow-md border border-slate-200/80 flex items-center justify-center transition-all cursor-pointer"
+  >
+    <svg className="w-5 h-5 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+    </svg>
+  </button>
+
+  {/* Phần menu xổ xuống bạn gửi đã được fix lại logic hiển thị theo state */}
+  <div className={`absolute right-0 top-full pt-1.5 transition-all duration-200 transform ${
+    isMapStyleOpen ? 'opacity-100 visible translate-y-0' : 'opacity-0 invisible translate-y-1 pointer-events-none'
+  }`}>
+    <div className="bg-white/95 backdrop-blur-md p-1 rounded-2xl shadow-lg border border-slate-200/80 flex flex-col gap-1 min-w-[140px]">
+      <button 
+        type="button"
+        onClick={() => {
+          setMapStyle && setMapStyle('voyager');
+          setIsMapStyleOpen(false); // Bấm xong tự động ẩn menu đi
+        }} 
+        className={`w-full text-left px-3 py-2 text-[11px] rounded-xl font-semibold transition-all cursor-pointer flex items-center gap-2 ${
+          mapStyle === 'voyager' ? 'bg-slate-900 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+        }`}
+      >
+        <span>🗺️ Đường phố</span>
+      </button>
+      <button 
+        type="button"
+        onClick={() => {
+          setMapStyle && setMapStyle('satellite');
+          setIsMapStyleOpen(false); // Bấm xong tự động ẩn menu đi
+        }} 
+        className={`w-full text-left px-3 py-2 text-[11px] rounded-xl font-semibold transition-all cursor-pointer flex items-center gap-2 ${
+          mapStyle === 'satellite' ? 'bg-emerald-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+        }`}
+      >
+        <span>🛰️ Vệ tinh </span>
+      </button>
+    </div>
+  </div>
+</div>
+</div>
 
       <MapContainer 
         key={`map-${isPickingMap ? 'picking' : 'normal'}`}
         center={safeCenter} 
         zoom={mapZoom} 
-        minZoom={11}
-        maxZoom={19}
+        minZoom={13}        
+        maxZoom={18}           
         scrollWheelZoom={true} 
         className={mapStyle !== 'satellite' ? 'clean-light-map w-full h-full absolute inset-0' : 'w-full h-full absolute inset-0'}
         style={{ width: '100%', height: '100%', position: 'absolute', inset: 0, cursor: isPickingMap ? 'crosshair' : 'grab' }}
       >
         {!fixedVillageOverview && <MapViewController center={safeCenter} zoom={mapZoom} />}
-        {fixedVillageOverview && (
-          <VillageOverviewController villages={villages} enabled={fixedVillageOverview} />
-        )}
+        
         
         {showRoutePanel && userLocation && selectedLocation && (
           <RouteBoundsController userLocation={userLocation} selectedLocation={selectedLocation} />
@@ -832,28 +867,32 @@ export default function MapComponent({
 
         {mapStyle === 'satellite' ? (
           <TileLayer 
-            attribution='Tiles © Esri' 
+            attribution="" 
             url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}" 
             maxZoom={19} 
           />
         ) : (
           <TileLayer
-            attribution='© OpenStreetMap contributors'
+            attribution=""
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             maxZoom={19}
           />
         )}
         
+        {/* LỚP PHỦ TỐI NGOÀI RANH GIỚI XÃ THẠCH KHÊ (Hiệu ứng tinh tế, không quá tối gắt) */}
         {parsedCommuneBoundary.length > 0 && (
-          <Polygon 
-            positions={parsedCommuneBoundary} 
-            interactive={!isPickingMap} 
-            pathOptions={{ 
-              color: '#0284c7', 
-              weight: 2, 
-              fillColor: '#0284c7', 
-              fillOpacity: 0.02 
-            }} 
+          <Polygon
+            positions={[
+              [[-90, -180], [-90, 180], [90, 180], [90, -180]], // Vùng bao phủ toàn thế giới
+              parsedCommuneBoundary                                // Khoét lỗ bên trong ranh giới tổng xã Thạch Khê
+            ]}
+            interactive={false}
+            pathOptions={{
+              color: '#f43f5e',       // Viền màu đỏ/hồng nổi bật bao quanh ranh giới xã
+              weight: 1,              // Độ dày viền ranh giới xã sắc nét
+              fillColor: '#090d16',   // Tông màu tối sâu nhưng mềm mại
+              fillOpacity: mapStyle === 'satellite' ? 0.4 : 0.55 // Giảm độ mờ khi ở chế độ vệ tinh để nhìn rõ cảnh quan nền hơn
+            }}
           />
         )}
 
@@ -869,72 +908,84 @@ export default function MapComponent({
 
           const polygonColor = village.color || '#0d9488';
           const fillColor = village.color || '#0d9488';
-          const fillOpacity = isHovered ? 0.58 : (isSelected ? 0.48 : (isAnyVillageHovered ? 0.22 : 0.30));
-          const weight = isHovered ? 4.5 : (isSelected ? 3.5 : 1.8);
+          
+          let fillOpacity = 0.35;
+          if (isSelected || isHovered) {
+            fillOpacity = 0.75;
+          } else if (isAnyVillageSelected || isAnyVillageHovered) {
+            fillOpacity = 0.12;
+          }
 
+          const weight = isHovered ? 4 : (isSelected ? 3.5 : 1.5);
           const centerCoord = getPolygonCenter(villageCoords);
 
           const labelIcon = L.divIcon({
             className: 'village-name-label-fixed',
             html: `
-              <div style="
-                background: ${isSelected || isHovered ? 'rgba(255, 255, 255, 0.99)' : 'rgba(255, 255, 255, 0.9)'};
-                padding: 4px 10px;
-                border-radius: 10px;
-                border: ${isSelected || isHovered ? '3px solid' : '2px solid'} ${village.color || '#0284c7'};
-                font-size: ${isHovered ? '12px' : '11px'};
-                font-weight: 700;
-                color: ${isSelected || isHovered ? (village.color || '#065f46') : '#0f172a'};
+             <div style="
+                background: ${isSelected || isHovered ? 'rgba(15, 23, 42, 0.95)' : 'rgba(255, 255, 255, 0.9)'};
+                padding: 2px 8px;
+                border-radius: 6px;
+                border: 1px solid ${isSelected || isHovered ? (village.color || '#0284c7') : 'rgba(15, 23, 42, 0.12)'};
+                font-size: 10px;
+                font-weight: 600;
+                color: ${isSelected || isHovered ? '#ffffff' : '#1e293b'};
                 white-space: nowrap;
-                box-shadow: ${isSelected || isHovered ? '0 0 0 4px rgba(255,255,255,0.9), 0 5px 18px rgba(15,23,42,0.30)' : '0 3px 10px rgba(15, 23, 42, 0.12)'};
-                display: flex;
+                box-shadow: 0 2px 6px rgba(15, 23, 42, 0.15);
+                backdrop-filter: blur(4px);
+                display: inline-flex;
                 align-items: center;
-                gap: 5px;
+                gap: 3px;
                 pointer-events: none;
-                opacity: ${(isAnyVillageSelected && !isSelected && !isHovered) || (isAnyVillageHovered && !isHovered && !isSelected) ? '0.45' : '1'};
+                transition: all 0.2s ease;
+                opacity: ${(isAnyVillageSelected && !isSelected && !isHovered) || (isAnyVillageHovered && !isHovered && !isSelected) ? '0.4' : '1'};
               ">
-                <span>🏘</span>
+                <span style="font-size: 9px; opacity: 0.8;">🏘</span>
                 <span>${village.name}</span>
               </div>
             `,
-            iconSize: [140, 32],
-            iconAnchor: [70, 16]
+            iconSize: [90, 22],
+            iconAnchor: [45, 28]
           });
 
           return (
-            <React.Fragment key={idx}>
-              <Polygon 
-                positions={villageCoords} 
-                interactive={!isPickingMap}
-                eventHandlers={{
-                  mouseover: () => { if (!isPickingMap) setHoveredVillageKey(villageKey); },
-                  mouseout: () => { setHoveredVillageKey(current => current === villageKey ? null : current); },
-                  click: () => {
-                    if (!isPickingMap && onSelectVillage) onSelectVillage(village);
-                  }
-                }}
-                pathOptions={{ 
-                  className: isHovered ? 'village-polygon-hovered' : (isSelected ? 'village-polygon-selected' : 'village-polygon'),
-                  color: polygonColor, 
-                  weight: weight, 
-                  fillColor: fillColor, 
-                  fillOpacity: fillOpacity 
-                }}
-              >
-                {!isPickingMap && !fixedVillageOverview && (
-                  <Popup>
-                    <div className="p-1 min-w-[140px]">
-                      <h4 className="font-bold text-slate-900 text-xs">🏘 Thôn: {village.name}</h4>
-                      <p className="text-[11px] text-slate-500 mt-0.5">Số hộ: {village.households} | Dân số: {village.population}</p>
-                    </div>
-                  </Popup>
-                )}
-              </Polygon>
+           <React.Fragment key={idx}>
+          <Polygon 
+            positions={villageCoords} 
+            interactive={!isPickingMap}
+            eventHandlers={{
+              // Nếu bật disableVillageHover thì không cho đổi trạng thái khi rê chuột
+              mouseover: () => { if (!isPickingMap && !disableVillageHover) setHoveredVillageKey(villageKey); },
+              mouseout: () => { if (!disableVillageHover) setHoveredVillageKey(current => current === villageKey ? null : current); },
+              click: () => {
+                if (!isPickingMap && onSelectVillage) onSelectVillage(village);
+              }
+            }}
+            pathOptions={{ 
+              className: isHovered && !disableVillageHover ? 'village-polygon-hovered' : (isSelected ? 'village-polygon-selected' : 'village-polygon'),
+              color: polygonColor, 
+              weight: isHovered && !disableVillageHover ? 3 : (isSelected ? 3 : 1.2), 
+              dashArray: '4, 6',     
+              fillColor: fillColor, 
+              // Nếu hover và bị tắt hover thì giữ nguyên màu nhạt
+              fillOpacity: (isHovered && !disableVillageHover) || isSelected ? 0.4 : 0.1 
+            }}
+          >
+            {/* Chỉ hiển thị Popup nếu không bị disableVillagePopup */}
+            {!disableVillagePopup && !isPickingMap && !fixedVillageOverview && (
+              <Popup>
+                <div className="p-1 min-w-[140px]">
+                  <h4 className="font-bold text-slate-900 text-xs">🏘 Thôn: {village.name}</h4>
+                  <p className="text-[11px] text-slate-500 mt-0.5">Số hộ: {village.households} | Dân số: {village.population}</p>
+                </div>
+              </Popup>
+            )}
+          </Polygon>
 
-              {!fixedVillageOverview && !hideVillageNames && (
-                <Marker position={centerCoord} icon={labelIcon} interactive={false} />
-              )}
-            </React.Fragment>
+          {!fixedVillageOverview && !hideVillageNames && (
+            <Marker position={centerCoord} icon={labelIcon} interactive={false} />
+          )}
+        </React.Fragment>
           );
         })}
 

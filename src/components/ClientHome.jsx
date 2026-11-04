@@ -481,32 +481,17 @@ export default function ClientHome({
         </div>
       </header>
 
-      {/* BANNER THÔNG BÁO FULL MÀN HÌNH */}
-      <div className="w-full bg-gradient-to-r from-blue-700 via-indigo-700 to-blue-800 text-white shadow-sm border-b border-blue-600/30 shrink-0">
-        <div className="max-w-7xl mx-auto px-4 sm:px-7 py-3 sm:py-3.5 flex items-center justify-between gap-3 relative overflow-hidden">
-          <div className="absolute -right-12 -bottom-12 w-44 h-44 bg-white/10 rounded-full blur-xl pointer-events-none" />
-          
-          <div className="flex items-center gap-3 z-10 min-w-0 w-full">
-            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white/15 backdrop-blur-md flex items-center justify-center shrink-0 text-lg border border-white/20">
-              🏛️
-            </div>
-
-            <div className="min-w-0 flex-1 leading-snug">
-              <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
-                <span className="bg-amber-400 text-slate-900 text-[10px] font-black px-2 py-0.5 rounded uppercase tracking-wider inline-block">
-                  HÀNH CHÍNH SỐ
-                </span>
-                <h2 className="font-extrabold text-xs sm:text-sm md:text-base text-white tracking-tight break-words">
-                  Bản Đồ Số & Cổng Thông Tin Địa Bàn Xã Thạch Khê
-                </h2>
-              </div>
-              <p className="text-[11px] sm:text-xs text-blue-100 mt-1 leading-relaxed line-clamp-2 sm:line-clamp-1">
-                Tra cứu dữ liệu 11 thôn, các di tích lịch sử, cơ quan hành chính công và hệ thống tiện ích số xã Thạch Khê.
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
+      {/* BANNER ẢNH TRÀN 2 BÊN FULL MÀN HÌNH */}
+     <div className="w-full bg-slate-900 border-b border-slate-200 shrink-0">
+  <img 
+    src="public/images/tn.png" 
+    alt="Banner Xã Thạch Khê" 
+    className="w-full h-auto object-cover block mx-auto"
+    onError={(e) => { 
+      e.currentTarget.style.display = 'none'; 
+    }}
+  />
+</div>
 
 {/* THANH TAB ĐIỀU HƯỚNG 4 MỤC CHÍNH */}
 <div className="bg-[#f4f7fb] px-2 sm:px-7 py-2.5 z-10 shrink-0 border-b border-slate-200/60">
@@ -987,6 +972,7 @@ export default function ClientHome({
                     reports={[]}
                     onOpenDetail={handleOpenDetailModal}
                     onClearRoute={handleClearRoute}
+                    disableVillagePopup={true}
                   />
                 </div>
               </div>
@@ -1030,9 +1016,7 @@ export default function ClientHome({
                             <h4 className="text-sm font-extrabold text-slate-900 truncate">
                               {v.name || v.tenThon}
                             </h4>
-                            <p className="text-[11px] text-slate-500 truncate">
-                              Trưởng thôn: <span className="font-semibold text-slate-700">{v.leader || 'Chưa cập nhật'}</span>
-                            </p>
+                            
                           </div>
                         </div>
 
@@ -1051,78 +1035,99 @@ export default function ClientHome({
                   })}
                 </div>
 
-                <div className="p-4 bg-slate-50/70 lg:h-1/2 overflow-y-auto space-y-4 scrollbar-thin">
-                  {selectedVillage ? (
-                    <div className="space-y-3.5">
-                      <div className="border-b border-slate-200 pb-2 flex items-center justify-between">
-                        <h3 className="font-extrabold text-slate-900 text-sm flex items-center gap-2">
-                          <IconBuilding className="w-4 h-4 text-blue-700" />
-                          <span>Thông tin {selectedVillage.name || selectedVillage.tenThon}</span>
-                        </h3>
-                      </div>
+              <div className="p-4 bg-slate-50/70 lg:h-1/2 overflow-y-auto space-y-4 scrollbar-thin">
+  {selectedVillage ? (
+    <div className="space-y-3.5">
+      {/* Tiêu đề & Thông tin mô tả lịch sử thôn */}
+      <div className="border-b border-slate-200 pb-2.5">
+        <h3 className="font-extrabold text-slate-900 text-sm flex items-center gap-2">
+          <IconBuilding className="w-4 h-4 text-blue-700 shrink-0" />
+          <span>Thông tin {selectedVillage.name || selectedVillage.tenThon}</span>
+        </h3>
+        
+        {/* Hiển thị trường infor ở đây */}
+        {selectedVillage.infor && (
+          <p className="text-xs text-slate-600 mt-1 pl-6 leading-relaxed bg-white/60 p-2 rounded-lg border border-slate-100">
+            {selectedVillage.infor}
+          </p>
+        )}
+      </div>
 
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm">
-                          <span className="text-[11px] text-slate-500 block uppercase font-extrabold tracking-wider">Dân số</span>
-                          <span className="text-sm font-extrabold text-slate-900 block mt-0.5">
-                            {selectedVillage.population !== undefined ? selectedVillage.population : '---'} 
-                            {selectedVillage.households !== undefined ? ` (${selectedVillage.households} hộ)` : ''}
-                          </span>
-                        </div>
-                        <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm">
-                          <span className="text-[11px] text-slate-500 block uppercase font-extrabold tracking-wider">Diện tích</span>
-                          <span className="text-sm font-extrabold text-slate-900 block mt-0.5">
-                            {selectedVillage.area || '---'}
-                          </span>
-                        </div>
-                      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm">
+          <span className="text-[11px] text-slate-500 block uppercase font-extrabold tracking-wider">Dân số</span>
+          <span className="text-sm font-extrabold text-slate-900 block mt-0.5">
+            {selectedVillage.population !== undefined ? selectedVillage.population : '---'} 
+            {selectedVillage.households !== undefined ? ` (${selectedVillage.households} hộ)` : ''}
+          </span>
+        </div>
+        <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm">
+          <span className="text-[11px] text-slate-500 block uppercase font-extrabold tracking-wider">Diện tích</span>
+          <span className="text-sm font-extrabold text-slate-900 block mt-0.5">
+            {selectedVillage.area || '---'}
+          </span>
+        </div>
+      </div>
 
-                      <div className="space-y-2 pt-1">
-                        <span className="text-[11px] text-slate-500 block uppercase font-extrabold tracking-wider">Ban điều hành thôn</span>
-                        
-                        <div className="flex items-center justify-between p-3 rounded-xl bg-white border border-slate-200 shadow-sm gap-2">
-                          <div className="min-w-0">
-                            <span className="text-[11px] text-slate-400 block font-medium">Bí thư chi bộ</span>
-                            <span className="font-bold text-slate-900 text-xs sm:text-sm truncate block">
-                              {selectedVillage.partySecretary || 'Đang cập nhật'}
-                            </span>
-                          </div>
-                          {selectedVillage.secPhone && selectedVillage.secPhone !== "---" ? (
-                            <a 
-                              href={`tel:${selectedVillage.secPhone}`} 
-                              className="text-xs font-bold text-blue-700 bg-blue-50 px-2.5 py-1.5 rounded-lg border border-blue-100 hover:bg-blue-100 transition-colors shrink-0"
-                            >
-                              📞 {selectedVillage.secPhone}
-                            </a>
-                          ) : (
-                            <span className="text-[11px] text-slate-400 italic shrink-0">Chưa có SĐT</span>
-                          )}
-                        </div>
+      <div className="space-y-2 pt-1">
+        <span className="text-[11px] text-slate-500 block uppercase font-extrabold tracking-wider">Ban điều hành thôn</span>
+        
+        {/* Bí thư chi bộ */}
+        <div className="flex items-center justify-between p-3 rounded-xl bg-white border border-slate-200 shadow-sm gap-2">
+          <div className="min-w-0">
+            <span className="text-[11px] text-slate-400 block font-medium">Bí thư chi bộ</span>
+            <span className="font-bold text-slate-900 text-xs sm:text-sm truncate block">
+              {selectedVillage.partySecretary || 'Đang cập nhật'}
+            </span>
+          </div>
+          {selectedVillage.secPhone && selectedVillage.secPhone !== "---" ? (
+            <a href={`tel:${selectedVillage.secPhone}`} className="text-xs font-bold text-blue-700 bg-blue-50 px-2.5 py-1.5 rounded-lg border border-blue-100 hover:bg-blue-100 transition-colors shrink-0">
+              📞 {selectedVillage.secPhone}
+            </a>
+          ) : (
+            <span className="text-[11px] text-slate-400 italic shrink-0">Chưa có SĐT</span>
+          )}
+        </div>
 
-                        <div className="flex items-center justify-between p-3 rounded-xl bg-white border border-slate-200 shadow-sm gap-2">
-                          <div className="min-w-0">
-                            <span className="text-[11px] text-slate-400 block font-medium">Thôn trưởng</span>
-                            <span className="font-bold text-slate-900 text-xs sm:text-sm truncate block">
-                              {selectedVillage.leader || 'Đang cập nhật'}
-                            </span>
-                          </div>
-                          {selectedVillage.leadPhone && selectedVillage.leadPhone !== "---" ? (
-                            <a 
-                              href={`tel:${selectedVillage.leadPhone}`} 
-                              className="text-xs font-bold text-blue-700 bg-blue-50 px-2.5 py-1.5 rounded-lg border border-blue-100 hover:bg-blue-100 transition-colors shrink-0"
-                            >
-                              📞 {selectedVillage.leadPhone}
-                            </a>
-                          ) : (
-                            <span className="text-[11px] text-slate-400 italic shrink-0">Chưa có SĐT</span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  ) : (
-                    <p className="text-sm text-slate-400 italic text-center py-8">Chọn một thôn trong danh sách để xem thông tin chi tiết.</p>
-                  )}
-                </div>
+        {/* Thôn trưởng */}
+        <div className="flex items-center justify-between p-3 rounded-xl bg-white border border-slate-200 shadow-sm gap-2">
+          <div className="min-w-0">
+            <span className="text-[11px] text-slate-400 block font-medium">Thôn trưởng</span>
+            <span className="font-bold text-slate-900 text-xs sm:text-sm truncate block">
+              {selectedVillage.leader || 'Đang cập nhật'}
+            </span>
+          </div>
+          {selectedVillage.leadPhone && selectedVillage.leadPhone !== "---" ? (
+            <a href={`tel:${selectedVillage.leadPhone}`} className="text-xs font-bold text-blue-700 bg-blue-50 px-2.5 py-1.5 rounded-lg border border-blue-100 hover:bg-blue-100 transition-colors shrink-0">
+              📞 {selectedVillage.leadPhone}
+            </a>
+          ) : (
+            <span className="text-[11px] text-slate-400 italic shrink-0">Chưa có SĐT</span>
+          )}
+        </div>
+
+        {/* Trưởng Ban CTMT */}
+        <div className="flex items-center justify-between p-3 rounded-xl bg-white border border-slate-200 shadow-sm gap-2">
+          <div className="min-w-0">
+            <span className="text-[11px] text-slate-400 block font-medium">Trưởng Ban CTMT</span>
+            <span className="font-bold text-slate-900 text-xs sm:text-sm truncate block">
+              {selectedVillage.frontLeader || 'Đang cập nhật'}
+            </span>
+          </div>
+          {selectedVillage.frontPhone && selectedVillage.frontPhone !== "---" ? (
+            <a href={`tel:${selectedVillage.frontPhone}`} className="text-xs font-bold text-blue-700 bg-blue-50 px-2.5 py-1.5 rounded-lg border border-blue-100 hover:bg-blue-100 transition-colors shrink-0">
+              📞 {selectedVillage.frontPhone}
+            </a>
+          ) : (
+            <span className="text-[11px] text-slate-400 italic shrink-0">Chưa có SĐT</span>
+          )}
+        </div>
+      </div>
+    </div>
+  ) : (
+    <p className="text-sm text-slate-400 italic text-center py-8">Chọn một thôn trong danh sách để xem thông tin chi tiết.</p>
+  )}
+</div>
               </div>
             </div>
 
@@ -1186,315 +1191,248 @@ export default function ClientHome({
           </div>
         </div>
       )}
-
-      {/* ==================== TAB 3: ĐỊA ĐIỂM & CƠ SỞ ==================== */}
-      
-{/* ==================== TAB 3: ĐỊA ĐIỂM & CƠ SỞ ==================== */}
+  
+ {/* ==================== TAB 3: ĐỊA ĐIỂM & CƠ SỞ (TỐI ƯU CỐ ĐỊNH MOBILE) ==================== */}
 {activeTab === 'overview' && (
-  <div className="flex-1 min-h-[460px] relative flex flex-col p-2 sm:p-3 bg-slate-100">
+  <div className="relative w-full h-[calc(100vh-115px)] md:h-[calc(100vh-100px)] flex flex-col md:flex-row p-1.5 sm:p-3 bg-slate-100 gap-2 overflow-hidden">
 
-    {/* KHUNG BẢN ĐỒ */}
-    <div className="w-full max-w-[1800px] mx-auto flex-1 min-h-0 relative rounded-2xl sm:rounded-3xl overflow-hidden border border-slate-200 shadow-md bg-white">
+    {/* ==================== BẢNG TRA CỨU BÊN TRÁI (THU GỌN TRÊN MOBILE) ==================== */}
+    <aside
+      className="
+        w-full md:w-[390px] lg:w-[420px] shrink-0
+        bg-white
+        border border-slate-200/80
+        rounded-2xl sm:rounded-3xl
+        shadow-sm
+        flex flex-col
+        h-[38%] md:h-full
+        overflow-hidden
+      "
+    >
+      {/* HEADER */}
+      <div className="relative shrink-0 overflow-hidden bg-gradient-to-r from-[#12366b] to-[#1d4ed8] px-3 py-2.5 sm:px-5 sm:py-4 text-white">
+        <div className="absolute -right-8 -top-10 w-32 h-32 rounded-full bg-white/10" />
 
-      {/* NÚT MỞ TRA CỨU */}
-      {!isSearchDrawerOpen && (
-       <div className="absolute top-[82px] left-3 sm:top-[82px] sm:left-3 z-[999]">
+        <div className="relative flex items-center justify-between gap-2">
+          <div className="min-w-0">
+            <div className="flex items-center gap-1 mb-0.5">
+              <span className="w-4 h-4 rounded bg-white/15 flex items-center justify-center text-[10px]">📍</span>
+              <span className="text-[8px] font-bold tracking-wider text-blue-100 uppercase">
+                BẢN ĐỒ SỐ THẠCH KHÊ
+              </span>
+            </div>
+            <h3 className="font-extrabold text-xs sm:text-base tracking-tight">
+              Khám phá địa điểm
+            </h3>
+          </div>
+
+          <div className="bg-white/15 rounded-xl px-2 py-0.5 text-right shrink-0">
+            <span className="text-xs font-extrabold">{filteredLocations.length}</span>
+            <span className="text-[8px] text-blue-100 block">kết quả</span>
+          </div>
+        </div>
+      </div>
+
+      {/* KHU VỰC TÌM KIẾM VÀ BỘ LỌC */}
+      <div className="shrink-0 p-2 bg-white border-b border-slate-100 space-y-1.5">
+        {/* Ô TÌM KIẾM */}
+        <div className="relative group">
+          <input
+            type="text"
+            value={searchTerm || ''}
+            onChange={(e) => setSearchTerm && setSearchTerm(e.target.value)}
+            placeholder="Tìm tên địa điểm, cơ sở..."
+            className="w-full h-8 pl-8 pr-7 border border-slate-200 rounded-xl text-xs bg-slate-50 text-slate-800 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/15 focus:border-blue-500 transition-all"
+          />
+          <IconSearch className="w-3 h-3 text-slate-400 absolute left-2.5 top-2.5 group-focus-within:text-blue-600 transition" />
+          {searchTerm && (
+            <button
+              type="button"
+              onClick={() => setSearchTerm && setSearchTerm('')}
+              className="absolute right-2 top-2 text-slate-400 hover:text-slate-700 text-xs font-bold"
+            >
+              ✕
+            </button>
+          )}
+        </div>
+
+        {/* DANH MỤC (VUỐT NGANG) */}
+        <div className="flex items-center gap-1 overflow-x-auto pb-0.5 scrollbar-none">
           <button
             type="button"
-            onClick={() => setIsSearchDrawerOpen(true)}
-           className="w-11 h-11 sm:w-auto sm:h-auto sm:px-4 sm:py-3 ..."
+            onClick={() => setSelectedCats([])}
+            className={`h-6 px-2.5 rounded-lg text-[10px] font-extrabold shrink-0 transition-all cursor-pointer ${
+              selectedCats.length === 0
+                ? 'bg-blue-600 text-white shadow-xs'
+                : 'bg-slate-100 text-slate-600 hover:bg-slate-50'
+            }`}
           >
-            <span className="w-8 h-8 rounded-xl bg-blue-50 flex items-center justify-center group-hover:bg-blue-100 transition">
-              <IconSearch className="w-4 h-4 text-blue-600" />
-            </span>
-            <span className="hidden sm:inline">Khám phá địa điểm</span>
-            <span className="hidden sm:inline bg-blue-600 text-white text-[10px] font-extrabold px-2.5 py-1 rounded-full">
-              {filteredLocations.length}
-            </span>
+            Tất cả
           </button>
-        </div>
-      )}
 
-      {/* ==================== BẢNG TRA CỨU ==================== */}
-      {isSearchDrawerOpen && (
-        <aside className="absolute top-0 left-0 bottom-0 z-[1001] w-full sm:w-[390px] md:w-[410px] max-w-full bg-white border-r border-slate-200 shadow-2xl flex flex-col animate-in slide-in-from-left duration-300">
+          {(categories || []).map(cat => {
+            const catId = String(cat.id || cat.label);
+            const isSelected = selectedCats.includes(catId) || selectedCats.includes(String(cat.label));
 
-          {/* HEADER */}
-          <div className="relative shrink-0 overflow-hidden bg-gradient-to-r from-[#12366b] to-[#1d4ed8] px-5 py-5 text-white">
-            <div className="absolute -right-8 -top-10 w-36 h-36 rounded-full bg-white/10" />
-            <div className="absolute right-12 -bottom-14 w-32 h-32 rounded-full bg-white/5" />
-
-            <div className="relative flex items-center justify-between gap-3">
-              <div className="min-w-0">
-                <div className="flex items-center gap-2 mb-1.5">
-                  <span className="w-8 h-8 rounded-xl bg-white/15 flex items-center justify-center">
-                    <IconSearch className="w-4 h-4 text-white" />
-                  </span>
-                  <span className="text-[10px] font-bold tracking-[1.5px] text-blue-100 uppercase">
-                    BẢN ĐỒ SỐ THẠCH KHÊ
-                  </span>
-                </div>
-
-                <h3 className="font-extrabold text-lg tracking-tight">
-                  Khám phá địa điểm
-                </h3>
-                <p className="text-[11px] text-blue-100 mt-1">
-                  Tìm kiếm cơ sở, tiện ích và di tích
-                </p>
-              </div>
-
+            return (
               <button
                 type="button"
-                onClick={() => setIsSearchDrawerOpen(false)}
-                className="w-9 h-9 shrink-0 rounded-xl bg-white/15 hover:bg-white/25 border border-white/20 flex items-center justify-center text-white transition"
-                aria-label="Đóng bảng tra cứu"
-              >
-                ✕
-              </button>
-            </div>
-
-            <div className="relative mt-4 flex items-center gap-2">
-              <div className="bg-white/15 rounded-xl px-3 py-2 flex items-center gap-2">
-                <span className="text-base font-extrabold">
-                  {filteredLocations.length}
-                </span>
-                <span className="text-[10px] text-blue-100 font-medium">
-                  địa điểm phù hợp
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* KHU VỰC TÌM KIẾM VÀ LỌC */}
-          <div className="shrink-0 p-4 bg-white border-b border-slate-100 space-y-4">
-
-            {/* Ô TÌM KIẾM */}
-            <div className="relative group">
-              <input
-                type="text"
-                value={searchTerm || ''}
-                onChange={(e) => setSearchTerm && setSearchTerm(e.target.value)}
-                placeholder="Tìm tên địa điểm, cơ sở..."
-                className="w-full h-11 pl-11 pr-10 border border-slate-200 rounded-xl text-xs sm:text-sm bg-slate-50 text-slate-800 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/15 focus:border-blue-500 transition-all"
-              />
-
-              <IconSearch className="w-4 h-4 text-slate-400 absolute left-4 top-3.5 group-focus-within:text-blue-600 transition" />
-
-              {searchTerm && (
-                <button
-                  type="button"
-                  onClick={() => setSearchTerm && setSearchTerm('')}
-                  className="absolute right-3 top-3 text-slate-400 hover:text-slate-700"
-                  aria-label="Xóa từ khóa"
-                >
-                  ✕
-                </button>
-              )}
-            </div>
-
-            {/* TIÊU ĐỀ BỘ LỌC */}
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-extrabold text-slate-700 uppercase tracking-wide">
-                Danh mục địa điểm
-              </span>
-              <button
-                type="button"
-                onClick={() => setSelectedCats([])}
-                className="text-[10px] font-bold text-blue-600 hover:text-blue-800"
-              >
-                Xóa bộ lọc
-              </button>
-            </div>
-
-            {/* DANH MỤC */}
-            <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-thin">
-              <button
-                type="button"
-                onClick={() => setSelectedCats([])}
-                className={`h-8 px-4 rounded-lg text-[11px] font-extrabold shrink-0 transition-all ${
-                  selectedCats.length === 0
-                    ? 'bg-blue-600 text-white shadow-sm shadow-blue-200'
-                    : 'bg-slate-100 text-slate-600 hover:bg-blue-50 hover:text-blue-700'
+                key={cat.id}
+                onClick={() => {
+                  if (isSelected) {
+                    setSelectedCats([]);
+                  } else {
+                    setSelectedCats([catId]);
+                  }
+                }}
+                className={`h-6 px-2.5 rounded-lg text-[10px] font-bold shrink-0 transition-all flex items-center gap-1 cursor-pointer ${
+                  isSelected
+                    ? 'bg-blue-600 text-white shadow-xs'
+                    : 'bg-slate-100 text-slate-600 hover:bg-slate-50'
                 }`}
               >
-                Tất cả
+                <span>{cat.label}</span>
               </button>
+            );
+          })}
+        </div>
+      </div>
 
-              {(categories || []).map(cat => {
-                const isSelected =
-                  selectedCats.includes(String(cat.id)) ||
-                  selectedCats.includes(String(cat.label));
-
-                return (
-                  <button
-                    type="button"
-                    key={cat.id}
-                    onClick={() => handleToggleCategory(cat)}
-                    className={`h-8 px-3.5 rounded-lg text-[11px] font-bold shrink-0 transition-all flex items-center gap-1.5 ${
-                      isSelected
-                        ? 'bg-blue-600 text-white shadow-sm shadow-blue-200'
-                        : 'bg-slate-100 text-slate-600 hover:bg-blue-50 hover:text-blue-700'
-                    }`}
-                  >
-                    {cat.label}
-                    {isSelected && <span className="text-[10px]">✓</span>}
-                  </button>
-                );
-              })}
-            </div>
+   {/* DANH SÁCH ĐỊA ĐIỂM (THANH CUỘN RIÊNG) */}
+<div className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-2 bg-slate-50/80 space-y-2.5 scrollbar-thin">
+  {filteredLocations.length > 0 ? (
+    filteredLocations.map(loc => {
+      const isSelected = overviewSelectedLocation?.id === loc.id;
+      const imageUrl = loc.mediaUrl || loc.image || loc.imageUrl || "https://images.unsplash.com/photo-1507525428034-b723cf961dbe?w=500";
+      
+      return (
+        <div
+          key={loc.id}
+          onClick={() => handleSelectOverviewLocation(loc)}
+          className={`group bg-white rounded-2xl transition-all cursor-pointer p-3 flex gap-2.5 relative overflow-hidden border shadow-2xs ${
+            isSelected
+              ? 'border-blue-500 bg-blue-50/70 ring-2 ring-blue-500/10 shadow-md'
+              : 'border-slate-200/80 hover:border-blue-300 hover:shadow-md'
+          }`}
+        >
+          {/* ẢNH ĐỊA ĐIỂM & HUY HIỆU (Đã thu nhỏ kích thước cố định w-20 h-20 để không bị tràn) */}
+          <div className="relative w-20 h-20 shrink-0 overflow-hidden rounded-xl bg-slate-100 shadow-xs">
+            <img
+              src={imageUrl}
+              alt={loc.name}
+              loading="lazy"
+              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+            />
+            <span className="absolute top-1 left-1 bg-white/95 backdrop-blur-md text-slate-900 font-black text-[9px] px-1.5 py-0.5 rounded shadow-xs border border-slate-200/50">
+              {loc.badge || 'Thạch Khê'}
+            </span>
           </div>
 
-          {/* DANH SÁCH ĐỊA ĐIỂM */}
-          <div className="flex-1 min-h-0 overflow-y-auto p-3 bg-slate-50/80 space-y-2.5 scrollbar-thin">
+          {/* THÔNG TIN CHI TIẾT BÊN PHẢI (flex-1 và min-w-0 giúp co giãn chữ thông minh không tràn) */}
+          <div className="min-w-0 flex-1 flex flex-col justify-between">
+            <div>
+              <span className="text-[9px] font-extrabold text-blue-700 uppercase tracking-wider block truncate">
+                {getCategoryName(loc.type || loc.category)}
+              </span>
+              <h4 className="font-extrabold text-slate-900 text-xs leading-snug line-clamp-1 group-hover:text-blue-700 transition mt-0.5">
+                {loc.name}
+              </h4>
 
-            <div className="flex items-center justify-between px-1 pb-1">
-              <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wide">
-                Danh sách kết quả
-              </span>
-              <span className="text-[10px] font-semibold text-slate-400">
-                {filteredLocations.length} địa điểm
-              </span>
+              {/* Thông tin địa chỉ & giờ mở cửa */}
+              <div className="mt-1 space-y-0.5 text-[10.5px] text-slate-600">
+                <div className="flex items-center gap-1">
+                  <span className="text-slate-400 shrink-0">Địa chỉ:</span>
+                  <span className="truncate font-medium text-slate-700">{loc.address || loc.info || 'Thôn Thạch Hải, Xã Thạch Khê'}</span>
+                </div>
+                {loc.workingHours && (
+                  <div className="flex items-center gap-1">
+                    <span className="text-slate-400 shrink-0">Giờ:</span>
+                    <span className="font-medium text-slate-700 truncate">{loc.workingHours}</span>
+                  </div>
+                )}
+              </div>
             </div>
 
-            {filteredLocations.length > 0 ? (
-              filteredLocations.map(loc => {
-                const isSelected = overviewSelectedLocation?.id === loc.id;
+            {/* DƯỚI CÙNG: ĐÁNH GIÁ VÀ NÚT BẤM VỪA KHÍT KHUNG */}
+            <div className="flex items-center justify-between pt-1.5 mt-1 border-t border-slate-100 gap-1">
+              {/* Đánh giá sao & lượt xem thu gọn */}
+              <div className="flex items-center gap-1 text-[10px] font-bold text-slate-700 shrink-0">
+                <span className="text-amber-500">★</span>
+                <span>{loc.rating || '4.8'}</span>
+                <span className="text-slate-300">•</span>
+                <span className="text-slate-500 font-normal text-[9.5px]">👁 {loc.views || '120'}</span>
+              </div>
 
-                return (
-                  <div
-                    key={loc.id}
-                    onClick={() => {
-                      handleSelectOverviewLocation(loc);
-                      setIsSearchDrawerOpen(false);
-                    }}
-                    className={`group bg-white rounded-2xl transition-all cursor-pointer p-3 flex gap-3 relative overflow-hidden border ${
-                      isSelected
-                        ? 'border-blue-400 bg-blue-50/70 ring-2 ring-blue-500/10 shadow-sm'
-                        : 'border-slate-200/80 hover:border-blue-300 hover:shadow-md'
-                    }`}
-                  >
-                    {/* ẢNH ĐỊA ĐIỂM */}
-                    <div className="relative w-[88px] h-[88px] shrink-0 overflow-hidden rounded-xl bg-slate-100">
-                      <img
-                        src={loc.mediaUrl || loc.image || loc.imageUrl || "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=500"}
-                        alt={loc.name}
-                        loading="lazy"
-                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                      />
-
-                      <div className="absolute inset-0 bg-gradient-to-t from-slate-900/20 to-transparent pointer-events-none" />
-                    </div>
-
-                    {/* THÔNG TIN */}
-                    <div className="min-w-0 flex-1 flex flex-col justify-between py-0.5">
-                      <div>
-                        <div className="flex items-center gap-1.5 mb-1">
-                          <span className="text-[9px] font-extrabold text-blue-700 uppercase tracking-wide truncate">
-                            {getCategoryName(loc.type || loc.category)}
-                          </span>
-
-                          {isSelected && (
-                            <span className="w-1.5 h-1.5 rounded-full bg-blue-600 shrink-0" />
-                          )}
-                        </div>
-
-                        <h4 className="font-extrabold text-slate-900 text-xs sm:text-[13px] leading-snug line-clamp-2 group-hover:text-blue-700 transition">
-                          {loc.name}
-                        </h4>
-
-                        <p className="text-[10px] text-slate-500 line-clamp-1 mt-1">
-                          {loc.info || loc.desc || 'Thuộc địa bàn xã Thạch Khê'}
-                        </p>
-                      </div>
-
-                      {/* NÚT CHỨC NĂNG */}
-                      <div className="flex items-center gap-2 pt-2">
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleOpenDetailModal(loc);
-                          }}
-                          className="px-3 py-1.5 rounded-lg text-[10px] font-extrabold text-blue-700 bg-blue-50 hover:bg-blue-100 transition"
-                        >
-                          Chi tiết
-                        </button>
-
-                        {loc.lat && loc.lng && (
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDirectGPSRoute(loc.lat, loc.lng, loc);
-                              setIsSearchDrawerOpen(false);
-                            }}
-                            className="px-3 py-1.5 rounded-lg text-[10px] font-extrabold text-white bg-slate-900 hover:bg-blue-700 transition flex items-center gap-1"
-                          >
-                            <span>🧭</span>
-                            Chỉ đường
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })
-            ) : (
-              <div className="flex flex-col items-center justify-center py-14 px-5 text-center">
-                <div className="w-16 h-16 rounded-2xl bg-blue-50 flex items-center justify-center mb-3">
-                  <IconSearch className="w-7 h-7 text-blue-300" />
-                </div>
-                <h4 className="text-sm font-extrabold text-slate-700">
-                  Không tìm thấy địa điểm
-                </h4>
-                <p className="text-xs text-slate-400 mt-1">
-                  Thử thay đổi từ khóa hoặc danh mục tìm kiếm.
-                </p>
+              {/* Nhóm nút bấm thiết kế gọn gàng */}
+              <div className="flex items-center gap-1 shrink-0">
                 <button
                   type="button"
-                  onClick={() => {
-                    setSearchTerm && setSearchTerm('');
-                    setSelectedCats([]);
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleOpenDetailModal(loc);
                   }}
-                  className="mt-4 px-4 py-2 rounded-xl bg-blue-600 text-white text-xs font-bold hover:bg-blue-700 transition"
+                  className="px-2.5 py-1 rounded-lg text-[10px] font-extrabold text-blue-700 bg-blue-50 hover:bg-blue-100 transition cursor-pointer"
                 >
-                  Xóa bộ lọc
+                  Chi tiết
                 </button>
+
+                {loc.lat && loc.lng && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDirectGPSRoute(loc.lat, loc.lng, loc);
+                    }}
+                    className="px-2.5 py-1 rounded-lg text-[10px] font-extrabold text-white bg-slate-900 hover:bg-blue-700 transition flex items-center gap-1 cursor-pointer shadow-2xs whitespace-nowrap"
+                  >
+                    <span>🧭</span>
+                    <span>Đường đi</span>
+                  </button>
+                )}
               </div>
-            )}
+            </div>
           </div>
+        </div>
+      );
+    })
+  ) : (
+    <div className="flex flex-col items-center justify-center py-8 px-3 text-center">
+      <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-xl mb-2">🔍</div>
+      <p className="text-xs text-slate-600 font-bold">Không tìm thấy địa điểm phù hợp</p>
+      <button
+        type="button"
+        onClick={() => {
+          setSearchTerm && setSearchTerm('');
+          setSelectedCats && setSelectedCats([]);
+        }}
+        className="mt-2.5 px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition shadow-xs cursor-pointer"
+      >
+        Xóa bộ lọc tìm kiếm
+      </button>
+    </div>
+  )}
+</div>
+    </aside>
 
-          {/* FOOTER BẢNG TRA CỨU */}
-          <div className="shrink-0 px-4 py-2.5 bg-white border-t border-slate-100 flex items-center justify-between">
-            <span className="text-[10px] text-slate-400 font-medium">
-              Bản đồ số xã Thạch Khê
-            </span>
-            <span className="text-[10px] text-slate-500 font-semibold">
-              Dữ liệu địa điểm
-            </span>
-          </div>
-        </aside>
-      )}
-
+    {/* ==================== KHUNG BẢN ĐỒ BÊN PHẢI (CỐ ĐỊNH KHÔNG GIAN CÒN LẠI) ==================== */}
+    <div className="flex-1 h-full relative rounded-2xl sm:rounded-3xl overflow-hidden border border-slate-200/80 shadow-md bg-white">
+      
       {/* THÔNG TIN LỘ TRÌNH GPS */}
       {routeCoordinates && routeCoordinates.length > 0 && (
-        <div className="absolute top-4 left-4 right-4 sm:left-auto sm:right-4 z-[1000] sm:max-w-[360px] bg-slate-900/95 backdrop-blur-md text-white px-4 py-3 rounded-2xl shadow-xl flex items-center justify-between border border-white/10 animate-fade-in">
-          <div className="flex items-center gap-3 min-w-0">
-            <span className="w-3 h-3 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+        <div className="absolute top-2 left-2 right-2 sm:left-auto sm:right-3 z-[1000] sm:max-w-[320px] bg-slate-900/95 backdrop-blur-md text-white px-3 py-2 rounded-xl shadow-xl flex items-center justify-between border border-white/10">
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
             <div className="min-w-0">
-              <p className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider">
-                Đang chỉ đường GPS
-              </p>
-              <p className="text-xs sm:text-sm font-extrabold truncate text-white">
+              <p className="text-[8px] font-bold text-emerald-400 uppercase tracking-wider">Đang chỉ đường</p>
+              <p className="text-[11px] font-extrabold truncate text-white">
                 {overviewSelectedLocation?.name || "Lộ trình di chuyển"}
               </p>
             </div>
           </div>
-
           <button
             type="button"
             onClick={handleClearRoute}
-            className="bg-red-600/80 hover:bg-red-600 text-white px-3 py-1.5 rounded-xl text-xs font-bold transition shrink-0 cursor-pointer ml-3"
+            className="bg-red-600 text-white px-2 py-1 rounded-lg text-[10px] font-bold shrink-0 ml-2"
           >
             ✕ Hủy
           </button>
@@ -1522,7 +1460,7 @@ export default function ClientHome({
           userLocation={userLocation}
           routeCoordinates={routeCoordinates}
           selectedVillage={null}
-          hideVillageNames={true}
+          hideVillageNames={false}
           hideLocationPins={false}
           filteredLocations={filteredLocations}
           selectedLocation={overviewSelectedLocation}
@@ -1532,14 +1470,14 @@ export default function ClientHome({
           reports={[]}
           onOpenDetail={handleOpenDetailModal}
           onClearRoute={handleClearRoute}
+          disableVillageHover={true}
+          disableVillagePopup={true}
         />
       </div>
-
     </div>
+
   </div>
 )}
-
-
       {/* ==================== TAB 4: TIỆN ÍCH SỐ ==================== */}
       {activeTab === 'utilities' && (
         <div className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-6">
@@ -1608,21 +1546,60 @@ export default function ClientHome({
         onDirectGPSRoute={handleDirectGPSRoute}
       />
       {/* FOOTER CUỐI TRANG */}
-<footer className="
-  w-full shrink-0
-  bg-white
-  border-t border-slate-200
-  text-slate-500 text-center
-  text-[11px] sm:text-xs
-  py-3 px-4
-  font-medium
-">
-  Phát triển bởi{" "}
-  <strong className="text-slate-800 font-extrabold">
-    Đội ngũ Chuyển đổi số UBND xã Thạch Khê
-  </strong>{" "}
-  © 2026
-</footer>
+<footer className="w-full shrink-0 bg-slate-900 text-slate-300 border-t border-slate-800 text-xs mt-auto">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 mb-6 pb-6 border-b border-slate-800/80">
+            
+            {/* Cột 1: Thông tin cơ quan */}
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <span className="w-6 h-6 rounded-lg bg-blue-600/20 text-blue-400 flex items-center justify-center font-bold text-xs">🏛</span>
+                <h4 className="font-extrabold text-white text-sm tracking-wide">
+                XÃ THẠCH KHÊ
+                </h4>
+              </div>
+              <p className="text-slate-400 text-[11px] leading-relaxed">
+                Hệ thống Bản đồ số & Cổng thông tin hành chính công tích hợp tiện ích đời sống, tra cứu địa điểm và dữ liệu thôn xóm.
+              </p>
+            </div>
+
+            {/* Cột 2: Thông tin liên hệ */}
+            <div className="space-y-2">
+              <h5 className="font-bold text-white text-xs uppercase tracking-wider text-blue-400">
+                Thông tin liên hệ
+              </h5>
+              <ul className="space-y-1.5 text-[11px] text-slate-400">
+                <li className="flex items-center gap-2">
+                  <span>📍</span> Địa chỉ: Trụ sở UBND xã Thạch Khê, thôn Đồng Giang, tỉnh Hà Tĩnh
+                </li>
+                <li className="flex items-center gap-2">
+                  <span>📧</span> Email: thachkhe@hatinh.gov.vn
+                </li>
+                <li className="flex items-center gap-2">
+                  <span>🕒</span> Giờ làm việc: Thứ Hai - Thứ Sáu (Sáng: 7h30 - 11h30, Chiều: 14h00 - 17h30)
+                </li>
+              </ul>
+            </div>
+
+            {/* Cột 3: Đơn vị vận hành */}
+            <div className="space-y-2">
+              <h5 className="font-bold text-white text-xs uppercase tracking-wider text-blue-400">
+                Đơn vị thực hiện
+              </h5>
+              <p className="text-[11px] text-slate-400 leading-relaxed">
+                Được xây dựng và phát triển bởi <strong className="text-white font-bold">Đội ngũ Chuyển đổi số xã Thạch Khê</strong> nhằm phục vụ công tác cải cách hành chính và chuyển đổi số cộng đồng.
+              </p>
+            </div>
+
+          </div>
+
+          {/* Dòng bản quyền copyright */}
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left text-[11px] text-slate-500">
+            <p>© 2026 Bản quyền thuộc về UBND xã Thạch Khê. Bảo lưu mọi quyền.</p>
+            
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

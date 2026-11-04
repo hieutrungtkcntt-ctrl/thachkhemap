@@ -182,3 +182,7 @@
     border-right-color: var(--border);
   }
 }
+/* Ẩn triệt để dòng chữ bản quyền Leaflet ở góc bản đồ */
+.leaflet-control-attribution {
+  display: none !important;
+}
