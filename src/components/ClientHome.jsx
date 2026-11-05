@@ -1316,17 +1316,14 @@ export default function ClientHome({
           }`}
         >
           {/* ẢNH ĐỊA ĐIỂM & HUY HIỆU (Đã thu nhỏ kích thước cố định w-20 h-20 để không bị tràn) */}
-          <div className="relative w-20 h-20 shrink-0 overflow-hidden rounded-xl bg-slate-100 shadow-xs">
-            <img
-              src={imageUrl}
-              alt={loc.name}
-              loading="lazy"
-              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-            />
-            <span className="absolute top-1 left-1 bg-white/95 backdrop-blur-md text-slate-900 font-black text-[9px] px-1.5 py-0.5 rounded shadow-xs border border-slate-200/50">
-              {loc.badge || 'Thạch Khê'}
-            </span>
-          </div>
+        <div className="relative w-20 h-20 shrink-0 overflow-hidden rounded-xl bg-slate-100 shadow-xs">
+          <img
+            src={imageUrl}
+            alt={loc.name}
+            loading="lazy"
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+          />
+        </div>
 
           {/* THÔNG TIN CHI TIẾT BÊN PHẢI (flex-1 và min-w-0 giúp co giãn chữ thông minh không tràn) */}
           <div className="min-w-0 flex-1 flex flex-col justify-between">
