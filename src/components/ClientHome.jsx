@@ -60,7 +60,9 @@ export default function ClientHome({
   const [communeInfo, setCommuneInfo] = useState(null);
   const [loadingData, setLoadingData] = useState(true);
 
+  // ĐÃ SỔ GIÁ TRỊ MẶC ĐỊNH THÀNH 'villages' ĐỂ MỞ LÊN LÀ HIỆN THÔN XÓM TRƯỚC
   const [activeTab, setActiveTab] = useState('villages');
+  
   const [isSearchDrawerOpen, setIsSearchDrawerOpen] = useState(false);
   const [weather, setWeather] = useState({ temp: '27°C', condition: 'Đang cập nhật...', icon: '🌤️' });
 
