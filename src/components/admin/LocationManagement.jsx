@@ -9,7 +9,7 @@ export default function LocationManagement({ locations = [], categories = [], on
 
   const [form, setForm] = useState({
     name: '',
-    category: categories.length > 0 ? categories[0].id : 'Hành chính',
+    category: categories.length > 0 ? categories[0].id : 'admin',
     address: '',
     lat: '18.3950',
     lng: '105.9550',
@@ -17,15 +17,15 @@ export default function LocationManagement({ locations = [], categories = [], on
     desc: '',
     scale: '',            
     workingHours: '07:30 - 17:00 (Thứ 2 - Thứ 6)',
-    images: [],           // Mảng chứa danh sách ảnh bộ sưu tập
-    qrCode: ''            // QR code tách biệt hoàn toàn
+    images: [],          // Mảng chứa danh sách ảnh bộ sưu tập
+    qrCode: ''           // QR code tách biệt hoàn toàn
   });
 
   const handleOpenAdd = () => {
     setEditingLoc(null);
     setForm({ 
       name: '', 
-      category: categories.length > 0 ? categories[0].id : 'Hành chính', 
+      category: categories.length > 0 ? categories[0].id : 'admin', 
       address: '', 
       lat: '18.3950', 
       lng: '105.9550', 
@@ -72,7 +72,7 @@ export default function LocationManagement({ locations = [], categories = [], on
 
     setForm({
       name: loc.name || '',
-      category: loc.type || loc.category || (categories.length > 0 ? categories[0].id : 'Hành chính'),
+      category: loc.type || loc.category || (categories.length > 0 ? categories[0].id : 'admin'),
       address: loc.address || '',
       lat: loc.lat || '18.3950',
       lng: loc.lng || '105.9550',
@@ -330,18 +330,32 @@ export default function LocationManagement({ locations = [], categories = [], on
                       ))
                     ) : (
                       <>
-                      <option value="admin">Hành chính</option>
-                        <option value="culture">Văn hóa - Thể thao</option>
-                        <option value="eco">Môi trường - Sinh thái</option>
-                        <option value="health">Y tế</option>
+                        <option value="admin">Cơ sở hành chính</option>
+                        <option value="restaurant">Nhà hàng - Quán ăn</option>
+                        <option value="market">Chợ</option>
+                        <option value="shopping-cart">Cửa hàng - Siệu thị</option>
+                        <option value="landmark">Di tích Văn hoá</option>
+                        <option value="church">Cơ sở tín ngưỡng, tôn giáo</option>
+                        <option value="award">Sản phẩm Ocop</option>
+                        <option value="coffee">Quán cà phê</option>
+                        <option value="fuel">Cửa hàng xăng dầu</option>
+                        <option value="users">Dịch vụ xã hội</option>
                         <option value="hotel">Cơ sở lưu trú</option>
-                        <option value="industry">Sản xuất - Công nghiệp</option>
-                        <option value="market">Chợ - Thương mại</option>
-                        <option value="restaurant">Ẩm thực - Nhà hàng</option>
-                        <option value="school">Giáo dục - Trường học</option>
-                        <option value="security">An ninh trật tự</option>
-                        <option value="temple">Đền, Chùa, Di tích</option>
-                        <option value="tourism">Du lịch</option>
+                        <option value="map-pin">Điểm du lịch</option>
+                        <option value="building-2">Khu kinh tế</option>
+                        <option value="sun">Bãi biển</option>
+                        <option value="briefcase">Hợp tác xã</option>
+                        <option value="calendar">Sự kiện lễ hội</option>
+                        <option value="mail">Bưu chính chuyển phát</option>
+                        <option value="leaf">Sinh thái môi trường</option>
+                        <option value="camera">Du lịch tham quan</option>
+                        <option value="bank">Ngân hàng - ATM</option>
+                        <option value="wrench">Sửa chữa bảo dưỡng</option>
+                        <option value="package">Bưu chính chuyển phát (Gói hàng)</option>
+                        <option value="activity">Văn hoá - Thể thao</option>
+                        <option value="shield">An ninh quốc phòng</option>
+                        <option value="trash-2">Điểm tập kết rác</option>
+                        <option value="school">Cơ sở giáo dục</option>
                       </>
                     )}
                   </select>
