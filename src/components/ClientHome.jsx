@@ -518,7 +518,7 @@ export default function ClientHome({
         <span className="truncate">Thôn xóm</span>
       </button>
       
-      {/* Tab 3 */}
+      {/*  */}
       <button 
         type="button"
         onClick={() => setActiveTab('overview')}
@@ -980,7 +980,7 @@ export default function ClientHome({
         </div>
       )}
   
-{/* ==================== TAB 3: ĐỊA ĐIỂM & CƠ SỞ (TỐI ƯU TỔNG THỂ CHO WEBSITE & MOBILE) ==================== */}
+{/* ==================== TAB 3: ĐỊA ĐIỂM & CƠ SỞ (TỐI ƯU THOÁNG ĐÃNG CHO WEB & MOBILE) ==================== */}
 {activeTab === 'overview' && (
   <div className="relative w-full h-[calc(100vh-115px)] md:h-[calc(100vh-100px)] flex flex-col md:flex-row p-1.5 sm:p-3 bg-slate-100 gap-2 overflow-hidden">
 
@@ -993,7 +993,7 @@ export default function ClientHome({
         rounded-2xl sm:rounded-3xl
         shadow-sm
         flex flex-col
-        h-[48%] md:h-full
+        h-[42%] md:h-full
         overflow-hidden
       "
     >
@@ -1021,7 +1021,7 @@ export default function ClientHome({
         </div>
       </div>
 
-      {/* KHU VỰC TÌM KIẾM VÀ BỘ LỌC */}
+      {/* KHU VỰC TÌM KIẾM VÀ BỘ LỌC THOÁNG ĐÃNG */}
       <div className="shrink-0 p-2 bg-white border-b border-slate-100 space-y-1.5">
         {/* Ô TÌM KIẾM */}
         <div className="relative group">
@@ -1044,7 +1044,7 @@ export default function ClientHome({
           )}
         </div>
 
-        {/* DANH MỤC LĨNH VỰC: THIẾT KẾ DẠNG LƯỚI GỌN GÀNG (2 CỘT TRÊN MOBILE, LINH HOẠT TRÊN PC) */}
+        {/* DANH MỤC LĨNH VỰC: THIẾT KẾ DẠNG LƯỚI 2 CỘT GỌN GÀNG, THOÁNG MẮT */}
         <div className="space-y-1">
           <div className="flex items-center justify-between px-0.5">
             <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">
@@ -1054,15 +1054,15 @@ export default function ClientHome({
               <button
                 type="button"
                 onClick={() => setSelectedCats([])}
-                className="text-[10px] text-blue-600 font-bold hover:underline"
+                className="text-[10px] text-blue-600 font-bold hover:underline cursor-pointer"
               >
-                Đặt lại tất cả
+                Đặt lại
               </button>
             )}
           </div>
           
-          <div className="grid grid-cols-2 sm:grid-cols-2 gap-1.5 max-h-28 sm:max-h-32 overflow-y-auto pr-1 scrollbar-thin">
-            {/* Nút Tất cả lĩnh vực */}
+          <div className="grid grid-cols-2 gap-1.5 max-h-24 sm:max-h-28 overflow-y-auto pr-1 scrollbar-thin">
+            {/* Nút Tất cả */}
             <div
               onClick={() => setSelectedCats([])}
               className={`flex items-center justify-between p-1.5 rounded-xl border transition cursor-pointer select-none ${
@@ -1086,7 +1086,7 @@ export default function ClientHome({
               </span>
             </div>
 
-            {/* Các danh mục từ CSDL */}
+            {/* Các danh mục CSDL */}
             {(categories || []).map(cat => {
               const catId = String(cat.id || cat.label);
               const isSelected = selectedCats.includes(catId) || selectedCats.includes(String(cat.label));
@@ -1142,7 +1142,7 @@ export default function ClientHome({
         </div>
       </div>
 
-      {/* DANH SÁCH ĐỊA ĐIỂM (ẢNH LỚN NẰM TRÊN, THÔNG TIN Ở DƯỚI) */}
+      {/* DANH SÁCH ĐỊA ĐIỂM */}
       <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-2 bg-slate-50/80 space-y-2.5 scrollbar-thin">
         {filteredLocations.length > 0 ? (
           filteredLocations.map(loc => {
@@ -1159,7 +1159,6 @@ export default function ClientHome({
                     : 'border-slate-200/80 hover:border-blue-300 hover:shadow-md'
                 }`}
               >
-                {/* ẢNH ĐỊA ĐIỂM */}
                 <div className="relative w-full h-32 sm:h-40 shrink-0 overflow-hidden rounded-xl bg-slate-100 shadow-xs">
                   <img
                     src={imageUrl}
@@ -1172,7 +1171,6 @@ export default function ClientHome({
                   </span>
                 </div>
 
-                {/* THÔNG TIN CHI TIẾT */}
                 <div className="min-w-0 flex flex-col justify-between space-y-1.5">
                   <div>
                     <h4 className="font-extrabold text-slate-900 text-xs sm:text-sm leading-snug line-clamp-2 group-hover:text-blue-700 transition">
@@ -1193,7 +1191,6 @@ export default function ClientHome({
                     </div>
                   </div>
 
-                  {/* NÚT BẤM */}
                   <div className="flex items-center justify-end pt-1.5 border-t border-slate-100 gap-1.5">
                     <button
                       type="button"
