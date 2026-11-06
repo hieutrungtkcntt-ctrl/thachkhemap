@@ -1212,25 +1212,24 @@ export default function ClientHome({
           </div>
         </div>
       )}
-{/* ==================== TAB 3: ĐỊA ĐIỂM & CƠ SỞ (LĨNH VỰC DẠNG DANH SÁCH DỌC GỌN GÀNG) ==================== */}
+{/* ==================== TAB 3: ĐỊA ĐIỂM & CƠ SỞ ==================== */}
 {activeTab === 'overview' && (
   <div className="relative w-full h-[calc(100vh-115px)] md:h-[calc(100vh-100px)] flex flex-col md:flex-row p-1.5 sm:p-3 bg-slate-100 gap-2 overflow-hidden">
 
     {/* ==================== BẢNG TRA CỨU BÊN TRÁI ==================== */}
     <aside
       className="
-        hidden md:flex
         w-full md:w-[460px] lg:w-[500px] shrink-0
         bg-white
         border border-slate-200/80
         rounded-2xl sm:rounded-3xl
         shadow-sm
-        flex-col
-        h-full
+        flex flex-col
+        h-auto md:h-full
         overflow-hidden
       "
     >
-      {/* HEADER */}
+      {/* HEADER (GIỮ NGUYÊN) */}
       <div className="relative shrink-0 overflow-hidden bg-gradient-to-r from-[#12366b] to-[#1d4ed8] px-3 py-2 sm:px-4 sm:py-3 text-white">
         <div className="absolute -right-8 -top-10 w-32 h-32 rounded-full bg-white/10" />
 
@@ -1254,7 +1253,7 @@ export default function ClientHome({
         </div>
       </div>
 
-      {/* KHU VỰC TÌM KIẾM VÀ BỘ LỌC */}
+      {/* KHU VỰC TÌM KIẾM VÀ BỘ LỌC (HIỂN THỊ CẢ TRÊN MOBILE VÀ DESKTOP) */}
       <div className="shrink-0 p-2.5 bg-white border-b border-slate-100 space-y-2 relative z-20">
         
         {/* Ô TÌM KIẾM CÓ MENU GỢI Ý TỰ ĐỘNG */}
@@ -1317,7 +1316,7 @@ export default function ClientHome({
           )}
         </div>
 
-        {/* DANH MỤC LĨNH VỰC: DẠNG DANH SÁCH DỌC CÓ CHECKBOX (GIỐNG TAB 1) */}
+        {/* DANH MỤC LĨNH VỰC DẠNG DANH SÁCH DỌC */}
         <div className="space-y-1.5">
           <div className="flex items-center justify-between px-0.5">
             <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">
@@ -1363,7 +1362,7 @@ export default function ClientHome({
               </span>
             </div>
 
-            {/* Các danh mục từ CSDL */}
+            {/* Các danh mục CSDL */}
             {(categories || []).map(cat => {
               const catId = String(cat.id || cat.label);
               const isSelected = selectedCats.includes(catId) || selectedCats.includes(String(cat.label));
@@ -1427,8 +1426,8 @@ export default function ClientHome({
         </div>
       </div>
 
-      {/* DANH SÁCH ĐỊA ĐIỂM */}
-      <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-2.5 bg-slate-50/80 space-y-3 scrollbar-thin">
+      {/* DANH SÁCH CARD ĐỊA ĐIỂM (ẨN TRÊN MOBILE VỚI CLASS "hidden md:block") */}
+      <div className="hidden md:block flex-1 min-h-0 overflow-y-auto overscroll-contain p-2.5 bg-slate-50/80 space-y-3 scrollbar-thin">
         {filteredLocations.length > 0 ? (
           filteredLocations.map(loc => {
             const isSelected = overviewSelectedLocation?.id === loc.id;
@@ -1525,7 +1524,7 @@ export default function ClientHome({
       </div>
     </aside>
 
-    {/* ==================== KHUNG BẢN ĐỒ BÊN PHẢI ==================== */}
+    {/* ==================== KHUNG BẢN ĐỒ BÊN PHẢI (TRÀN MÀN HÌNH BÊN DƯỚI TRÊN MOBILE) ==================== */}
     <div className="flex-1 h-full relative rounded-2xl sm:rounded-3xl overflow-hidden border border-slate-200/80 shadow-md bg-white">
       <MapComponent
         key="overview-map"
