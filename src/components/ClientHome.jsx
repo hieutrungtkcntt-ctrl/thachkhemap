@@ -979,8 +979,7 @@ export default function ClientHome({
           </div>
         </div>
       )}
-  
-{/* ==================== TAB 3: ĐỊA ĐIỂM & CƠ SỞ (TỐI ƯU THOÁNG ĐÃNG CHO WEB & MOBILE) ==================== */}
+  {/* ==================== TAB 3: ĐỊA ĐIỂM & CƠ SỞ (TỐI ƯU TỔNG THỂ CHO WEB & MOBILE) ==================== */}
 {activeTab === 'overview' && (
   <div className="relative w-full h-[calc(100vh-115px)] md:h-[calc(100vh-100px)] flex flex-col md:flex-row p-1.5 sm:p-3 bg-slate-100 gap-2 overflow-hidden">
 
@@ -1021,18 +1020,20 @@ export default function ClientHome({
         </div>
       </div>
 
-      {/* KHU VỰC TÌM KIẾM VÀ BỘ LỌC THOÁNG ĐÃNG */}
-      <div className="shrink-0 p-2 bg-white border-b border-slate-100 space-y-1.5">
-        {/* Ô TÌM KIẾM */}
+      {/* KHU VỰC TÌM KIẾM VÀ BỘ LỌC THOÁNG ĐÃNG CÓ DROPDOWN GỢI Ý */}
+      <div className="shrink-0 p-2 bg-white border-b border-slate-100 space-y-1.5 relative z-20">
+        
+        {/* Ô TÌM KIẾM CÓ MENU GỢI Ý TỰ ĐỘNG */}
         <div className="relative group">
           <input
             type="text"
             value={searchTerm || ''}
             onChange={(e) => setSearchTerm && setSearchTerm(e.target.value)}
             placeholder="Tìm tên địa điểm, cơ sở..."
-            className="w-full h-8 pl-8 pr-7 border border-slate-200 rounded-xl text-xs bg-slate-50 text-slate-800 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/15 focus:border-blue-500 transition-all"
+            className="w-full h-8.5 pl-8.5 pr-7 border border-slate-200 rounded-xl text-xs bg-slate-50 text-slate-800 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium"
           />
           <IconSearch className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5 group-focus-within:text-blue-600 transition" />
+          
           {searchTerm && (
             <button
               type="button"
@@ -1041,6 +1042,44 @@ export default function ClientHome({
             >
               ✕
             </button>
+          )}
+
+          {/* DROPDOWN HIỂN THỊ DANH SÁCH GỢI Ý KHI NHẬP TỪ KHÓA */}
+          {searchTerm && searchTerm.trim().length > 0 && (
+            <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-xl max-h-52 overflow-y-auto z-50 divide-y divide-slate-100 scrollbar-thin">
+              <div className="bg-slate-900 text-white text-[10px] font-extrabold uppercase px-3 py-1.5 tracking-wider sticky top-0 z-10 flex items-center justify-between">
+                <span>Tra cứu kết quả ({filteredLocations.length})</span>
+                <span className="text-slate-400 text-[9px] font-normal">Nhấp để chọn</span>
+              </div>
+
+              {filteredLocations.length > 0 ? (
+                filteredLocations.map((loc) => {
+                  const catName = getCategoryName(loc.type || loc.category);
+                  return (
+                    <button
+                      key={loc.id}
+                      type="button"
+                      onClick={() => {
+                        handleSelectOverviewLocation(loc);
+                        setSearchTerm(loc.name);
+                      }}
+                      className="w-full text-left px-3 py-2 hover:bg-blue-50/80 transition flex flex-col justify-center group cursor-pointer"
+                    >
+                      <span className="text-xs font-bold text-slate-800 group-hover:text-blue-700 leading-tight transition">
+                        {loc.name}
+                      </span>
+                      <span className="text-[10px] text-slate-500 font-medium mt-0.5">
+                        (Lĩnh vực: <strong className="text-blue-600 font-semibold">{catName}</strong>)
+                      </span>
+                    </button>
+                  );
+                })
+              ) : (
+                <div className="px-3 py-3 text-center text-xs text-slate-500 font-medium">
+                  Không tìm thấy địa điểm phù hợp với từ khóa "{searchTerm}"
+                </div>
+              )}
+            </div>
           )}
         </div>
 
