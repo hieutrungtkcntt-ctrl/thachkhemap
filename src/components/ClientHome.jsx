@@ -60,10 +60,7 @@ export default function ClientHome({
   const [communeInfo, setCommuneInfo] = useState(null);
   const [loadingData, setLoadingData] = useState(true);
 
-  // ĐÃ SỔ GIÁ TRỊ MẶC ĐỊNH THÀNH 'villages' ĐỂ MỞ LÊN LÀ HIỆN THÔN XÓM TRƯỚC
   const [activeTab, setActiveTab] = useState('villages');
-  
-  const [isSearchDrawerOpen, setIsSearchDrawerOpen] = useState(false);
   const [weather, setWeather] = useState({ temp: '27°C', condition: 'Đang cập nhật...', icon: '🌤️' });
 
   const [dbKeyword, setDbKeyword] = useState('');
@@ -158,7 +155,6 @@ export default function ClientHome({
   const [selectedVillage, setSelectedVillage] = useState(null);
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [overviewSelectedLocation, setOverviewSelectedLocation] = useState(null);
-  const [villageSearch, setVillageSearch] = useState('');
 
   const [activeLocationDetail, setActiveLocationDetail] = useState(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
@@ -254,14 +250,17 @@ export default function ClientHome({
     return matchesCategory && matchesSearch;
   });
 
-  const handleToggleCategory = (cat) => {
-    const identifier = String(cat.id || cat.label).trim();
-    setSelectedCats(current =>
-      current.includes(identifier) 
-        ? current.filter(item => item !== identifier) 
-        : [...current, identifier]
-    );
-  };
+  const villageLocations = useMemo(() => {
+    if (!selectedVillage) return [];
+    return locations.filter(loc => {
+      const locVillageId = String(loc.villageId ?? loc.thonId ?? loc.village_id ?? '');
+      const locVillageName = String(loc.villageName || loc.thon || loc.address || '').toLocaleLowerCase('vi-VN');
+      const targetId = String(selectedVillage.id);
+      const targetName = String(selectedVillage.name || selectedVillage.tenThon || '').toLocaleLowerCase('vi-VN');
+      
+      return (locVillageId !== '' && locVillageId === targetId) || (targetName && locVillageName.includes(targetName));
+    });
+  }, [locations, selectedVillage]);
 
   const handleSelectLocation = (loc) => {
     setSelectedVillage(null);
@@ -301,7 +300,7 @@ export default function ClientHome({
     }
   };
 
-  const handleDirectGPSRoute = (lat, lng, targetObj) => {
+  const handleDirectGPSRoute = (lat, lng) => {
     setActiveTab('overview');
     setSelectedLocation(null);
     setOverviewSelectedLocation(null);
@@ -342,24 +341,6 @@ export default function ClientHome({
     const found = categories?.find(c => String(c.id) === String(typeId) || String(c.label) === String(typeId));
     return found ? found.label : (typeId || 'Địa điểm khác');
   };
-
-  const currentVillageName = selectedVillage?.name || selectedVillage?.tenThon || '';
-
-  const villageLocations = selectedVillage ? locations.filter(l => {
-    const villageId = String(selectedVillage.id ?? '');
-    const locationVillageId = String(l.villageId ?? l.thonId ?? l.village_id ?? '');
-    const villageFields = [l.villageName, l.village, l.thon, l.tenThon, l.address, l.diaChi, l.info]
-      .filter(Boolean)
-      .map(value => String(value).toLocaleLowerCase('vi-VN'));
-    const villageName = currentVillageName.toLocaleLowerCase('vi-VN');
-    const isDirectMatch = locationVillageId !== '' && locationVillageId === villageId;
-    const isInfoMatch = villageName && villageFields.some(value => value.includes(villageName));
-    const query = villageSearch.trim().toLocaleLowerCase('vi-VN');
-    const matchesSearch = !query ||
-      String(l.name || '').toLocaleLowerCase('vi-VN').includes(query) ||
-      String(l.info || l.desc || '').toLocaleLowerCase('vi-VN').includes(query);
-    return (isDirectMatch || isInfoMatch) && matchesSearch;
-  }) : [];
 
   const handleToggleDbCat = (catId) => {
     const idStr = String(catId);
@@ -409,13 +390,11 @@ export default function ClientHome({
     });
   }, [locations, dbKeyword, selectedCatIds, selectedVillageIds, dbSortBy, categories, villagesData]);
 
-  // PHÂN TRANG KẾT QUẢ TRA CỨU (sau khi đã lọc và sắp xếp)
   const dbTotalPages = Math.max(1, Math.ceil(dbFilteredData.length / dbPageSize));
   const safeDbCurrentPage = Math.min(dbCurrentPage, dbTotalPages);
   const dbStartIndex = (safeDbCurrentPage - 1) * dbPageSize;
   const dbPaginatedData = dbFilteredData.slice(dbStartIndex, dbStartIndex + dbPageSize);
 
-  // Quay về trang đầu khi điều kiện tra cứu hoặc số lượng mỗi trang thay đổi
   useEffect(() => {
     setDbCurrentPage(1);
   }, [dbKeyword, selectedCatIds, selectedVillageIds, dbSortBy, dbPageSize]);
@@ -432,7 +411,8 @@ export default function ClientHome({
   }
 
   return (
-    <div className="w-full min-h-screen min-h-[100dvh] overflow-x-hidden bg-[#f4f7fb] flex flex-col font-sans text-slate-800 antialiased selection:bg-blue-600 selection:text-white relative">
+    <div className="w-full min-h-screen bg-[#f4f7fb] flex flex-col font-sans text-slate-800 antialiased selection:bg-blue-600 selection:text-white relative">
+      
       {/* Header */}
       <header className="bg-white text-slate-900 shadow-sm px-3 sm:px-5 lg:px-7 py-2.5 sm:py-3 lg:py-4 flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-2 sm:gap-3 z-30 shrink-0 border-b border-slate-200">
         <div className="flex items-center justify-between sm:justify-start space-x-2.5 sm:space-x-3 min-w-0">
@@ -483,483 +463,481 @@ export default function ClientHome({
         </div>
       </header>
 
-      
+      {/* THANH TAB ĐIỀU HƯỚNG 4 MỤC CHÍNH */}
+      <div className="bg-[#f4f7fb] px-2 sm:px-4 lg:px-7 py-2 z-20 shrink-0 border-b border-slate-200/60">
+        <div className="max-w-5xl mx-auto flex items-center justify-center">
+          <div className="grid grid-cols-4 items-stretch gap-1 p-1 sm:p-1.5 bg-slate-200/80 rounded-xl sm:rounded-2xl border border-slate-300/80 w-full sm:w-auto shadow-inner">
+            
+            {/* Tab 1 */}
+            <button 
+              type="button"
+              onClick={() => setActiveTab('db_search')}
+              className={`min-w-0 min-h-11 px-1 sm:px-5 py-2 sm:py-2.5 rounded-lg sm:rounded-xl font-bold text-[10px] min-[390px]:text-[11px] sm:text-sm transition-all flex items-center justify-center gap-0.5 sm:gap-2 whitespace-nowrap cursor-pointer ${
+                activeTab === 'db_search' 
+                  ? 'bg-blue-700 text-white shadow-sm shadow-blue-900/15' 
+                  : 'text-slate-600 hover:text-blue-800 hover:bg-white'
+              }`}
+            >
+              <IconSearch className={`w-4 h-4 sm:w-4.5 sm:h-4.5 shrink-0 ${activeTab === 'db_search' ? 'text-amber-400' : 'text-slate-500'}`} />
+              <span className="truncate">Tra cứu</span>
+            </button>
 
-{/* THANH TAB ĐIỀU HƯỚNG 4 MỤC CHÍNH */}
-<div className="bg-[#f4f7fb] px-2 sm:px-4 lg:px-7 py-2 z-20 shrink-0 border-b border-slate-200/60">
-  <div className="max-w-5xl mx-auto flex items-center justify-center">
-    <div className="grid grid-cols-4 items-stretch gap-1 p-1 sm:p-1.5 bg-slate-200/80 rounded-xl sm:rounded-2xl border border-slate-300/80 w-full sm:w-auto shadow-inner">
-      
-      {/* Tab 1 */}
-      <button 
-        type="button"
-        onClick={() => setActiveTab('db_search')}
-        className={`min-w-0 min-h-11 px-1 sm:px-5 py-2 sm:py-2.5 rounded-lg sm:rounded-xl font-bold text-[10px] min-[390px]:text-[11px] sm:text-sm transition-all flex items-center justify-center gap-0.5 sm:gap-2 whitespace-nowrap cursor-pointer ${
-          activeTab === 'db_search' 
-            ? 'bg-blue-700 text-white shadow-sm shadow-blue-900/15' 
-            : 'text-slate-600 hover:text-blue-800 hover:bg-white'
-        }`}
-      >
-        <IconSearch className={`w-4 h-4 sm:w-4.5 sm:h-4.5 shrink-0 ${activeTab === 'db_search' ? 'text-amber-400' : 'text-slate-500'}`} />
-        <span className="truncate">Tra cứu</span>
-      </button>
+            {/* Tab 2 */}
+            <button 
+              type="button"
+              onClick={() => setActiveTab('villages')}
+              className={`min-w-0 min-h-11 px-1 sm:px-5 py-2 sm:py-2.5 rounded-lg sm:rounded-xl font-bold text-[10px] min-[390px]:text-[11px] sm:text-sm transition-all flex items-center justify-center gap-0.5 sm:gap-2 whitespace-nowrap cursor-pointer ${
+                activeTab === 'villages' 
+                  ? 'bg-blue-700 text-white shadow-sm shadow-blue-900/15' 
+                  : 'text-slate-600 hover:text-blue-800 hover:bg-white'
+              }`}
+            >
+              <IconUsers className={`w-4 h-4 sm:w-4.5 sm:h-4.5 shrink-0 ${activeTab === 'villages' ? 'text-amber-400' : 'text-slate-500'}`} />
+              <span className="truncate">Thôn xóm</span>
+            </button>
+            
+            {/* Tab 3 */}
+            <button 
+              type="button"
+              onClick={() => setActiveTab('overview')}
+              className={`min-w-0 min-h-11 px-1 sm:px-5 py-2 sm:py-2.5 rounded-lg sm:rounded-xl font-bold text-[10px] min-[390px]:text-[11px] sm:text-sm transition-all flex items-center justify-center gap-0.5 sm:gap-2 whitespace-nowrap cursor-pointer ${
+                activeTab === 'overview' 
+                  ? 'bg-blue-700 text-white shadow-sm shadow-blue-900/15' 
+                  : 'text-slate-600 hover:text-blue-800 hover:bg-white'
+              }`}
+            >
+              <IconMapPin className={`w-4 h-4 sm:w-4.5 sm:h-4.5 shrink-0 ${activeTab === 'overview' ? 'text-amber-400' : 'text-slate-500'}`} />
+              <span className="truncate">Địa điểm</span>
+            </button>
 
-      {/* Tab 2 */}
-      <button 
-        type="button"
-        onClick={() => setActiveTab('villages')}
-        className={`min-w-0 min-h-11 px-1 sm:px-5 py-2 sm:py-2.5 rounded-lg sm:rounded-xl font-bold text-[10px] min-[390px]:text-[11px] sm:text-sm transition-all flex items-center justify-center gap-0.5 sm:gap-2 whitespace-nowrap cursor-pointer ${
-          activeTab === 'villages' 
-            ? 'bg-blue-700 text-white shadow-sm shadow-blue-900/15' 
-            : 'text-slate-600 hover:text-blue-800 hover:bg-white'
-        }`}
-      >
-        <IconUsers className={`w-4 h-4 sm:w-4.5 sm:h-4.5 shrink-0 ${activeTab === 'villages' ? 'text-amber-400' : 'text-slate-500'}`} />
-        <span className="truncate">Thôn xóm</span>
-      </button>
-      
-      {/*  */}
-      <button 
-        type="button"
-        onClick={() => setActiveTab('overview')}
-        className={`min-w-0 min-h-11 px-1 sm:px-5 py-2 sm:py-2.5 rounded-lg sm:rounded-xl font-bold text-[10px] min-[390px]:text-[11px] sm:text-sm transition-all flex items-center justify-center gap-0.5 sm:gap-2 whitespace-nowrap cursor-pointer ${
-          activeTab === 'overview' 
-            ? 'bg-blue-700 text-white shadow-sm shadow-blue-900/15' 
-            : 'text-slate-600 hover:text-blue-800 hover:bg-white'
-        }`}
-      >
-        <IconMapPin className={`w-4 h-4 sm:w-4.5 sm:h-4.5 shrink-0 ${activeTab === 'overview' ? 'text-amber-400' : 'text-slate-500'}`} />
-        <span className="truncate">Địa điểm</span>
-      </button>
+            {/* Tab 4 */}
+            <button 
+              type="button"
+              onClick={() => setActiveTab('utilities')}
+              className={`min-w-0 min-h-11 px-1 sm:px-5 py-2 sm:py-2.5 rounded-lg sm:rounded-xl font-bold text-[10px] min-[390px]:text-[11px] sm:text-sm transition-all flex items-center justify-center gap-0.5 sm:gap-2 whitespace-nowrap cursor-pointer ${
+                activeTab === 'utilities' 
+                  ? 'bg-blue-700 text-white shadow-sm shadow-blue-900/15' 
+                  : 'text-slate-600 hover:text-blue-800 hover:bg-white'
+              }`}
+            >
+              <IconZap className={`w-4 h-4 sm:w-4.5 sm:h-4.5 shrink-0 ${activeTab === 'utilities' ? 'text-amber-400' : 'text-slate-500'}`} />
+              <span className="truncate">Tiện ích</span>
+            </button>
 
-      {/* Tab 4 */}
-      <button 
-        type="button"
-        onClick={() => setActiveTab('utilities')}
-        className={`min-w-0 min-h-11 px-1 sm:px-5 py-2 sm:py-2.5 rounded-lg sm:rounded-xl font-bold text-[10px] min-[390px]:text-[11px] sm:text-sm transition-all flex items-center justify-center gap-0.5 sm:gap-2 whitespace-nowrap cursor-pointer ${
-          activeTab === 'utilities' 
-            ? 'bg-blue-700 text-white shadow-sm shadow-blue-900/15' 
-            : 'text-slate-600 hover:text-blue-800 hover:bg-white'
-        }`}
-      >
-        <IconZap className={`w-4 h-4 sm:w-4.5 sm:h-4.5 shrink-0 ${activeTab === 'utilities' ? 'text-amber-400' : 'text-slate-500'}`} />
-        <span className="truncate">Tiện ích</span>
-      </button>
+          </div>
+        </div>
+      </div>
 
+      {/* ==================== TAB 1: TRA CỨU CSDL FIREBASE ==================== */}
+      {activeTab === 'db_search' && (
+        <div className="w-full bg-[#f4f7fb] p-3 sm:p-5 lg:p-8 pb-24">
+          <div className="max-w-[1700px] w-full mx-auto space-y-6">
+            <div className="bg-white rounded-3xl p-5 sm:p-7 border border-slate-200/80 shadow-sm space-y-5">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+                <div>
+                  <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2.5">
+                    <IconSearch className="w-6 h-6 text-blue-700" />
+                    <span>Tra cứu & Tìm kiếm Cơ sở dữ liệu CSDL</span>
+                  </h2>
+                  <p className="text-xs sm:text-sm text-slate-500 mt-1">
+                    Hiện có <strong className="text-blue-700 font-extrabold">{locations.length}</strong> địa điểm trong hệ thống CSDL. Tích chọn các nội dung để lọc kết quả.
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleResetDbFilters}
+                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition cursor-pointer self-start md:self-auto shrink-0"
+                >
+                  <IconRefresh className="w-4 h-4 text-slate-500" />
+                  <span>Bỏ chọn & Đặt lại</span>
+                </button>
+              </div>
+
+              <div className="relative">
+                <input
+                  type="text"
+                  value={dbKeyword}
+                  onChange={(e) => setDbKeyword(e.target.value)}
+                  placeholder="Nhập tên địa điểm, từ khóa nội dung, địa chỉ..."
+                  className="w-full h-12 sm:h-13 pl-12 pr-10 rounded-2xl text-slate-900 bg-slate-50 border border-slate-200 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 font-medium text-sm sm:text-base transition-all shadow-inner"
+                />
+                <IconSearch className="w-5 h-5 text-slate-400 absolute left-4 top-3.5 sm:top-4" />
+                {dbKeyword && (
+                  <button
+                    type="button"
+                    onClick={() => setDbKeyword('')}
+                    className="absolute right-4 top-3 text-slate-400 hover:text-slate-600 font-bold p-1"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+
+             <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 pt-1">
+  <div className="lg:col-span-7 bg-slate-50/70 p-4 rounded-2xl border border-slate-200/80 space-y-3">
+    <div className="flex items-center justify-between">
+      <span className="text-xs font-extrabold uppercase text-slate-700 tracking-wider flex items-center gap-1.5">
+        <IconFilter className="w-3.5 h-3.5 text-blue-600" />
+        <span>Lĩnh vực / Danh mục ({categories.length})</span>
+      </span>
+      {selectedCatIds.length > 0 && (
+        <button
+          type="button"
+          onClick={() => setSelectedCatIds([])}
+          className="text-[11px] text-blue-600 font-bold hover:underline cursor-pointer"
+        >
+          Bỏ chọn thể loại ({selectedCatIds.length})
+        </button>
+      )}
+    </div>
+
+    <div className="space-y-1.5 max-h-80 overflow-y-auto pr-1 scrollbar-thin">
+      {categories.map(cat => {
+        const catIdStr = String(cat.id);
+        const isChecked = selectedCatIds.includes(catIdStr);
+        const catColor = cat.color || '#2563EB';
+
+        const count = locations.filter(loc => 
+          String(loc.type || loc.category) === catIdStr || String(loc.type || loc.category) === String(cat.label)
+        ).length;
+
+        return (
+          <div
+            key={cat.id}
+            onClick={() => handleToggleDbCat(catIdStr)}
+            style={{
+              borderColor: isChecked ? catColor : undefined,
+              backgroundColor: isChecked ? `${catColor}08` : '#ffffff'
+            }}
+            className={`flex items-center justify-between p-2 rounded-xl border transition cursor-pointer select-none ${
+              isChecked ? 'shadow-2xs ring-1' : 'border-slate-200/80 hover:bg-slate-50'
+            }`}
+          >
+            <div className="flex items-center gap-2.5 min-w-0">
+              <input
+                type="checkbox"
+                checked={isChecked}
+                onChange={() => handleToggleDbCat(catIdStr)}
+                className="w-4 h-4 rounded cursor-pointer shrink-0 ml-0.5"
+                style={{ accentColor: catColor }}
+              />
+
+              {/* === PHẦN BỔ SUNG ICON CỦA DANH MỤC === */}
+              <span 
+                style={{
+                  backgroundColor: `${catColor}15`,
+                  color: catColor
+                }}
+                className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 text-xs font-bold transition"
+              >
+                {cat.icon || '📌'}
+              </span>
+              {/* ====================================== */}
+
+              <span className="text-xs font-bold text-slate-800 truncate">{cat.label}</span>
+            </div>
+
+            <span className="text-xs font-extrabold text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded-lg shrink-0">
+              {count}
+            </span>
+          </div>
+        );
+      })}
+    </div>
+  </div>
+
+  <div className="lg:col-span-5 bg-slate-50/70 p-4 rounded-2xl border border-slate-200/80 space-y-2.5">
+    <div className="flex items-center justify-between">
+      <span className="text-xs font-extrabold uppercase text-slate-700 tracking-wider flex items-center gap-1.5">
+        📍 <span>Tích chọn Thôn / Địa bàn ({villagesData.length})</span>
+      </span>
+      {selectedVillageIds.length > 0 && (
+        <button
+          type="button"
+          onClick={() => setSelectedVillageIds([])}
+          className="text-[11px] text-blue-600 font-bold hover:underline"
+        >
+          Bỏ chọn thôn ({selectedVillageIds.length})
+        </button>
+      )}
+    </div>
+
+    <div className="flex flex-wrap gap-2 max-h-52 overflow-y-auto p-1 scrollbar-thin">
+      {villagesData.map(v => {
+        const vIdStr = String(v.id);
+        const isChecked = selectedVillageIds.includes(vIdStr);
+        return (
+          <label
+            key={v.id}
+            className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer select-none border ${
+              isChecked
+                ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs'
+                : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
+            }`}
+          >
+            <input
+              type="checkbox"
+              checked={isChecked}
+              onChange={() => handleToggleDbVillage(vIdStr)}
+              className="w-3.5 h-3.5 accent-emerald-600 rounded cursor-pointer"
+            />
+            <span>{v.name || v.tenThon}</span>
+          </label>
+        );
+      })}
     </div>
   </div>
 </div>
-
- {/* ==================== TAB 1: TRA CỨU CSDL FIREBASE ==================== */}
-{activeTab === 'db_search' && (
-  <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain bg-[#f4f7fb] p-3 sm:p-5 lg:p-8">
-    <div className="max-w-[1700px] mx-auto space-y-6">
-
-      <div className="bg-white rounded-3xl p-5 sm:p-7 border border-slate-200/80 shadow-sm space-y-5">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-4">
-          <div>
-            <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2.5">
-              <IconSearch className="w-6 h-6 text-blue-700" />
-              <span>Tra cứu & Tìm kiếm Cơ sở dữ liệu CSDL</span>
-            </h2>
-            <p className="text-xs sm:text-sm text-slate-500 mt-1">
-              Hiện có <strong className="text-blue-700 font-extrabold">{locations.length}</strong> địa điểm trong hệ thống CSDL. Tích chọn các nội dung để lọc kết quả.
-            </p>
-          </div>
-
-          <button
-            type="button"
-            onClick={handleResetDbFilters}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition cursor-pointer self-start md:self-auto shrink-0"
-          >
-            <IconRefresh className="w-4 h-4 text-slate-500" />
-            <span>Bỏ chọn & Đặt lại</span>
-          </button>
-        </div>
-
-        <div className="relative">
-          <input
-            type="text"
-            value={dbKeyword}
-            onChange={(e) => setDbKeyword(e.target.value)}
-            placeholder="Nhập tên địa điểm, từ khóa nội dung, địa chỉ..."
-            className="w-full h-12 sm:h-13 pl-12 pr-10 rounded-2xl text-slate-900 bg-slate-50 border border-slate-200 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 font-medium text-sm sm:text-base transition-all shadow-inner"
-          />
-          <IconSearch className="w-5 h-5 text-slate-400 absolute left-4 top-3.5 sm:top-4" />
-          {dbKeyword && (
-            <button
-              type="button"
-              onClick={() => setDbKeyword('')}
-              className="absolute right-4 top-3 text-slate-400 hover:text-slate-600 font-bold p-1"
-            >
-              ✕
-            </button>
-          )}
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 pt-1">
-          
-          {/* PHẦN LỌC THỂ LOẠI (DẠNG 1 HÀNG DỌC CÓ CHECKBOX, ICON & SỐ LƯỢNG) */}
-          <div className="lg:col-span-7 bg-slate-50/70 p-4 rounded-2xl border border-slate-200/80 space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-extrabold uppercase text-slate-700 tracking-wider flex items-center gap-1.5">
-                <IconFilter className="w-3.5 h-3.5 text-blue-600" />
-                <span>Lĩnh vực / Danh mục ({categories.length})</span>
-              </span>
-              {selectedCatIds.length > 0 && (
-                <button
-                  type="button"
-                  onClick={() => setSelectedCatIds([])}
-                  className="text-[11px] text-blue-600 font-bold hover:underline cursor-pointer"
-                >
-                  Bỏ chọn thể loại ({selectedCatIds.length})
-                </button>
-              )}
             </div>
 
-            <div className="space-y-1.5 max-h-56 overflow-y-auto pr-1 scrollbar-thin">
-              {categories.map(cat => {
-                const catIdStr = String(cat.id);
-                const isChecked = selectedCatIds.includes(catIdStr);
-                const catColor = cat.color || '#2563EB';
-
-                const count = locations.filter(loc => 
-                  String(loc.type || loc.category) === catIdStr || String(loc.type || loc.category) === String(cat.label)
-                ).length;
-
-                return (
-                  <div
-                    key={cat.id}
-                    onClick={() => handleToggleDbCat(catIdStr)}
-                    style={{
-                      borderColor: isChecked ? catColor : undefined,
-                      backgroundColor: isChecked ? `${catColor}08` : '#ffffff'
-                    }}
-                    className={`flex items-center justify-between p-2 rounded-xl border transition cursor-pointer select-none ${
-                      isChecked ? 'shadow-2xs ring-1' : 'border-slate-200/80 hover:bg-slate-50'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <input
-                        type="checkbox"
-                        checked={isChecked}
-                        onChange={() => handleToggleDbCat(catIdStr)}
-                        className="w-4 h-4 rounded cursor-pointer shrink-0 ml-0.5"
-                        style={{ accentColor: catColor }}
-                      />
-                      <span 
-                        style={{
-                          backgroundColor: `${catColor}15`,
-                          color: catColor
-                        }}
-                        className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 text-xs font-bold transition"
-                      >
-                        {cat.icon || '📌'}
-                      </span>
-                      <span className="text-xs font-bold text-slate-800 truncate">{cat.label}</span>
-                    </div>
-
-                    <span className="text-xs font-extrabold text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded-lg shrink-0">
-                      {count}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* PHẦN LỌC THÔN / ĐỊA BÀN */}
-          <div className="lg:col-span-5 bg-slate-50/70 p-4 rounded-2xl border border-slate-200/80 space-y-2.5">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-extrabold uppercase text-slate-700 tracking-wider flex items-center gap-1.5">
-                📍 <span>Tích chọn Thôn / Địa bàn ({villagesData.length})</span>
-              </span>
-              {selectedVillageIds.length > 0 && (
-                <button
-                  type="button"
-                  onClick={() => setSelectedVillageIds([])}
-                  className="text-[11px] text-blue-600 font-bold hover:underline"
-                >
-                  Bỏ chọn thôn ({selectedVillageIds.length})
-                </button>
-              )}
-            </div>
-
-            <div className="flex flex-wrap gap-2 max-h-52 overflow-y-auto p-1 scrollbar-thin">
-              {villagesData.map(v => {
-                const vIdStr = String(v.id);
-                const isChecked = selectedVillageIds.includes(vIdStr);
-                return (
-                  <label
-                    key={v.id}
-                    className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer select-none border ${
-                      isChecked
-                        ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs'
-                        : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
-                    }`}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={isChecked}
-                      onChange={() => handleToggleDbVillage(vIdStr)}
-                      className="w-3.5 h-3.5 accent-emerald-600 rounded cursor-pointer"
-                    />
-                    <span>{v.name || v.tenThon}</span>
-                  </label>
-                );
-              })}
-            </div>
-          </div>
-
-        </div>
-      </div>
-
-      {/* THANH ĐIỀU KHIỂN HIỂN THỊ (SỐ LƯỢNG, SẮP XẾP, GRID/LIST) */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-1">
-        <div className="text-xs sm:text-sm text-slate-600 font-semibold flex items-center gap-2">
-          <span>Hiển thị</span>
-          <span className="px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800 font-extrabold text-xs">
-            {dbFilteredData.length} / {locations.length}
-          </span>
-          <span>địa điểm phù hợp</span>
-        </div>
-
-        <div className="flex items-center gap-2 sm:gap-3 self-end sm:self-auto flex-wrap">
-          <label className="flex items-center gap-2 text-xs font-semibold text-slate-500 whitespace-nowrap">
-            <span>Số lượng:</span>
-            <select
-              value={dbPageSize}
-              onChange={(e) => setDbPageSize(Number(e.target.value))}
-              className="h-9 px-2.5 rounded-xl border border-slate-200 bg-white text-xs font-extrabold text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-              aria-label="Số địa điểm hiển thị mỗi trang"
-            >
-              <option value={10}>10 / trang</option>
-              <option value={20}>20 / trang</option>
-              <option value={30}>30 / trang</option>
-              <option value={40}>40 / trang</option>
-              <option value={50}>50 / trang</option>
-            </select>
-          </label>
-
-          <select
-            value={dbSortBy}
-            onChange={(e) => setDbSortBy(e.target.value)}
-            className="h-9 px-3 rounded-xl border border-slate-200 bg-white text-xs font-bold text-slate-700 focus:outline-none shadow-2xs"
-          >
-            <option value="name_asc">Sắp xếp: Tên (A - Z)</option>
-            <option value="name_desc">Sắp xếp: Tên (Z - A)</option>
-          </select>
-
-          <div className="flex items-center p-1 bg-slate-200/70 rounded-xl">
-            <button
-              type="button"
-              onClick={() => setDbViewMode('grid')}
-              className={`p-1.5 rounded-lg transition cursor-pointer ${dbViewMode === 'grid' ? 'bg-white text-blue-700 shadow-xs' : 'text-slate-500 hover:text-slate-800'}`}
-              title="Dạng lưới"
-            >
-              <IconGrid className="w-4 h-4" />
-            </button>
-            <button
-              type="button"
-              onClick={() => setDbViewMode('list')}
-              className={`p-1.5 rounded-lg transition cursor-pointer ${dbViewMode === 'list' ? 'bg-white text-blue-700 shadow-xs' : 'text-slate-500 hover:text-slate-800'}`}
-              title="Dạng danh sách"
-            >
-              <IconList className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* HIỂN THỊ DANH SÁCH ĐỊA ĐIỂM (GRID HOẶC LIST) */}
-      {dbFilteredData.length > 0 ? (
-        dbViewMode === 'grid' ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
-            {dbPaginatedData.map(loc => (
-              <div
-                key={loc.id}
-                onClick={() => handleOpenDetailModal(loc)}
-                className="bg-white rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md hover:border-blue-300 transition-all cursor-pointer overflow-hidden flex flex-col p-3 group"
-              >
-                <div className="h-44 w-full rounded-xl bg-slate-100 relative overflow-hidden">
-                  <img
-                    src={loc.mediaUrl || loc.image || loc.imageUrl || "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=500"}
-                    alt={loc.name}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
-                  <div className="absolute top-2.5 left-2.5 bg-slate-900/80 backdrop-blur-md text-white px-2.5 py-1 rounded-lg text-[10px] font-extrabold shadow-sm">
-                    {getCategoryName(loc.type || loc.category)}
-                  </div>
-                </div>
-
-                <div className="p-3 flex flex-col flex-1 justify-between space-y-3">
-                  <div>
-                    <h4 className="font-extrabold text-slate-900 text-sm leading-snug group-hover:text-blue-700 transition-colors line-clamp-1">
-                      {loc.name}
-                    </h4>
-                    <p className="text-xs text-slate-500 mt-1 line-clamp-2 leading-relaxed">
-                      {loc.info || loc.desc || 'Chưa có thông tin mô tả chi tiết cho địa điểm này.'}
-                    </p>
-                  </div>
-
-                  <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
-                    <span className="font-bold text-blue-700">Xem chi tiết</span>
-                    {loc.lat && loc.lng && (
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDirectGPSRoute(loc.lat, loc.lng, loc);
-                        }}
-                        className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-[11px] transition"
-                      >
-                        🧭 Chỉ đường
-                      </button>
-                    )}
-                  </div>
-                </div>
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-1">
+              <div className="text-xs sm:text-sm text-slate-600 font-semibold flex items-center gap-2">
+                <span>Hiển thị</span>
+                <span className="px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800 font-extrabold text-xs">
+                  {dbFilteredData.length} / {locations.length}
+                </span>
+                <span>địa điểm phù hợp</span>
               </div>
-            ))}
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {dbPaginatedData.map(loc => (
-              <div
-                key={loc.id}
-                onClick={() => handleOpenDetailModal(loc)}
-                className="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-sm hover:shadow-md hover:border-blue-300 transition cursor-pointer flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 group"
-              >
-                <div className="flex items-center gap-4 min-w-0">
-                  <img
-                    src={loc.mediaUrl || loc.image || loc.imageUrl || "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=500"}
-                    alt={loc.name}
-                    className="w-20 h-20 sm:w-24 sm:h-24 rounded-xl object-cover shrink-0 bg-slate-100"
-                  />
-                  <div className="min-w-0 space-y-1">
-                    <span className="inline-block text-[10px] font-extrabold px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 border border-blue-100">
-                      {getCategoryName(loc.type || loc.category)}
-                    </span>
-                    <h4 className="font-extrabold text-slate-900 text-base leading-snug group-hover:text-blue-700 transition-colors truncate">
-                      {loc.name}
-                    </h4>
-                    <p className="text-xs text-slate-500 line-clamp-1">
-                      {loc.info || loc.desc || 'Chưa có thông tin mô tả chi tiết.'}
-                    </p>
-                  </div>
-                </div>
 
-                <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
+              <div className="flex items-center gap-2 sm:gap-3 self-end sm:self-auto flex-wrap">
+                <label className="flex items-center gap-2 text-xs font-semibold text-slate-500 whitespace-nowrap">
+                  <span>Số lượng:</span>
+                  <select
+                    value={dbPageSize}
+                    onChange={(e) => setDbPageSize(Number(e.target.value))}
+                    className="h-9 px-2.5 rounded-xl border border-slate-200 bg-white text-xs font-extrabold text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                    aria-label="Số địa điểm hiển thị mỗi trang"
+                  >
+                    <option value={10}>10 / trang</option>
+                    <option value={20}>20 / trang</option>
+                    <option value={30}>30 / trang</option>
+                    <option value={40}>40 / trang</option>
+                    <option value={50}>50 / trang</option>
+                  </select>
+                </label>
+
+                <select
+                  value={dbSortBy}
+                  onChange={(e) => setDbSortBy(e.target.value)}
+                  className="h-9 px-3 rounded-xl border border-slate-200 bg-white text-xs font-bold text-slate-700 focus:outline-none shadow-2xs"
+                >
+                  <option value="name_asc">Sắp xếp: Tên (A - Z)</option>
+                  <option value="name_desc">Sắp xếp: Tên (Z - A)</option>
+                </select>
+
+                <div className="flex items-center p-1 bg-slate-200/70 rounded-xl">
                   <button
                     type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleOpenDetailModal(loc);
-                    }}
-                    className="px-4 py-2 rounded-xl text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 transition"
+                    onClick={() => setDbViewMode('grid')}
+                    className={`p-1.5 rounded-lg transition cursor-pointer ${dbViewMode === 'grid' ? 'bg-white text-blue-700 shadow-xs' : 'text-slate-500 hover:text-slate-800'}`}
+                    title="Dạng lưới"
                   >
-                    Chi tiết
+                    <IconGrid className="w-4 h-4" />
                   </button>
-                  {loc.lat && loc.lng && (
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDirectGPSRoute(loc.lat, loc.lng, loc);
-                      }}
-                      className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-slate-900 hover:bg-slate-800 transition flex items-center gap-1"
-                    >
-                      🧭 Chỉ đường
-                    </button>
-                  )}
+                  <button
+                    type="button"
+                    onClick={() => setDbViewMode('list')}
+                    className={`p-1.5 rounded-lg transition cursor-pointer ${dbViewMode === 'list' ? 'bg-white text-blue-700 shadow-xs' : 'text-slate-500 hover:text-slate-800'}`}
+                    title="Dạng danh sách"
+                  >
+                    <IconList className="w-4 h-4" />
+                  </button>
                 </div>
               </div>
-            ))}
-          </div>
-        )
-      ) : (
-        <div className="bg-white rounded-3xl p-12 text-center border border-slate-200/80 shadow-sm space-y-3">
-          <div className="text-4xl">🔍</div>
-          <h3 className="font-extrabold text-slate-800 text-base sm:text-lg">Không tìm thấy địa điểm phù hợp</h3>
-          <p className="text-xs sm:text-sm text-slate-500 max-w-md mx-auto">
-            Không tìm thấy địa điểm nào khớp với các thể loại hoặc từ khóa bạn đã chọn.
-          </p>
-          <button
-            type="button"
-            onClick={handleResetDbFilters}
-            className="mt-2 inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-100 transition cursor-pointer"
-          >
-            Xem lại tất cả CSDL địa điểm
-          </button>
-        </div>
-      )}
+            </div>
 
-      {/* THANH PHÂN TRANG */}
-      {dbFilteredData.length > 0 && (
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white border border-slate-200 rounded-2xl px-4 py-3 shadow-sm">
-          <div className="text-xs text-slate-500 font-medium text-center sm:text-left">
-            Đang hiển thị <strong className="text-slate-800">
-              {dbStartIndex + 1}–{Math.min(dbStartIndex + dbPageSize, dbFilteredData.length)}
-            </strong> trong tổng số <strong className="text-blue-700">{dbFilteredData.length}</strong> địa điểm
-          </div>
+            {dbFilteredData.length > 0 ? (
+              dbViewMode === 'grid' ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+                  {dbPaginatedData.map(loc => (
+                    <div
+                      key={loc.id}
+                      onClick={() => handleOpenDetailModal(loc)}
+                      className="bg-white rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md hover:border-blue-300 transition-all cursor-pointer overflow-hidden flex flex-col p-3 group"
+                    >
+                      <div className="h-44 w-full rounded-xl bg-slate-100 relative overflow-hidden">
+                        <img
+                          src={loc.mediaUrl || loc.image || loc.imageUrl || "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=500"}
+                          alt={loc.name}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                        <div className="absolute top-2.5 left-2.5 bg-slate-900/80 backdrop-blur-md text-white px-2.5 py-1 rounded-lg text-[10px] font-extrabold shadow-sm">
+                          {getCategoryName(loc.type || loc.category)}
+                        </div>
+                      </div>
 
-          <div className="flex items-center gap-1.5 flex-wrap justify-center">
-            <button
-              type="button"
-              disabled={safeDbCurrentPage <= 1}
-              onClick={() => setDbCurrentPage(page => Math.max(1, page - 1))}
-              className="px-3 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition"
-            >
-              ‹ Trước
-            </button>
+                      <div className="p-3 flex flex-col flex-1 justify-between space-y-3">
+                        <div>
+                          <h4 className="font-extrabold text-slate-900 text-sm leading-snug group-hover:text-blue-700 transition-colors line-clamp-1">
+                            {loc.name}
+                          </h4>
+                          <p className="text-xs text-slate-500 mt-1 line-clamp-2 leading-relaxed">
+                            {loc.info || loc.desc || 'Chưa có thông tin mô tả chi tiết cho địa điểm này.'}
+                          </p>
+                        </div>
 
-            {Array.from({ length: dbTotalPages }, (_, index) => index + 1)
-              .filter(page => page === 1 || page === dbTotalPages || Math.abs(page - safeDbCurrentPage) <= 2)
-              .reduce((items, page, index, pages) => {
-                if (index > 0 && page - pages[index - 1] > 1) items.push('ellipsis-' + page);
-                items.push(page);
-                return items;
-              }, [])
-              .map(page => typeof page === 'string' ? (
-                <span key={page} className="px-1 text-slate-400 text-xs">…</span>
+                        <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
+                          <span className="font-bold text-blue-700">Xem chi tiết</span>
+                          {loc.lat && loc.lng && (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDirectGPSRoute(loc.lat, loc.lng);
+                              }}
+                              className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-[11px] transition"
+                            >
+                              🧭 Chỉ đường
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               ) : (
-                <button
-                  key={page}
-                  type="button"
-                  onClick={() => setDbCurrentPage(page)}
-                  aria-current={safeDbCurrentPage === page ? 'page' : undefined}
-                  className={`min-w-9 h-9 px-2 rounded-xl text-xs font-extrabold transition ${
-                    safeDbCurrentPage === page
-                      ? 'bg-blue-700 text-white shadow-sm'
-                      : 'bg-slate-100 text-slate-600 hover:bg-blue-50 hover:text-blue-700'
-                  }`}
-                >
-                  {page}
-                </button>
-              ))}
+                <div className="space-y-3">
+                  {dbPaginatedData.map(loc => (
+                    <div
+                      key={loc.id}
+                      onClick={() => handleOpenDetailModal(loc)}
+                      className="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-sm hover:shadow-md hover:border-blue-300 transition cursor-pointer flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 group"
+                    >
+                      <div className="flex items-center gap-4 min-w-0">
+                        <img
+                          src={loc.mediaUrl || loc.image || loc.imageUrl || "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=500"}
+                          alt={loc.name}
+                          className="w-20 h-20 sm:w-24 sm:h-24 rounded-xl object-cover shrink-0 bg-slate-100"
+                        />
+                        <div className="min-w-0 space-y-1">
+                          <span className="inline-block text-[10px] font-extrabold px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 border border-blue-100">
+                            {getCategoryName(loc.type || loc.category)}
+                          </span>
+                          <h4 className="font-extrabold text-slate-900 text-base leading-snug group-hover:text-blue-700 transition-colors truncate">
+                            {loc.name}
+                          </h4>
+                          <p className="text-xs text-slate-500 line-clamp-1">
+                            {loc.info || loc.desc || 'Chưa có thông tin mô tả chi tiết.'}
+                          </p>
+                        </div>
+                      </div>
 
-            <button
-              type="button"
-              disabled={safeDbCurrentPage >= dbTotalPages}
-              onClick={() => setDbCurrentPage(page => Math.min(dbTotalPages, page + 1))}
-              className="px-3 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition"
-            >
-              Sau ›
-            </button>
+                      <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleOpenDetailModal(loc);
+                          }}
+                          className="px-4 py-2 rounded-xl text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 transition"
+                        >
+                          Chi tiết
+                        </button>
+                        {loc.lat && loc.lng && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDirectGPSRoute(loc.lat, loc.lng);
+                            }}
+                            className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-slate-900 hover:bg-slate-800 transition flex items-center gap-1"
+                          >
+                            🧭 Chỉ đường
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )
+            ) : (
+              <div className="bg-white rounded-3xl p-12 text-center border border-slate-200/80 shadow-sm space-y-3">
+                <div className="text-4xl">🔍</div>
+                <h3 className="font-extrabold text-slate-800 text-base sm:text-lg">Không tìm thấy địa điểm phù hợp</h3>
+                <p className="text-xs sm:text-sm text-slate-500 max-w-md mx-auto">
+                  Không tìm thấy địa điểm nào khớp với các thể loại hoặc từ khóa bạn đã chọn.
+                </p>
+                <button
+                  type="button"
+                  onClick={handleResetDbFilters}
+                  className="mt-2 inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-100 transition cursor-pointer"
+                >
+                  Xem lại tất cả CSDL địa điểm
+                </button>
+              </div>
+            )}
+
+            {dbFilteredData.length > 0 && (
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white border border-slate-200 rounded-2xl px-4 py-3 shadow-sm">
+                <div className="text-xs text-slate-500 font-medium text-center sm:text-left">
+                  Đang hiển thị <strong className="text-slate-800">
+                    {dbStartIndex + 1}–{Math.min(dbStartIndex + dbPageSize, dbFilteredData.length)}
+                  </strong> trong tổng số <strong className="text-blue-700">{dbFilteredData.length}</strong> địa điểm
+                </div>
+
+                <div className="flex items-center gap-1.5 flex-wrap justify-center">
+                  <button
+                    type="button"
+                    disabled={safeDbCurrentPage <= 1}
+                    onClick={() => setDbCurrentPage(page => Math.max(1, page - 1))}
+                    className="px-3 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition"
+                  >
+                    ‹ Trước
+                  </button>
+
+                  {Array.from({ length: dbTotalPages }, (_, index) => index + 1)
+                    .filter(page => page === 1 || page === dbTotalPages || Math.abs(page - safeDbCurrentPage) <= 2)
+                    .reduce((items, page, index, pages) => {
+                      if (index > 0 && page - pages[index - 1] > 1) items.push('ellipsis-' + page);
+                      items.push(page);
+                      return items;
+                    }, [])
+                    .map(page => typeof page === 'string' ? (
+                      <span key={page} className="px-1 text-slate-400 text-xs">…</span>
+                    ) : (
+                      <button
+                        key={page}
+                        type="button"
+                        onClick={() => setDbCurrentPage(page)}
+                        aria-current={safeDbCurrentPage === page ? 'page' : undefined}
+                        className={`min-w-9 h-9 px-2 rounded-xl text-xs font-extrabold transition ${
+                          safeDbCurrentPage === page
+                            ? 'bg-blue-700 text-white shadow-sm'
+                            : 'bg-slate-100 text-slate-600 hover:bg-blue-50 hover:text-blue-700'
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    ))}
+
+                  <button
+                    type="button"
+                    disabled={safeDbCurrentPage >= dbTotalPages}
+                    onClick={() => setDbCurrentPage(page => Math.min(dbTotalPages, page + 1))}
+                    className="px-3 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition"
+                  >
+                    Sau ›
+                  </button>
+                </div>
+              </div>
+            )}
+
           </div>
         </div>
       )}
-
-    </div>
-  </div>
-)}
 
       {/* ==================== TAB 2: 11 THÔN ==================== */}
       {activeTab === 'villages' && (
-        <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-3 sm:p-5 lg:p-6 space-y-4 sm:space-y-6">
-          <div className="w-full max-w-[1800px] mx-auto flex-1 min-h-[420px] relative rounded-2xl sm:rounded-3xl overflow-hidden border border-slate-200/80 shadow-sm bg-white">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-5 items-stretch">
+        <div className="w-full bg-[#f4f7fb] p-1.5 sm:p-2 bg-slate-100 pb-16 lg:pb-1.5">
+          <div className="w-full max-w-[1800px] mx-auto">
+            <div 
+              className="grid grid-cols-1 lg:grid-cols-12 gap-2 sm:gap-2.5 items-stretch p-2 bg-white rounded-2xl sm:rounded-3xl border border-slate-200/80 shadow-sm"
+              style={{ minHeight: 'calc(150dvh - 40px)' }}
+            >
               
-              <div className="lg:col-span-8 h-[clamp(19rem,48dvh,32rem)] lg:h-[calc(100dvh-220px)] bg-white rounded-2xl p-1.5 sm:p-2.5 border border-slate-200 shadow-sm overflow-hidden relative flex flex-col">
+              {/* Bản đồ bên trái */}
+              <div className="lg:col-span-8 h-[70vh] lg:h-[calc(150dvh-45px)] bg-white rounded-2xl p-1.5 sm:p-2.5 border border-slate-200 shadow-sm overflow-hidden relative flex flex-col">
                 <div className="w-full h-full rounded-xl overflow-hidden relative flex-1">
                   <MapComponent 
                     key="villages-map"
@@ -998,15 +976,16 @@ export default function ClientHome({
                 </div>
               </div>
 
-              <div className="lg:col-span-4 h-auto lg:h-[calc(100dvh-220px)] bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col overflow-hidden">
-                <div className="p-4 bg-slate-50/80 border-b border-slate-200 font-bold text-sm text-slate-900 flex items-center justify-between shrink-0">
+              {/* Danh sách thôn & chi tiết bên phải */}
+              <div className="lg:col-span-4 h-[75vh] lg:h-[calc(150dvh-45px)] bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col overflow-hidden">
+                <div className="p-3 bg-slate-50/80 border-b border-slate-200 font-bold text-xs sm:text-sm text-slate-900 flex items-center justify-between shrink-0">
                   <span className="flex items-center gap-2">
                     <IconFileText className="w-4.5 h-4.5 text-blue-700" />
                     <span>Danh sách các Thôn ({villagesData.length})</span>
                   </span>
                 </div>
 
-                <div className="p-2.5 sm:p-3.5 overflow-y-auto overscroll-contain space-y-2 max-h-[34dvh] lg:max-h-none lg:h-1/2 border-b border-slate-200 scrollbar-thin">
+                <div className="p-2.5 overflow-y-auto overscroll-contain space-y-2 max-h-[30vh] lg:max-h-none lg:h-[42%] border-b border-slate-200 scrollbar-thin">
                   {villagesData.map(v => {
                     const isSelected = selectedVillage?.id === v.id;
                     const villageColor = v.color || '#3b82f6';
@@ -1015,38 +994,37 @@ export default function ClientHome({
                       <div
                         key={v.id}
                         onClick={() => handleSelectVillage(v)}
-                        className={`group flex items-center justify-between px-3.5 py-3 rounded-2xl border transition-all cursor-pointer ${
+                        className={`group flex items-center justify-between px-3 py-2.5 rounded-xl border transition-all cursor-pointer ${
                           isSelected
                             ? 'bg-blue-50/60 border-blue-400 shadow-md ring-2 ring-blue-100 scale-[1.01]'
-                            : 'bg-white border-slate-200/80 hover:bg-slate-50/80 hover:border-slate-300 shadow-sm'
+                            : 'bg-white border-slate-200/80 hover:bg-slate-50/80 hover:border-slate-300 shadow-2xs'
                         }`}
                       >
-                        <div className="flex items-center gap-3 min-w-0 flex-1">
-                          <div className={`w-5 h-5 rounded-full border flex items-center justify-center shrink-0 transition-all ${
+                        <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                          <div className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 transition-all ${
                             isSelected ? 'border-blue-600 bg-blue-600 text-white' : 'border-slate-300 bg-white group-hover:border-slate-400'
                           }`}>
-                            {isSelected && <div className="w-2 h-2 rounded-full bg-white" />}
+                            {isSelected && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
                           </div>
 
                           <span 
-                            className="w-3.5 h-3.5 rounded-full shrink-0 shadow-sm border border-black/10" 
+                            className="w-3 h-3 rounded-full shrink-0 shadow-xs border border-black/10" 
                             style={{ backgroundColor: villageColor }} 
                           />
 
                           <div className="min-w-0 flex-1">
-                            <h4 className="text-sm font-extrabold text-slate-900 truncate">
+                            <h4 className="text-xs sm:text-sm font-extrabold text-slate-900 truncate">
                               {v.name || v.tenThon}
                             </h4>
-                            
                           </div>
                         </div>
 
-                        <div className="flex items-center gap-3 shrink-0 pl-2">
+                        <div className="flex items-center gap-2 shrink-0 pl-2">
                           <div className="text-right">
-                            <span className="text-xs font-bold text-blue-700 block">
+                            <span className="text-[11px] font-bold text-blue-700 block">
                               {v.population !== undefined ? `${v.population} dân` : '---'}
                             </span>
-                            <span className="text-[10px] text-slate-400 block">
+                            <span className="text-[9px] text-slate-400 block">
                               {v.households !== undefined ? `${v.households} hộ` : ''}
                             </span>
                           </div>
@@ -1056,576 +1034,655 @@ export default function ClientHome({
                   })}
                 </div>
 
-              <div className="p-3 sm:p-4 bg-slate-50/70 lg:h-1/2 min-h-0 overflow-y-auto overscroll-contain space-y-3 sm:space-y-4 scrollbar-thin">
-  {selectedVillage ? (
-    <div className="space-y-3.5">
-      {/* Tiêu đề & Thông tin mô tả lịch sử thôn */}
-      <div className="border-b border-slate-200 pb-2.5">
-        <h3 className="font-extrabold text-slate-900 text-sm flex items-center gap-2">
-          <IconBuilding className="w-4 h-4 text-blue-700 shrink-0" />
-          <span>Thông tin {selectedVillage.name || selectedVillage.tenThon}</span>
-        </h3>
-        
-        {/* Hiển thị trường infor ở đây */}
-        {selectedVillage.infor && (
-          <p className="text-xs text-slate-600 mt-1 pl-6 leading-relaxed bg-white/60 p-2 rounded-lg border border-slate-100">
-            {selectedVillage.infor}
-          </p>
-        )}
-      </div>
+                <div className="p-3 bg-slate-50/70 lg:h-[58%] min-h-0 overflow-y-auto overscroll-contain space-y-3 scrollbar-thin">
+                  {selectedVillage ? (
+                    <div className="space-y-3">
+                      <div className="border-b border-slate-200 pb-2">
+                        <h3 className="font-extrabold text-slate-900 text-xs sm:text-sm flex items-center gap-2">
+                          <IconBuilding className="w-4 h-4 text-blue-700 shrink-0" />
+                          <span>Thông tin {selectedVillage.name || selectedVillage.tenThon}</span>
+                        </h3>
+                        
+                        {selectedVillage.infor && (
+                          <p className="text-[11px] text-slate-600 mt-1 pl-6 leading-relaxed bg-white/60 p-2 rounded-lg border border-slate-100">
+                            {selectedVillage.infor}
+                          </p>
+                        )}
+                      </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm">
-          <span className="text-[11px] text-slate-500 block uppercase font-extrabold tracking-wider">Dân số</span>
-          <span className="text-sm font-extrabold text-slate-900 block mt-0.5">
-            {selectedVillage.population !== undefined ? selectedVillage.population : '---'} 
-            {selectedVillage.households !== undefined ? ` (${selectedVillage.households} hộ)` : ''}
-          </span>
-        </div>
-        <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm">
-          <span className="text-[11px] text-slate-500 block uppercase font-extrabold tracking-wider">Diện tích</span>
-          <span className="text-sm font-extrabold text-slate-900 block mt-0.5">
-            {selectedVillage.area || '---'}
-          </span>
-        </div>
-      </div>
-
-      <div className="space-y-2 pt-1">
-        <span className="text-[11px] text-slate-500 block uppercase font-extrabold tracking-wider">Ban điều hành thôn</span>
-        
-        {/* Bí thư chi bộ */}
-        <div className="flex items-center justify-between p-3 rounded-xl bg-white border border-slate-200 shadow-sm gap-2">
-          <div className="min-w-0">
-            <span className="text-[11px] text-slate-400 block font-medium">Bí thư chi bộ</span>
-            <span className="font-bold text-slate-900 text-xs sm:text-sm truncate block">
-              {selectedVillage.partySecretary || 'Đang cập nhật'}
-            </span>
-          </div>
-          {selectedVillage.secPhone && selectedVillage.secPhone !== "---" ? (
-            <a href={`tel:${selectedVillage.secPhone}`} className="text-xs font-bold text-blue-700 bg-blue-50 px-2.5 py-1.5 rounded-lg border border-blue-100 hover:bg-blue-100 transition-colors shrink-0">
-              📞 {selectedVillage.secPhone}
-            </a>
-          ) : (
-            <span className="text-[11px] text-slate-400 italic shrink-0">Chưa có SĐT</span>
-          )}
-        </div>
-
-        {/* Thôn trưởng */}
-        <div className="flex items-center justify-between p-3 rounded-xl bg-white border border-slate-200 shadow-sm gap-2">
-          <div className="min-w-0">
-            <span className="text-[11px] text-slate-400 block font-medium">Thôn trưởng</span>
-            <span className="font-bold text-slate-900 text-xs sm:text-sm truncate block">
-              {selectedVillage.leader || 'Đang cập nhật'}
-            </span>
-          </div>
-          {selectedVillage.leadPhone && selectedVillage.leadPhone !== "---" ? (
-            <a href={`tel:${selectedVillage.leadPhone}`} className="text-xs font-bold text-blue-700 bg-blue-50 px-2.5 py-1.5 rounded-lg border border-blue-100 hover:bg-blue-100 transition-colors shrink-0">
-              📞 {selectedVillage.leadPhone}
-            </a>
-          ) : (
-            <span className="text-[11px] text-slate-400 italic shrink-0">Chưa có SĐT</span>
-          )}
-        </div>
-
-        {/* Trưởng Ban CTMT */}
-        <div className="flex items-center justify-between p-3 rounded-xl bg-white border border-slate-200 shadow-sm gap-2">
-          <div className="min-w-0">
-            <span className="text-[11px] text-slate-400 block font-medium">Trưởng Ban CTMT</span>
-            <span className="font-bold text-slate-900 text-xs sm:text-sm truncate block">
-              {selectedVillage.frontLeader || 'Đang cập nhật'}
-            </span>
-          </div>
-          {selectedVillage.frontPhone && selectedVillage.frontPhone !== "---" ? (
-            <a href={`tel:${selectedVillage.frontPhone}`} className="text-xs font-bold text-blue-700 bg-blue-50 px-2.5 py-1.5 rounded-lg border border-blue-100 hover:bg-blue-100 transition-colors shrink-0">
-              📞 {selectedVillage.frontPhone}
-            </a>
-          ) : (
-            <span className="text-[11px] text-slate-400 italic shrink-0">Chưa có SĐT</span>
-          )}
-        </div>
-      </div>
-    </div>
-  ) : (
-    <p className="text-sm text-slate-400 italic text-center py-8">Chọn một thôn trong danh sách để xem thông tin chi tiết.</p>
-  )}
-</div>
-              </div>
-            </div>
-
-            {selectedVillage && (
-              <div className="bg-white rounded-2xl p-4 sm:p-6 border border-slate-200 shadow-sm space-y-5">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 pb-3 gap-2">
-                  <div>
-                    <h3 className="font-extrabold text-slate-900 text-sm sm:text-base uppercase tracking-wider flex items-center gap-2">
-                      <IconMapPin className="w-4.5 h-4.5 text-blue-700" />
-                      <span>Thư viện Địa điểm & Tiện ích tại {selectedVillage.name || selectedVillage.tenThon}</span>
-                    </h3>
-                  </div>
-                  <span className="bg-indigo-50 text-indigo-700 font-bold text-xs px-3 py-1.5 rounded-xl border border-indigo-100 shrink-0">
-                    {villageLocations.length} địa điểm
-                  </span>
-                </div>
-
-                {villageLocations.length > 0 ? (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
-                    {villageLocations.map(loc => (
-                      <div 
-                        key={loc.id} 
-                        onClick={() => handleOpenDetailModal(loc)}
-                        className="bg-white rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md hover:border-blue-300 transition-all cursor-pointer overflow-hidden flex flex-col p-3 group"
-                      >
-                        <div className="h-48 w-full rounded-xl bg-slate-100 relative overflow-hidden">
-                          <img 
-                            src={loc.mediaUrl || loc.image || loc.imageUrl || "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=500"} 
-                            alt={loc.name} 
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                          />
-                          
-                          <div className="absolute top-3 left-3 bg-slate-900/80 backdrop-blur-md text-white px-2.5 py-1 rounded-lg text-[11px] font-extrabold shadow-sm">
-                            {getCategoryName(loc.type || loc.category)}
-                          </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className="bg-white p-2.5 rounded-xl border border-slate-200 shadow-2xs">
+                          <span className="text-[9px] text-slate-500 block uppercase font-extrabold tracking-wider">Dân số</span>
+                          <span className="text-xs font-extrabold text-slate-900 block mt-0.5">
+                            {selectedVillage.population !== undefined ? selectedVillage.population : '---'} 
+                            {selectedVillage.households !== undefined ? ` (${selectedVillage.households} hộ)` : ''}
+                          </span>
                         </div>
-
-                        <div className="p-3.5 flex flex-col flex-1 justify-between space-y-2">
-                          <div>
-                            <h4 className="font-extrabold text-slate-900 text-sm leading-snug group-hover:text-blue-700 transition-colors line-clamp-1">
-                              {loc.name}
-                            </h4>
-                            <p className="text-xs text-slate-500 mt-1 line-clamp-2 leading-relaxed">
-                              {loc.info || loc.desc || 'Chưa có thông tin mô tả chi tiết cho địa điểm này.'}
-                            </p>
-                          </div>
-
-                          <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-blue-700">
-                            <span>Xem chi tiết</span>
-                            <span className="text-sm leading-none group-hover:translate-x-1 transition-transform">›</span>
-                          </div>
+                        <div className="bg-white p-2.5 rounded-xl border border-slate-200 shadow-2xs">
+                          <span className="text-[9px] text-slate-500 block uppercase font-extrabold tracking-wider">Diện tích</span>
+                          <span className="text-xs font-extrabold text-slate-900 block mt-0.5">
+                            {selectedVillage.area || '---'}
+                          </span>
                         </div>
                       </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-sm text-slate-400 italic text-center py-8">Không tìm thấy địa điểm nào phù hợp tại thôn này.</p>
-                )}
+
+                      <div className="pt-1 space-y-2">
+                        <div className="flex items-center justify-between">
+                          <h4 className="text-[11px] font-extrabold uppercase text-slate-700 tracking-wider">
+                            Địa điểm tại {selectedVillage.name || selectedVillage.tenThon} ({villageLocations.length})
+                          </h4>
+                        </div>
+
+                        {villageLocations.length > 0 ? (
+                          <div className="space-y-1.5">
+                            {villageLocations.map(loc => (
+                              <div
+                                key={loc.id}
+                                onClick={() => handleOpenDetailModal(loc)}
+                                className="bg-white p-2 rounded-xl border border-slate-200 hover:border-blue-400 transition cursor-pointer flex items-center justify-between gap-2 shadow-2xs group"
+                              >
+                                <div className="flex items-center gap-2 min-w-0">
+                                  <img
+                                    src={loc.mediaUrl || loc.image || loc.imageUrl || "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=500"}
+                                    alt={loc.name}
+                                    className="w-8 h-8 rounded-lg object-cover shrink-0 bg-slate-100"
+                                  />
+                                  <div className="min-w-0">
+                                    <h5 className="text-xs font-extrabold text-slate-900 truncate group-hover:text-blue-700 transition">
+                                      {loc.name}
+                                    </h5>
+                                    <span className="text-[9px] text-blue-600 font-semibold block">
+                                      {getCategoryName(loc.type || loc.category)}
+                                    </span>
+                                  </div>
+                                </div>
+
+                                <span className="text-[10px] font-bold text-slate-500 group-hover:text-blue-700 transition px-2 py-1 bg-slate-50 rounded-lg shrink-0">
+                                  Chi tiết ›
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="text-center py-3 bg-white rounded-xl border border-dashed border-slate-200">
+                            <p className="text-[11px] text-slate-500 italic">Chưa có dữ liệu địa điểm trong thôn này.</p>
+                          </div>
+                        )}
+                      </div>
+
+                    </div>
+                  ) : (
+                    <p className="text-xs text-slate-400 italic text-center py-10">Chọn một thôn trong danh sách bên trên để xem thông tin chi tiết và danh sách địa điểm trực thuộc.</p>
+                  )}
+                </div>
               </div>
-            )}
+
+            </div>
           </div>
         </div>
       )}
-{/* ==================== TAB 3: ĐỊA ĐIỂM & CƠ SỞ ==================== */}
-{activeTab === 'overview' && (
-  <div
-    className="relative w-full flex-none h-[calc(100dvh-170px)] min-h-0 flex flex-col lg:flex-row p-2 sm:p-3 bg-slate-100 gap-2 sm:gap-3 overflow-hidden"
-    style={{ height: 'calc(100dvh - 170px)' }}
-  >
 
-    {/* ==================== BẢNG TRA CỨU BÊN TRÁI ==================== */}
-    <aside
-      className="
-        w-full lg:w-[380px] xl:w-[440px] shrink-0
-        bg-white
-        border border-slate-200/80
-        rounded-2xl sm:rounded-3xl
-        shadow-sm
-        flex flex-col
-        h-1/2 lg:h-full
-        max-h-none
-        min-h-0
-        overflow-hidden
-      "
-    >
-      {/* HEADER (GIỮ NGUYÊN) */}
-      <div className="relative shrink-0 overflow-hidden bg-gradient-to-r from-[#12366b] to-[#1d4ed8] px-3 py-2 sm:px-4 sm:py-3 text-white">
-        <div className="absolute -right-8 -top-10 w-32 h-32 rounded-full bg-white/10" />
+      {/* ==================== TAB 3: ĐỊA ĐIỂM & CƠ SỞ (GIAO DIỆN NGANG MỚI THEO MẪU) ==================== */}
+      {activeTab === 'overview' && (
+        <div
+          className="relative w-full flex-none grid grid-cols-1 lg:grid-cols-12 p-1.5 sm:p-2 bg-slate-100 gap-2 pb-16 lg:pb-1.5"
+          style={{ minHeight: 'calc(150dvh - 40px)' }}
+        >
 
-        <div className="relative flex items-center justify-between gap-2">
-          <div className="min-w-0">
-            <div className="flex items-center gap-1 mb-0.5">
-              <span className="w-4 h-4 rounded bg-white/15 flex items-center justify-center text-[10px]">📍</span>
-              <span className="text-[9px] font-bold tracking-wider text-blue-100 uppercase">
-                BẢN ĐỒ SỐ THẠCH KHÊ
-              </span>
-            </div>
-            <h3 className="font-extrabold text-xs sm:text-sm tracking-tight">
-              Khám phá địa điểm
-            </h3>
-          </div>
+          {/* BẢNG TRA CỨU BÊN TRÁI */}
+         <aside
+  className="
+    lg:col-span-5 xl:col-span-5
+    bg-white
+    border border-slate-200/80
+    rounded-2xl sm:rounded-3xl
+    shadow-sm
+    flex flex-col
+    h-[75vh] lg:h-[calc(150dvh-30px)]
+    overflow-hidden
+  "
+>
+  {/* HEADER */}
+  <div className="relative shrink-0 overflow-hidden bg-gradient-to-r from-[#12366b] to-[#1d4ed8] px-3 py-2 sm:px-4 sm:py-2.5 text-white">
+    <div className="absolute -right-8 -top-10 w-32 h-32 rounded-full bg-white/10" />
 
-          <div className="bg-white/15 rounded-xl px-2 py-0.5 text-right shrink-0">
-            <span className="text-xs font-extrabold">{filteredLocations.length}</span>
-            <span className="text-[8px] text-blue-100 block">kết quả</span>
-          </div>
+    <div className="relative flex items-center justify-between gap-2">
+      <div className="min-w-0">
+        <div className="flex items-center gap-1 mb-0.5">
+          <span className="w-4 h-4 rounded bg-white/15 flex items-center justify-center text-[10px]">📍</span>
+          <span className="text-[9px] font-bold tracking-wider text-blue-100 uppercase">
+            BẢN ĐỒ SỐ THẠCH KHÊ
+          </span>
         </div>
+        <h3 className="font-extrabold text-xs sm:text-sm tracking-tight">
+          Khám phá địa điểm
+        </h3>
       </div>
 
-      {/* KHU VỰC TÌM KIẾM VÀ BỘ LỌC (HIỂN THỊ CẢ TRÊN MOBILE VÀ DESKTOP) */}
-      <div className="shrink-0 p-2.5 sm:p-3 bg-white border-b border-slate-100 space-y-2 relative z-20">
-        
-        {/* Ô TÌM KIẾM CÓ MENU GỢI Ý TỰ ĐỘNG */}
-        <div className="relative group">
-          <input
-            type="text"
-            value={searchTerm || ''}
-            onChange={(e) => setSearchTerm && setSearchTerm(e.target.value)}
-            placeholder="Tìm tên địa điểm, cơ sở..."
-            className="w-full h-10 sm:h-10 pl-9 pr-8 border border-slate-200 rounded-xl text-[13px] sm:text-sm bg-slate-50 text-slate-800 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium"
-          />
-          <IconSearch className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5 group-focus-within:text-blue-600 transition" />
-          
-          {searchTerm && (
-            <button
-              type="button"
-              onClick={() => setSearchTerm && setSearchTerm('')}
-              className="absolute right-2 top-2 text-slate-400 hover:text-slate-700 text-xs font-bold px-1"
-            >
-              ✕
-            </button>
-          )}
+      <div className="bg-white/15 rounded-xl px-2 py-0.5 text-right shrink-0">
+        <span className="text-xs font-extrabold">{filteredLocations.length}</span>
+        <span className="text-[8px] text-blue-100 block">kết quả</span>
+      </div>
+    </div>
+  </div>
 
-          {/* DROPDOWN GỢI Ý */}
-          {searchTerm && searchTerm.trim().length > 0 && (
-            <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-xl max-h-52 overflow-y-auto z-50 divide-y divide-slate-100 scrollbar-thin">
-              <div className="bg-slate-900 text-white text-[10px] font-extrabold uppercase px-3 py-1.5 tracking-wider sticky top-0 z-10 flex items-center justify-between">
-                <span>Tra cứu kết quả ({filteredLocations.length})</span>
-                <span className="text-slate-400 text-[9px] font-normal">Nhấp để chọn</span>
-              </div>
+  {/* KHU VỰC TÌM KIẾM VÀ BỘ LỌC LĨNH VỰC */}
+  <div className="shrink-0 p-3 bg-white border-b border-slate-200 space-y-2.5 relative z-20">
+    
+    {/* Ô TÌM KIẾM */}
+    <div className="relative group">
+      <input
+        type="text"
+        value={searchTerm || ''}
+        onChange={(e) => setSearchTerm && setSearchTerm(e.target.value)}
+        placeholder="Tìm tên địa điểm, cơ sở..."
+        className="w-full h-9 pl-8 pr-8 border border-slate-200 rounded-xl text-xs sm:text-sm bg-slate-50 text-slate-800 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium"
+      />
+      <IconSearch className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5 group-focus-within:text-blue-600 transition" />
+      
+      {searchTerm && (
+        <button
+          type="button"
+          onClick={() => setSearchTerm && setSearchTerm('')}
+          className="absolute right-2 top-2 text-slate-400 hover:text-slate-700 text-xs font-bold px-1"
+        >
+          ✕
+        </button>
+      )}
 
-              {filteredLocations.length > 0 ? (
-                filteredLocations.map((loc) => {
-                  const catName = getCategoryName(loc.type || loc.category);
-                  return (
-                    <button
-                      key={loc.id}
-                      type="button"
-                      onClick={() => {
-                        handleSelectOverviewLocation(loc);
-                        setSearchTerm(loc.name);
-                      }}
-                      className="w-full text-left px-3 py-2 hover:bg-blue-50/80 transition flex flex-col justify-center group cursor-pointer"
-                    >
-                      <span className="text-xs font-bold text-slate-800 group-hover:text-blue-700 leading-tight transition">
-                        {loc.name}
-                      </span>
-                      <span className="text-[10px] text-slate-500 font-medium mt-0.5">
-                        (Lĩnh vực: <strong className="text-blue-600 font-semibold">{catName}</strong>)
-                      </span>
-                    </button>
-                  );
-                })
-              ) : (
-                <div className="px-3 py-3 text-center text-xs text-slate-500 font-medium">
-                  Không tìm thấy địa điểm phù hợp với từ khóa "{searchTerm}"
-                </div>
-              )}
+      {/* DROPDOWN GỢI Ý TÌM KIẾM */}
+      {searchTerm && searchTerm.trim().length > 0 && (
+        <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-xl max-h-48 overflow-y-auto z-50 divide-y divide-slate-100 scrollbar-thin">
+          <div className="bg-slate-900 text-white text-[10px] font-extrabold uppercase px-3 py-1.5 tracking-wider sticky top-0 z-10 flex items-center justify-between">
+            <span>Tra cứu kết quả ({filteredLocations.length})</span>
+            <span className="text-slate-400 text-[9px] font-normal">Nhấp để chọn</span>
+          </div>
+
+          {filteredLocations.length > 0 ? (
+            filteredLocations.map((loc) => {
+              const catName = getCategoryName(loc.type || loc.category);
+              return (
+                <button
+                  key={loc.id}
+                  type="button"
+                  onClick={() => {
+                    handleSelectOverviewLocation(loc);
+                    setSearchTerm(loc.name);
+                  }}
+                  className="w-full text-left px-3 py-2 hover:bg-blue-50/80 transition flex flex-col justify-center group cursor-pointer"
+                >
+                  <span className="text-xs font-bold text-slate-800 group-hover:text-blue-700 leading-tight transition">
+                    {loc.name}
+                  </span>
+                  <span className="text-[10px] text-slate-500 font-medium mt-0.5">
+                    (Lĩnh vực: <strong className="text-blue-600 font-semibold">{catName}</strong>)
+                  </span>
+                </button>
+              );
+            })
+          ) : (
+            <div className="px-3 py-3 text-center text-xs text-slate-500 font-medium">
+              Không tìm thấy địa điểm phù hợp với từ khóa "{searchTerm}"
             </div>
           )}
         </div>
+      )}
+    </div>
 
-        {/* DANH MỤC LĨNH VỰC DẠNG DANH SÁCH DỌC */}
-        <div className="space-y-1.5">
-          <div className="flex items-center justify-between px-0.5">
-            <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">
-              Lĩnh vực / Danh mục ({categories.length + 1})
-            </span>
-            {selectedCats.length > 0 && (
-              <button
-                type="button"
-                onClick={() => setSelectedCats([])}
-                className="text-[10px] text-blue-600 font-bold hover:underline cursor-pointer"
-              >
-                Đặt lại
-              </button>
-            )}
+    {/* BỘ LỌC LĨNH VỰC (CÓ ICON ĐẦY ĐỦ) */}
+    <div className="space-y-1.5">
+      <div className="flex items-center justify-between px-0.5">
+        <span className="text-[11px] font-extrabold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+          <IconFilter className="w-3.5 h-3.5 text-blue-600" />
+          <span>Lĩnh vực & Danh mục ({categories.length + 1})</span>
+        </span>
+        {selectedCats.length > 0 && (
+          <button
+            type="button"
+            onClick={() => setSelectedCats([])}
+            className="text-[11px] text-blue-600 font-bold hover:underline cursor-pointer"
+          >
+            Bỏ chọn tất cả
+          </button>
+        )}
+      </div>
+      
+      <div className="grid grid-cols-2 gap-1.5 max-h-36 overflow-y-auto overscroll-contain pr-1 scrollbar-thin">
+        {/* Nút Tất cả */}
+        <div
+          onClick={() => setSelectedCats([])}
+          style={{
+            borderColor: selectedCats.length === 0 ? '#2563EB' : undefined,
+            backgroundColor: selectedCats.length === 0 ? '#2563EB08' : '#ffffff'
+          }}
+          className={`flex items-center justify-between px-2.5 py-1.5 rounded-xl border transition cursor-pointer select-none ${
+            selectedCats.length === 0 ? 'shadow-2xs ring-1 ring-blue-600/20' : 'border-slate-200/80 hover:bg-slate-50'
+          }`}
+        >
+          <div className="flex items-center gap-2 min-w-0">
+            <input
+              type="checkbox"
+              checked={selectedCats.length === 0}
+              onChange={() => setSelectedCats([])}
+              className="w-3.5 h-3.5 rounded cursor-pointer shrink-0 accent-blue-600"
+            />
+            <span className="w-6 h-6 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center shrink-0 text-xs font-bold">📌</span>
+            <span className="text-xs font-bold text-slate-800 truncate">Tất cả</span>
           </div>
+          <span className="text-[10px] font-extrabold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md shrink-0">
+            {locations.length}
+          </span>
+        </div>
+
+        {/* Các danh mục khác kèm Icon */}
+        {(categories || []).map(cat => {
+          const catId = String(cat.id || cat.label);
+          const isSelected = selectedCats.includes(catId) || selectedCats.includes(String(cat.label));
+          const catColor = cat.color || '#2563EB';
           
-          <div className="space-y-1.5 max-h-28 sm:max-h-36 overflow-y-auto overscroll-contain pr-1 scrollbar-thin">
-            {/* Nút Tất cả */}
+          const count = locations.filter(loc => 
+            String(loc.type || loc.category) === catId || String(loc.type || loc.category) === String(cat.label)
+          ).length;
+
+          return (
             <div
-              onClick={() => setSelectedCats([])}
-              style={{
-                borderColor: selectedCats.length === 0 ? '#2563EB' : undefined,
-                backgroundColor: selectedCats.length === 0 ? '#2563EB08' : '#ffffff'
+              key={cat.id}
+              onClick={() => {
+                if (isSelected) {
+                  setSelectedCats([]);
+                } else {
+                  setSelectedCats([catId]);
+                }
               }}
-              className={`flex items-center justify-between p-2 rounded-xl border transition cursor-pointer select-none ${
-                selectedCats.length === 0 ? 'shadow-2xs ring-1 ring-blue-600/20' : 'border-slate-200/80 hover:bg-slate-50'
+              style={{
+                borderColor: isSelected ? catColor : undefined,
+                backgroundColor: isSelected ? `${catColor}08` : '#ffffff'
+              }}
+              className={`flex items-center justify-between px-2.5 py-1.5 rounded-xl border transition cursor-pointer select-none ${
+                isSelected ? 'shadow-2xs ring-1' : 'border-slate-200/80 hover:bg-slate-50'
               }`}
             >
-              <div className="flex items-center gap-2.5 min-w-0">
+              <div className="flex items-center gap-2 min-w-0">
                 <input
                   type="checkbox"
-                  checked={selectedCats.length === 0}
-                  onChange={() => setSelectedCats([])}
-                  className="w-4 h-4 rounded cursor-pointer shrink-0 ml-0.5 accent-blue-600"
-                />
-                <span className="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 text-xs font-bold transition">
-                  🗺️
-                </span>
-                <span className="text-xs font-bold text-slate-800 truncate">Tất cả lĩnh vực</span>
-              </div>
-              <span className="text-xs font-extrabold text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded-lg shrink-0">
-                {locations.length}
-              </span>
-            </div>
-
-            {/* Các danh mục CSDL */}
-            {(categories || []).map(cat => {
-              const catId = String(cat.id || cat.label);
-              const isSelected = selectedCats.includes(catId) || selectedCats.includes(String(cat.label));
-              const catColor = cat.color || '#2563EB';
-              
-              const count = locations.filter(loc => 
-                String(loc.type || loc.category) === catId || String(loc.type || loc.category) === String(cat.label)
-              ).length;
-
-              return (
-                <div
-                  key={cat.id}
-                  onClick={() => {
+                  checked={isSelected}
+                  onChange={() => {
                     if (isSelected) {
                       setSelectedCats([]);
                     } else {
                       setSelectedCats([catId]);
                     }
                   }}
+                  className="w-3.5 h-3.5 rounded cursor-pointer shrink-0"
+                  style={{ accentColor: catColor }}
+                />
+                
+                {/* Hiển thị Icon của danh mục */}
+                <span 
                   style={{
-                    borderColor: isSelected ? catColor : undefined,
-                    backgroundColor: isSelected ? `${catColor}08` : '#ffffff'
+                    backgroundColor: `${catColor}15`,
+                    color: catColor
                   }}
-                  className={`flex items-center justify-between p-2 rounded-xl border transition cursor-pointer select-none ${
-                    isSelected ? 'shadow-2xs ring-1' : 'border-slate-200/80 hover:bg-slate-50'
-                  }`}
+                  className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0 text-[11px] font-bold"
                 >
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <input
-                      type="checkbox"
-                      checked={isSelected}
-                      onChange={() => {
-                        if (isSelected) {
-                          setSelectedCats([]);
-                        } else {
-                          setSelectedCats([catId]);
-                        }
-                      }}
-                      className="w-4 h-4 rounded cursor-pointer shrink-0 ml-0.5"
-                      style={{ accentColor: catColor }}
-                    />
-                    <span 
-                      style={{
-                        backgroundColor: `${catColor}15`,
-                        color: catColor
-                      }}
-                      className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 text-xs font-bold transition"
-                    >
-                      {cat.icon || '📌'}
-                    </span>
-                    <span className="text-xs font-bold text-slate-800 truncate">{cat.label}</span>
-                  </div>
+                  {cat.icon || '📌'}
+                </span>
 
-                  <span className="text-xs font-extrabold text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded-lg shrink-0">
-                    {count}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-        </div>
+                <span className="text-xs font-bold text-slate-800 truncate">{cat.label}</span>
+              </div>
+
+              <span className="text-[10px] font-extrabold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md shrink-0">
+                {count}
+              </span>
+            </div>
+          );
+        })}
       </div>
+    </div>
+  </div>
 
-      {/* DANH SÁCH CARD ĐỊA ĐIỂM (ẨN TRÊN MOBILE VỚI CLASS "hidden md:block") */}
-      <div className="flex-1 min-h-0 max-h-none overflow-y-auto overscroll-contain p-2 sm:p-2.5 bg-slate-50/80 space-y-2.5 sm:space-y-3 scrollbar-thin">
-        {filteredLocations.length > 0 ? (
-          filteredLocations.map(loc => {
-            const isSelected = overviewSelectedLocation?.id === loc.id;
-            const imageUrl = loc.mediaUrl || loc.image || loc.imageUrl || "https://images.unsplash.com/photo-1507525428034-b723cf961dbe?w=500";
-            
-            return (
-              <div
-                key={loc.id}
-                onClick={() => handleSelectOverviewLocation(loc)}
-                className={`group bg-white rounded-2xl transition-all cursor-pointer p-3 flex flex-col gap-2.5 relative overflow-hidden border shadow-2xs ${
-                  isSelected
-                    ? 'border-blue-500 bg-blue-50/70 ring-2 ring-blue-500/10 shadow-md'
-                    : 'border-slate-200/80 hover:border-blue-300 hover:shadow-md'
-                }`}
-              >
-                <div className="relative w-full h-24 min-[390px]:h-28 sm:h-36 lg:h-40 shrink-0 overflow-hidden rounded-xl bg-slate-100 shadow-xs">
-                  <img
-                    src={imageUrl}
-                    alt={loc.name}
-                    loading="lazy"
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                  />
-                  <span className="absolute top-2.5 left-2.5 bg-white/90 backdrop-blur-md text-blue-700 font-extrabold text-[9.5px] uppercase tracking-wider px-2.5 py-1 rounded-lg shadow-xs">
+  {/* DANH SÁCH CARD ĐỊA ĐIỂM (GIAO DIỆN NGANG GỌN GÀNG, KHÔNG BỊ THỪA NÚT) */}
+  <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-3 bg-slate-50/80 space-y-2.5 scrollbar-thin">
+    {filteredLocations.length > 0 ? (
+      filteredLocations.map(loc => {
+        const isSelected = overviewSelectedLocation?.id === loc.id;
+        const imageUrl = loc.mediaUrl || loc.image || loc.imageUrl || "https://images.unsplash.com/photo-1507525428034-b723cf961dbe?w=500";
+        
+        return (
+          <div
+            key={loc.id}
+            onClick={() => handleSelectOverviewLocation(loc)}
+            className={`group bg-white rounded-2xl transition-all cursor-pointer p-2.5 flex items-center gap-3 relative overflow-hidden border shadow-2xs ${
+              isSelected
+                ? 'border-blue-500 bg-blue-50/70 ring-2 ring-blue-500/10 shadow-md'
+                : 'border-slate-200/80 hover:border-blue-300 hover:shadow-md'
+            }`}
+          >
+            {/* Ảnh vuông bên trái */}
+            <div className="relative w-24 h-24 sm:w-28 sm:h-28 shrink-0 overflow-hidden rounded-xl bg-slate-100 shadow-xs">
+              <img
+                src={imageUrl}
+                alt={loc.name}
+                loading="lazy"
+                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+              />
+            </div>
+
+            {/* Thông tin bên phải */}
+            <div className="min-w-0 flex-1 flex flex-col justify-between h-full py-0.5 space-y-1.5">
+              <div className="space-y-0.5">
+                {/* Badge danh mục */}
+                <div className="flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0" />
+                  <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider truncate">
                     {getCategoryName(loc.type || loc.category)}
                   </span>
                 </div>
 
-                <div className="min-w-0 flex flex-col justify-between space-y-2">
-                  <div>
-                    <h4 className="font-extrabold text-slate-900 text-sm sm:text-base leading-snug line-clamp-2 group-hover:text-blue-700 transition">
-                      {loc.name}
-                    </h4>
+                <h4 className="font-extrabold text-slate-900 text-xs sm:text-sm leading-snug line-clamp-1 group-hover:text-blue-700 transition">
+                  {loc.name}
+                </h4>
 
-                    <div className="mt-1 space-y-1 text-xs text-slate-600">
-                      <div className="flex items-center gap-1 min-w-0">
-                        <span className="text-slate-400 shrink-0 font-medium">ĐC:</span>
-                        <span className="truncate font-medium text-slate-700">{loc.address || loc.info || 'Thôn Thạch Hải, Xã Thạch Khê'}</span>
-                      </div>
-                      {loc.workingHours && (
-                        <div className="flex items-center gap-1 min-w-0">
-                          <span className="text-slate-400 shrink-0 font-medium">Giờ:</span>
-                          <span className="font-medium text-slate-700 truncate">{loc.workingHours}</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
+                <p className="text-[11px] text-slate-500 line-clamp-1 font-medium">
+                  {loc.address || loc.info || 'Thôn Thạch Hải, Xã Thạch Khê'}
+                </p>
+              </div>
 
-                  <div className="flex items-center justify-end pt-2 border-t border-slate-100 gap-1.5">
+              {/* Phần thao tác dưới cùng (Đã bỏ nút Xem chi tiết thừa phía trên) */}
+              <div className="flex items-center justify-between pt-1 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleOpenDetailModal(loc);
+                  }}
+                  className="text-[11px] font-bold text-blue-700 hover:underline cursor-pointer"
+                >
+                  Xem chi tiết
+                </button>
+
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleOpenDetailModal(loc);
+                    }}
+                    className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-[10px] transition cursor-pointer"
+                    title="Khám phá"
+                  >
+                    Explore
+                  </button>
+
+                  {loc.lat && loc.lng && (
                     <button
                       type="button"
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleOpenDetailModal(loc);
+                        handleDirectGPSRoute(loc.lat, loc.lng);
                       }}
-                      className="min-h-10 px-3.5 py-2 rounded-xl text-[11px] font-extrabold text-blue-700 bg-blue-50 hover:bg-blue-100 transition cursor-pointer"
+                      className="w-7 h-7 rounded-lg bg-slate-100 hover:bg-blue-600 hover:text-white text-slate-600 transition flex items-center justify-center shadow-2xs cursor-pointer"
+                      title="Chỉ đường GPS"
                     >
-                      Chi tiết
+                      🧭
                     </button>
-
-                    {loc.lat && loc.lng && (
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDirectGPSRoute(loc.lat, loc.lng, loc);
-                        }}
-                        className="min-h-10 px-3.5 py-2 rounded-xl text-[11px] font-extrabold text-white bg-slate-900 hover:bg-blue-700 transition flex items-center gap-1 cursor-pointer shadow-2xs whitespace-nowrap"
-                      >
-                        <span>🧭</span>
-                        <span>Đường đi</span>
-                      </button>
-                    )}
-                  </div>
+                  )}
                 </div>
               </div>
-            );
-          })
-        ) : (
-          <div className="flex flex-col items-center justify-center py-8 px-3 text-center">
-            <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-xl mb-2">🔍</div>
-            <p className="text-xs text-slate-600 font-bold">Không tìm thấy địa điểm phù hợp</p>
-            <button
-              type="button"
-              onClick={() => {
-                setSearchTerm && setSearchTerm('');
-                setSelectedCats && setSelectedCats([]);
-              }}
-              className="mt-2.5 px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition shadow-xs cursor-pointer"
-            >
-              Xóa bộ lọc tìm kiếm
-            </button>
+            </div>
           </div>
-        )}
+        );
+      })
+    ) : (
+      <div className="flex flex-col items-center justify-center py-8 px-3 text-center">
+        <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-lg mb-1.5">🔍</div>
+        <p className="text-xs text-slate-600 font-bold">Không tìm thấy địa điểm phù hợp</p>
+        <button
+          type="button"
+          onClick={() => {
+            setSearchTerm && setSearchTerm('');
+            setSelectedCats && setSelectedCats([]);
+          }}
+          className="mt-2 px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition shadow-xs cursor-pointer"
+        >
+          Xóa bộ lọc
+        </button>
       </div>
-    </aside>
-
-    {/* ==================== KHUNG BẢN ĐỒ BÊN PHẢI (TRÀN MÀN HÌNH BÊN DƯỚI TRÊN MOBILE) ==================== */}
-    <div className="w-full h-1/2 min-h-0 flex-none lg:flex-1 lg:w-auto lg:h-full relative rounded-2xl sm:rounded-3xl overflow-hidden border border-slate-200/80 shadow-md bg-white">
-      <MapComponent
-        key="overview-map"
-        villages={villagesData}
-        communeBoundary={communeInfo?.boundary}
-        defaultCenter={defaultCenter}
-        currentCenter={overviewMapCenter}
-        mapZoom={overviewMapZoom}
-        mapStyle={mapStyle}
-        setMapStyle={setMapStyle}
-        isPickingMap={false}
-        setIsPickingMap={() => {}}
-        setIsReportModalOpen={() => {}}
-        setReportForm={() => {}}
-        setPickedLatLng={() => {}}
-        setDetectedLocationName={() => {}}
-        pickedLatLng={null}
-        userLocation={userLocation}
-        routeCoordinates={routeCoordinates}
-        setRouteCoordinates={setRouteCoordinates}
-        selectedVillage={null}
-        hideVillageNames={false}
-        hideLocationPins={false}
-        filteredLocations={filteredLocations}
-        selectedLocation={overviewSelectedLocation}
-        onSelectLocation={handleSelectOverviewLocation}
-        onDirectGPSRoute={handleDirectGPSRoute}
-        getCategoryName={getCategoryName}
-        reports={[]}
-        onOpenDetail={handleOpenDetailModal}
-        onClearRoute={handleClearRoute}
-        disableVillageHover={true}
-        disableVillagePopup={true}
-      />
-    </div>
-
+    )}
   </div>
-)}
-      {/* ==================== TAB 4: TIỆN ÍCH SỐ ==================== */}
-      {activeTab === 'utilities' && (
-        <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-3 sm:p-5 lg:p-6">
-          <div className="max-w-4xl mx-auto bg-white rounded-2xl p-4 sm:p-6 lg:p-8 border border-slate-200 shadow-sm">
-            <div className="max-w-2xl space-y-3">
-              <h3 className="font-extrabold text-slate-900 text-xl sm:text-2xl tracking-tight">Tiện ích số & Dịch vụ công trực tuyến</h3>
-              <p className="text-sm sm:text-base leading-relaxed text-slate-600">
-                Cung cấp các liên kết và công cụ tra cứu số phục vụ người dân và cán bộ xã Thạch Khê.
-              </p>
-            </div>
-            <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-              <div className="min-h-14 rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 text-left font-semibold text-slate-800">
-                <span className="block text-sm font-bold text-blue-700">Cổng Dịch Vụ Công Trực Tuyến</span>
-                <span className="mt-0.5 block text-xs font-normal text-slate-600">Thực hiện các thủ tục hành chính công mức độ 3, 4</span>
-              </div>
-              <div className="min-h-14 rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 text-left font-semibold text-slate-800">
-                <span className="block text-sm font-bold text-blue-700">Tra cứu quy hoạch đất đai</span>
-                <span className="mt-0.5 block text-xs font-normal text-slate-600">Thông tin bản đồ địa chính và thông số quy hoạch</span>
-              </div>
-            </div>
+        </aside>
+          {/* KHUNG BẢN ĐỒ BÊN PHẢI */}
+          <div className="lg:col-span-7 xl:col-span-7 w-full h-[75vh] min-h-[350px] lg:h-[calc(150dvh-30px)] relative rounded-2xl sm:rounded-3xl overflow-hidden border border-slate-200/80 shadow-md bg-white">
+            <MapComponent
+              key="overview-map"
+              villages={villagesData}
+              communeBoundary={communeInfo?.boundary}
+              defaultCenter={defaultCenter}
+              currentCenter={overviewMapCenter}
+              mapZoom={overviewMapZoom}
+              mapStyle={mapStyle}
+              setMapStyle={setMapStyle}
+              isPickingMap={false}
+              setIsPickingMap={() => {}}
+              setIsReportModalOpen={() => {}}
+              setReportForm={() => {}}
+              setPickedLatLng={() => {}}
+              setDetectedLocationName={() => {}}
+              pickedLatLng={null}
+              userLocation={userLocation}
+              routeCoordinates={routeCoordinates}
+              setRouteCoordinates={setRouteCoordinates}
+              selectedVillage={null}
+              hideVillageNames={false}
+              hideLocationPins={false}
+              filteredLocations={filteredLocations}
+              selectedLocation={overviewSelectedLocation}
+              onSelectLocation={handleSelectOverviewLocation}
+              onDirectGPSRoute={handleDirectGPSRoute}
+              getCategoryName={getCategoryName}
+              reports={[]}
+              onOpenDetail={handleOpenDetailModal}
+              onClearRoute={handleClearRoute}
+              disableVillageHover={true}
+              disableVillagePopup={true}
+            />
           </div>
+
         </div>
       )}
 
-      {/* Nút bật/tắt nhạc nền (nâng z-index lên z-50 để đè lên footer) */}
-      {/* NÚT ĐIỀU KHIỂN NHẠC NỀN */}
-<div className="fixed right-3 sm:right-5 bottom-[calc(16px+env(safe-area-inset-bottom))] z-[1000]">
-  <button
-    type="button"
-    onClick={handleToggleBackgroundMusic}
-    className={`w-11 h-11 sm:w-auto sm:h-auto flex items-center justify-center gap-2 sm:px-3.5 sm:py-2.5 rounded-full shadow-lg font-bold text-xs transition-all duration-300 cursor-pointer ${
-      isMusicPlaying
-        ? 'bg-blue-600 text-white animate-pulse ring-4 ring-blue-200'
-        : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'
-    }`}
-    title={isMusicPlaying ? "Tắt nhạc nền" : "Bật nhạc nền"}
-    aria-label={isMusicPlaying ? "Tắt nhạc nền" : "Bật nhạc nền"}
-  >
-    {isMusicPlaying ? (
-      <>
-        <IconMusic className="w-5 h-5 sm:w-4 sm:h-4 text-amber-300 animate-spin" />
-        <span className="hidden sm:inline">Đang phát nhạc</span>
-      </>
-    ) : (
-      <>
-        <IconVolumeOff className="w-5 h-5 sm:w-4 sm:h-4 text-slate-400" />
-        <span className="hidden sm:inline">Bật nhạc nền</span>
-      </>
-    )}
-  </button>
-</div>
+    {/* ==================== TAB 4: TIỆN ÍCH SỐ ==================== */}
+{activeTab === 'utilities' && (
+  <div className="w-full bg-[#f4f7fb] p-3 sm:p-5 lg:p-6 pb-24">
+    <div className="max-w-4xl mx-auto space-y-6">
+      
+      {/* Khối giới thiệu chung */}
+      <div className="bg-white rounded-2xl p-4 sm:p-6 lg:p-8 border border-slate-200 shadow-sm">
+        <div className="max-w-2xl space-y-3">
+          <h3 className="font-extrabold text-slate-900 text-xl sm:text-2xl tracking-tight">Tiện ích số & Dịch vụ công trực tuyến</h3>
+          <p className="text-sm sm:text-base leading-relaxed text-slate-600">
+            Cung cấp các liên kết, cổng thông tin điện tử, mạng xã hội chính thức và công cụ tra cứu số phục vụ người dân và cán bộ xã Thạch Khê.
+          </p>
+        </div>
 
-<audio
-  ref={backgroundMusicRef}
-  src="/music/background-music.mp3"
-  loop
-  preload="auto"
-/>
+        {/* Các dịch vụ công & tra cứu quy hoạch */}
+        <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+          <a
+            href="https://dichvucong.gov.vn/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="min-h-14 rounded-xl border border-slate-200 bg-slate-50 hover:bg-blue-50/60 hover:border-blue-300 px-4 py-3 text-left font-semibold text-slate-800 transition block group"
+          >
+            <span className="block text-sm font-bold text-blue-700 group-hover:underline">Cổng Dịch Vụ Công Trực Tuyến ↗</span>
+            <span className="mt-0.5 block text-xs font-normal text-slate-600">Thực hiện các thủ tục hành chính công dành cho công dân </span>
+          </a>
+
+          <a
+            href="https://stnmt.hatinh.gov.vn"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="min-h-14 rounded-xl border border-slate-200 bg-slate-50 hover:bg-blue-50/60 hover:border-blue-300 px-4 py-3 text-left font-semibold text-slate-800 transition block group"
+          >
+            <span className="block text-sm font-bold text-blue-700 group-hover:underline">Tra cứu quy hoạch đất đai ↗</span>
+            <span className="mt-0.5 block text-xs font-normal text-slate-600">Thông tin bản đồ địa chính và thông số quy hoạch</span>
+          </a>
+        </div>
+      </div>
+
+      {/* Khối Tra cứu Pháp luật, Thuế & Biểu phí */}
+      <div className="bg-white rounded-2xl p-4 sm:p-6 lg:p-8 border border-slate-200 shadow-sm space-y-4">
+        <h4 className="font-extrabold text-slate-900 text-base sm:text-lg tracking-tight flex items-center gap-2">
+          <span>⚖️</span> Tra cứu Pháp luật, Thuế & Thủ tục hành chính
+        </h4>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+          
+          {/* Cơ sở dữ liệu quốc gia về văn bản pháp luật */}
+          <a
+            href="https://vbpl.vn"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-start gap-3 p-3.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-blue-50/60 hover:border-blue-300 transition group"
+          >
+            <span className="w-10 h-10 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center text-lg font-bold shrink-0 group-hover:scale-105 transition">📜</span>
+            <div className="min-w-0">
+              <span className="block text-xs font-extrabold text-slate-900 group-hover:text-blue-700 transition truncate">Văn bản Pháp luật</span>
+              <span className="block text-[11px] text-slate-500 mt-0.5 leading-relaxed">Tra cứu luật, nghị định, thông tư (vbpl.vn)</span>
+            </div>
+          </a>
+
+          {/* Tra cứu thông tin thuế điện tử */}
+          <a
+            href="https://thuedientu.gdt.gov.vn"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-start gap-3 p-3.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-blue-50/60 hover:border-blue-300 transition group"
+          >
+            <span className="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center text-lg font-bold shrink-0 group-hover:scale-105 transition">💰</span>
+            <div className="min-w-0">
+              <span className="block text-xs font-extrabold text-slate-900 group-hover:text-blue-700 transition truncate">Tra cứu Thuế Điện Tử</span>
+              <span className="block text-[11px] text-slate-500 mt-0.5 leading-relaxed">Nộp thuế, tra cứu nghĩa vụ thuế cá nhân/doanh nghiệp</span>
+            </div>
+          </a>
+
+          {/* Cổng dịch vụ công Bảo hiểm xã hội */}
+          <a
+            href="https://dichvucong.baohiemxahoi.gov.vn"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-start gap-3 p-3.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-blue-50/60 hover:border-blue-300 transition group"
+          >
+            <span className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center text-lg font-bold shrink-0 group-hover:scale-105 transition">🛡️</span>
+            <div className="min-w-0">
+              <span className="block text-xs font-extrabold text-slate-900 group-hover:text-blue-700 transition truncate">Bảo hiểm Xã hội (BHXH)</span>
+              <span className="block text-[11px] text-slate-500 mt-0.5 leading-relaxed">Tra cứu quá trình tham gia, BHYT, chính sách</span>
+            </div>
+          </a>
+
+        </div>
+      </div>
+
+      {/* Khối Kênh thông tin chính thức & Mạng xã hội */}
+      <div className="bg-white rounded-2xl p-4 sm:p-6 lg:p-8 border border-slate-200 shadow-sm space-y-4">
+        <h4 className="font-extrabold text-slate-900 text-base sm:text-lg tracking-tight flex items-center gap-2">
+          <span>🌐</span> Kênh thông tin chính thức xã Thạch Khê
+        </h4>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          
+          {/* Trang thông tin điện tử */}
+          <a
+            href="https://thachkhe.hatinh.gov.vn"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-3 p-3.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-blue-50/60 hover:border-blue-300 transition group"
+          >
+            <span className="w-10 h-10 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center text-lg font-bold shrink-0 group-hover:scale-105 transition">🌐</span>
+            <div className="min-w-0">
+              <span className="block text-xs font-extrabold text-slate-900 group-hover:text-blue-700 transition truncate">Cổng Thông Tin</span>
+              <span className="block text-[11px] text-slate-500 truncate">thachkhe.hatinh.gov.vn</span>
+            </div>
+          </a>
+
+          {/* Facebook */}
+          <a
+            href="https://www.facebook.com/xathachkhe.hatinh"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-3 p-3.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-blue-50/60 hover:border-blue-300 transition group"
+          >
+            <span className="w-10 h-10 rounded-xl bg-sky-100 text-sky-600 flex items-center justify-center text-lg font-bold shrink-0 group-hover:scale-105 transition">f</span>
+            <div className="min-w-0">
+              <span className="block text-xs font-extrabold text-slate-900 group-hover:text-blue-700 transition truncate">Fanpage Facebook</span>
+              <span className="block text-[11px] text-slate-500 truncate">Xã Thạch Khê, Hà Tĩnh</span>
+            </div>
+          </a>
+
+          {/* Zalo OA */}
+          <a
+            href="https://zalo.me/4131267804791453068"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-3 p-3.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-blue-50/60 hover:border-blue-300 transition group"
+          >
+            <span className="w-10 h-10 rounded-xl bg-cyan-100 text-cyan-700 flex items-center justify-center text-xs font-extrabold shrink-0 group-hover:scale-105 transition">Zalo</span>
+            <div className="min-w-0">
+              <span className="block text-xs font-extrabold text-slate-900 group-hover:text-blue-700 transition truncate">Zalo Official</span>
+              <span className="block text-[11px] text-slate-500 truncate">UBND xã Thạch Khê</span>
+            </div>
+          </a>
+
+          {/* TikTok */}
+          <a
+            href="https://www.tiktok.com/@thachkhe.hatinh"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-3 p-3.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-blue-50/60 hover:border-blue-300 transition group"
+          >
+            <span className="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center text-xs font-extrabold shrink-0 group-hover:scale-105 transition">♪</span>
+            <div className="min-w-0">
+              <span className="block text-xs font-extrabold text-slate-900 group-hover:text-blue-700 transition truncate">Kênh TikTok</span>
+              <span className="block text-[11px] text-slate-500 truncate">@thachkhe.hatinh</span>
+            </div>
+          </a>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+)}
+      {/* Nút bật/tắt nhạc nền */}
+      <div className="fixed right-3 sm:right-5 bottom-[calc(16px+env(safe-area-inset-bottom))] z-[1000]">
+        <button
+          type="button"
+          onClick={handleToggleBackgroundMusic}
+          className={`w-11 h-11 sm:w-auto sm:h-auto flex items-center justify-center gap-2 sm:px-3.5 sm:py-2.5 rounded-full shadow-lg font-bold text-xs transition-all duration-300 cursor-pointer ${
+            isMusicPlaying
+              ? 'bg-blue-600 text-white animate-pulse ring-4 ring-blue-200'
+              : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'
+          }`}
+          title={isMusicPlaying ? "Tắt nhạc nền" : "Bật nhạc nền"}
+          aria-label={isMusicPlaying ? "Tắt nhạc nền" : "Bật nhạc nền"}
+        >
+          {isMusicPlaying ? (
+            <>
+              <IconMusic className="w-5 h-5 sm:w-4 sm:h-4 text-amber-300 animate-spin" />
+              <span className="hidden sm:inline">Đang phát nhạc</span>
+            </>
+          ) : (
+            <>
+              <IconVolumeOff className="w-5 h-5 sm:w-4 sm:h-4 text-slate-400" />
+              <span className="hidden sm:inline">Bật nhạc nền</span>
+            </>
+          )}
+        </button>
+      </div>
+
+      <audio
+        ref={backgroundMusicRef}
+        src="/music/background-music.mp3"
+        loop
+        preload="auto"
+      />
       
       {/* Modal chi tiết địa điểm */}
       <LocationDetailModal 
@@ -1635,17 +1692,17 @@ export default function ClientHome({
         getCategoryName={getCategoryName}
         onDirectGPSRoute={handleDirectGPSRoute}
       />
+
       {/* FOOTER CUỐI TRANG */}
-<footer className="w-full shrink-0 bg-slate-900 text-slate-300 border-t border-slate-800 text-xs mt-auto pb-[env(safe-area-inset-bottom)]">
+      <footer className="w-full shrink-0 bg-slate-900 text-slate-300 border-t border-slate-800 text-xs mt-auto pb-[env(safe-area-inset-bottom)]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 sm:py-6 lg:py-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 mb-6 pb-6 border-b border-slate-800/80">
             
-            {/* Cột 1: Thông tin cơ quan */}
             <div className="space-y-2">
               <div className="flex items-center gap-2">
                 <span className="w-6 h-6 rounded-lg bg-blue-600/20 text-blue-400 flex items-center justify-center font-bold text-xs">🏛</span>
                 <h4 className="font-extrabold text-white text-sm tracking-wide">
-                XÃ THẠCH KHÊ
+                  XÃ THẠCH KHÊ
                 </h4>
               </div>
               <p className="text-slate-400 text-[11px] leading-relaxed">
@@ -1653,7 +1710,6 @@ export default function ClientHome({
               </p>
             </div>
 
-            {/* Cột 2: Thông tin liên hệ */}
             <div className="space-y-2">
               <h5 className="font-bold text-white text-xs uppercase tracking-wider text-blue-400">
                 Thông tin liên hệ
@@ -1671,7 +1727,6 @@ export default function ClientHome({
               </ul>
             </div>
 
-            {/* Cột 3: Đơn vị vận hành */}
             <div className="space-y-2">
               <h5 className="font-bold text-white text-xs uppercase tracking-wider text-blue-400">
                 Đơn vị thực hiện
@@ -1683,13 +1738,12 @@ export default function ClientHome({
 
           </div>
 
-          {/* Dòng bản quyền copyright */}
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left text-[11px] text-slate-500">
             <p>© 2026 Bản quyền thuộc về UBND xã Thạch Khê. Bảo lưu mọi quyền.</p>
-            
           </div>
         </div>
       </footer>
+
     </div>
   );
 }
