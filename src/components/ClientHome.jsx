@@ -1242,7 +1242,7 @@ export default function ClientHome({
       </div>
 
       {/* KHU VỰC TÌM KIẾM VÀ BỘ LỌC */}
-      <div className="shrink-0 p-2 bg-white border-b border-slate-100 space-y-1.5">
+      <div className="shrink-0 p-2.5 bg-white border-b border-slate-100 space-y-2">
         {/* Ô TÌM KIẾM */}
         <div className="relative group">
           <input
@@ -1264,45 +1264,103 @@ export default function ClientHome({
           )}
         </div>
 
-        {/* DANH MỤC (XUỐNG DÒNG TRÊN WEBSITE, VUỐT NGANG TRÊN MOBILE) */}
-        <div className="flex items-center gap-1.5 overflow-x-auto sm:overflow-x-visible sm:flex-wrap pb-1 sm:pb-0 scrollbar-none">
-          <button
-            type="button"
-            onClick={() => setSelectedCats([])}
-            className={`h-7 px-3 rounded-lg text-xs font-extrabold shrink-0 transition-all cursor-pointer ${
-              selectedCats.length === 0
-                ? 'bg-blue-600 text-white shadow-xs'
-                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-            }`}
-          >
-            Tất cả
-          </button>
+        {/* DANH MỤC LĨNH VỰC (DẠNG DANH SÁCH CÂN BẰNG, CÓ ICON, MÀU CSDL & SỐ LƯỢNG) */}
+        <div className="space-y-1">
+          <div className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider px-1">
+            Lĩnh vực / Danh mục
+          </div>
+          
+          <div className="max-h-36 overflow-y-auto pr-1 space-y-1.5 scrollbar-thin">
+            {/* Nút Tất cả lĩnh vực */}
+            <div
+              onClick={() => setSelectedCats([])}
+              className={`flex items-center justify-between p-1.5 rounded-xl border transition cursor-pointer select-none ${
+                selectedCats.length === 0
+                  ? 'bg-blue-50/70 border-blue-300 shadow-2xs'
+                  : 'bg-white border-slate-100 hover:bg-slate-50'
+              }`}
+            >
+              <div className="flex items-center gap-2 min-w-0">
+                <input
+                  type="checkbox"
+                  checked={selectedCats.length === 0}
+                  onChange={() => setSelectedCats([])}
+                  className="w-3.5 h-3.5 accent-blue-600 rounded cursor-pointer shrink-0 ml-0.5"
+                />
+                <span className="w-6 h-6 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center shrink-0 text-xs font-bold">
+                  🗺️
+                </span>
+                <span className="text-xs font-extrabold text-slate-800 truncate">Tất cả lĩnh vực</span>
+              </div>
+              <span className="text-[11px] font-extrabold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-lg shrink-0">
+                {locations.length}
+              </span>
+            </div>
 
-          {(categories || []).map(cat => {
-            const catId = String(cat.id || cat.label);
-            const isSelected = selectedCats.includes(catId) || selectedCats.includes(String(cat.label));
+            {/* Các danh mục từ CSDL */}
+            {(categories || []).map(cat => {
+              const catId = String(cat.id || cat.label);
+              const isSelected = selectedCats.includes(catId) || selectedCats.includes(String(cat.label));
+              const catColor = cat.color || '#2563EB';
+              
+              {/* Tính số lượng địa điểm thuộc danh mục này */}
+              const count = locations.filter(loc => 
+                String(loc.type || loc.category) === catId || String(loc.type || loc.category) === String(cat.label)
+              ).length;
 
-            return (
-              <button
-                type="button"
-                key={cat.id}
-                onClick={() => {
-                  if (isSelected) {
-                    setSelectedCats([]);
-                  } else {
-                    setSelectedCats([catId]);
-                  }
-                }}
-                className={`h-7 px-3 rounded-lg text-xs font-bold shrink-0 transition-all flex items-center gap-1 cursor-pointer ${
-                  isSelected
-                    ? 'bg-blue-600 text-white shadow-xs'
-                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                }`}
-              >
-                <span>{cat.label}</span>
-              </button>
-            );
-          })}
+              return (
+                <div
+                  key={cat.id}
+                  onClick={() => {
+                    if (isSelected) {
+                      setSelectedCats([]);
+                    } else {
+                      setSelectedCats([catId]);
+                    }
+                  }}
+                  style={{
+                    borderColor: isSelected ? catColor : undefined,
+                    backgroundColor: isSelected ? `${catColor}08` : '#ffffff'
+                  }}
+                  className={`flex items-center justify-between p-1.5 rounded-xl border transition cursor-pointer select-none ${
+                    isSelected
+                      ? 'shadow-2xs ring-1'
+                      : 'border-slate-100 hover:bg-slate-50'
+                  }`}
+                >
+                  <div className="flex items-center gap-2 min-w-0">
+                    <input
+                      type="checkbox"
+                      checked={isSelected}
+                      onChange={() => {
+                        if (isSelected) {
+                          setSelectedCats([]);
+                        } else {
+                          setSelectedCats([catId]);
+                        }
+                      }}
+                      className="w-3.5 h-3.5 rounded cursor-pointer shrink-0 ml-0.5"
+                      style={{ accentColor: catColor }}
+                    />
+                    <span 
+                      style={{
+                        backgroundColor: `${catColor}15`,
+                        color: catColor
+                      }}
+                      className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0 text-xs font-bold transition"
+                    >
+                      {cat.icon || '📌'}
+                    </span>
+                    <span className="text-xs font-bold text-slate-700 truncate">{cat.label}</span>
+                  </div>
+
+                  <span className="text-[11px] font-extrabold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-lg shrink-0">
+                    {count}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
 
