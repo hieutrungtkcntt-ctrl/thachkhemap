@@ -29,7 +29,7 @@ function RouteBoundsController({ userLocation, selectedLocation }) {
         [selectedLocation.lat, selectedLocation.lng]
       );
       map.fitBounds(bounds, {
-        padding: [80, 80],
+        padding: typeof window !== "undefined" && window.innerWidth < 640 ? [36, 36] : [80, 80],
         maxZoom: 15,
         animate: true
       });
@@ -46,6 +46,38 @@ function ZoomTracker({ onZoomChange }) {
       onZoomChange(map.getZoom());
     }
   });
+  return null;
+}
+
+// Đồng bộ kích thước Leaflet khi ClientHome đổi bố cục mobile / desktop.
+function MapSizeInvalidator() {
+  const map = useMap();
+
+  useEffect(() => {
+    let frameId;
+    const refresh = () => {
+      if (frameId) cancelAnimationFrame(frameId);
+      frameId = requestAnimationFrame(() => map.invalidateSize({ pan: false }));
+    };
+
+    refresh();
+    const container = map.getContainer();
+    let observer;
+
+    if (typeof ResizeObserver !== 'undefined') {
+      observer = new ResizeObserver(refresh);
+      observer.observe(container);
+      if (container.parentElement) observer.observe(container.parentElement);
+    }
+
+    window.addEventListener('resize', refresh);
+    return () => {
+      if (frameId) cancelAnimationFrame(frameId);
+      if (observer) observer.disconnect();
+      window.removeEventListener('resize', refresh);
+    };
+  }, [map]);
+
   return null;
 }
 
@@ -344,8 +376,8 @@ function LocationMarker({ loc, isSelected, isDimmed, onSelectLocation, getCatego
             .leaflet-popup-close-button { display: none !important; }
           `}</style>
 
-          <div className="w-[300px] flex flex-col font-sans text-xs bg-white rounded-2xl overflow-hidden shadow-sm relative">
-            <div className="w-full h-44 relative bg-slate-100">
+          <div className="w-[min(300px,calc(100vw-56px))] max-w-[300px] flex flex-col font-sans text-xs bg-white rounded-2xl overflow-hidden shadow-sm relative">
+            <div className="w-full h-36 sm:h-44 relative bg-slate-100">
               <img src={singleImageUrl} alt={loc.name} className="w-full h-full object-cover" />
               
               <button
@@ -365,7 +397,7 @@ function LocationMarker({ loc, isSelected, isDimmed, onSelectLocation, getCatego
               </span>
             </div>
 
-            <div className="p-4 space-y-2">
+            <div className="p-3.5 sm:p-4 space-y-2">
               <h4 className="font-extrabold text-slate-900 text-sm leading-snug">{loc.name}</h4>
               
              <div className="space-y-1.5 text-slate-600 text-[11.5px]">
@@ -392,7 +424,7 @@ function LocationMarker({ loc, isSelected, isDimmed, onSelectLocation, getCatego
 
             <hr className="border-slate-100 mx-4" />
 
-            <div className="p-3.5 flex items-center justify-between gap-2 bg-white">
+            <div className="p-3 sm:p-3.5 flex items-center justify-between gap-2 bg-white">
               <button 
                 type="button"
                 onClick={() => onOpenDetail && onOpenDetail(loc)}
@@ -583,7 +615,7 @@ export default function MapComponent({
   const isVillageMode = Boolean(selectedVillage) && !selectedLocation;
 
   return (
-    <div className="w-full h-full flex-1 relative bg-slate-100 z-0 min-h-[350px]">
+    <div className="w-full h-full min-h-[300px] sm:min-h-[350px] flex-1 relative bg-slate-100 z-0 overflow-hidden isolate">
       
       <style>{`
         .leaflet-control-attribution { display: none !important; }
@@ -597,12 +629,26 @@ export default function MapComponent({
         .selected-pin-glow div { animation: pulse-glow 1.8s infinite; }
         .leaflet-popup-content-wrapper { border-radius: 20px !important; padding: 4px !important; box-shadow: 0 15px 35px -5px rgba(15, 23, 42, 0.2) !important; }
         .leaflet-popup-content { margin: 12px 14px !important; line-height: 1.4 !important; }
+        .leaflet-container { width: 100%; height: 100%; font-family: Arial, sans-serif; }
+        .leaflet-popup { max-width: calc(100vw - 28px); }
+        .leaflet-popup-content-wrapper { max-width: calc(100vw - 28px); }
+        .leaflet-popup-content { max-width: calc(100vw - 56px); }
+        .leaflet-control-zoom a { width: 34px !important; height: 34px !important; line-height: 34px !important; }
+        @media (max-width: 640px) {
+          .leaflet-popup-content-wrapper { border-radius: 16px !important; }
+          .leaflet-popup-content { margin: 8px !important; }
+          .leaflet-control-zoom { margin-right: 10px !important; margin-bottom: 12px !important; }
+          .leaflet-control-zoom a { width: 36px !important; height: 36px !important; line-height: 36px !important; }
+          .leaflet-bottom { bottom: env(safe-area-inset-bottom, 0px); }
+          .leaflet-left { left: 4px; }
+          .leaflet-right { right: 4px; }
+        }
       `}</style>
 
       {/* CHÚ Ý: ĐÃ XÓA BỎ HOÀN TOÀN CÁC THANH THÔNG BÁO / ROUTE PANEL THỪA Ở ĐÂY ĐỂ ĐỒNG BỘ SANG CLIENTHOME */}
 
       {isPickingMap && (
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[1000] bg-amber-500/95 backdrop-blur-md text-white px-4 py-2.5 rounded-2xl shadow-xl font-bold text-xs border border-amber-400 flex items-center gap-3">
+        <div className="absolute top-2 sm:top-4 left-2 right-2 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 z-[1000] bg-amber-500/95 backdrop-blur-md text-white px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl sm:rounded-2xl shadow-xl font-bold text-[10px] sm:text-xs border border-amber-400 flex items-center justify-between gap-2 sm:gap-3">
           <span className="flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full bg-white animate-ping"></span>
             Nhấp chuột lên bản đồ để gắn vị trí sự cố tại Thạch Khê
@@ -610,7 +656,7 @@ export default function MapComponent({
           <button 
             type="button"
             onClick={() => { setIsPickingMap(false); setIsReportModalOpen(true); }}
-            className="bg-black/20 hover:bg-black/40 px-2.5 py-1 rounded-xl text-[11px] transition font-medium cursor-pointer"
+            className="shrink-0 bg-black/20 hover:bg-black/40 px-2.5 py-1.5 rounded-lg sm:rounded-xl text-[10px] sm:text-[11px] transition font-medium cursor-pointer min-h-[32px]"
           >
             Hủy bỏ
           </button>
@@ -618,13 +664,13 @@ export default function MapComponent({
       )}
 
       {/* Nút chọn kiểu bản đồ */}
-      <div className="absolute top-3 right-3 z-[1000]">
+      <div className="absolute top-2 right-2 sm:top-3 sm:right-3 z-[1000]">
         <div className="relative">
           <button 
             type="button"
             title="Chọn kiểu bản đồ"
             onClick={() => setIsMapStyleOpen(!isMapStyleOpen)}
-            className="w-10 h-10 bg-white/95 backdrop-blur-md hover:bg-white text-slate-700 rounded-xl shadow-md border border-slate-200/80 flex items-center justify-center transition-all cursor-pointer"
+            className="w-9 h-9 sm:w-10 sm:h-10 bg-white/95 backdrop-blur-md hover:bg-white text-slate-700 rounded-xl shadow-md border border-slate-200/80 flex items-center justify-center transition-all cursor-pointer"
           >
             <svg className="w-5 h-5 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
@@ -675,6 +721,7 @@ export default function MapComponent({
         )}
 
         <ZoomTracker onZoomChange={setZoomLevel} />
+        <MapSizeInvalidator />
 
         <MapClickPicker 
           isPicking={isPickingMap} 
