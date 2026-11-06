@@ -356,6 +356,7 @@ export default function LocationManagement({ locations = [], categories = [], on
                         <option value="shield">An ninh quốc phòng</option>
                         <option value="trash-2">Điểm tập kết rác</option>
                         <option value="school">Cơ sở giáo dục</option>
+                          <option value="heatlh">Cơ sở y tế</option>
                       </>
                     )}
                   </select>
