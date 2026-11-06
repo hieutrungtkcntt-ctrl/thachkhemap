@@ -1214,7 +1214,10 @@ export default function ClientHome({
       )}
 {/* ==================== TAB 3: ĐỊA ĐIỂM & CƠ SỞ ==================== */}
 {activeTab === 'overview' && (
-  <div className="relative w-full flex-1 min-h-0 flex flex-col lg:flex-row p-2 sm:p-3 bg-slate-100 gap-3 overflow-y-visible lg:overflow-hidden lg:h-[calc(100dvh-190px)]">
+  <div
+    className="relative w-full flex-none h-[calc(100dvh-170px)] min-h-0 flex flex-col lg:flex-row p-2 sm:p-3 bg-slate-100 gap-2 sm:gap-3 overflow-hidden"
+    style={{ height: 'calc(100dvh - 170px)' }}
+  >
 
     {/* ==================== BẢNG TRA CỨU BÊN TRÁI ==================== */}
     <aside
@@ -1225,8 +1228,8 @@ export default function ClientHome({
         rounded-2xl sm:rounded-3xl
         shadow-sm
         flex flex-col
-        h-auto lg:h-full
-        max-h-none lg:max-h-full
+        h-1/2 lg:h-full
+        max-h-none
         min-h-0
         overflow-hidden
       "
@@ -1429,7 +1432,7 @@ export default function ClientHome({
       </div>
 
       {/* DANH SÁCH CARD ĐỊA ĐIỂM (ẨN TRÊN MOBILE VỚI CLASS "hidden md:block") */}
-      <div className="flex-1 min-h-[110px] max-h-[30dvh] lg:max-h-none lg:min-h-0 overflow-y-auto overscroll-contain p-2 sm:p-2.5 bg-slate-50/80 space-y-2.5 sm:space-y-3 scrollbar-thin">
+      <div className="flex-1 min-h-0 max-h-none overflow-y-auto overscroll-contain p-2 sm:p-2.5 bg-slate-50/80 space-y-2.5 sm:space-y-3 scrollbar-thin">
         {filteredLocations.length > 0 ? (
           filteredLocations.map(loc => {
             const isSelected = overviewSelectedLocation?.id === loc.id;
@@ -1527,7 +1530,7 @@ export default function ClientHome({
     </aside>
 
     {/* ==================== KHUNG BẢN ĐỒ BÊN PHẢI (TRÀN MÀN HÌNH BÊN DƯỚI TRÊN MOBILE) ==================== */}
-    <div className="w-full h-[44dvh] min-h-[310px] max-h-[520px] lg:flex-1 lg:w-auto lg:h-full lg:min-h-0 lg:max-h-none relative rounded-2xl sm:rounded-3xl overflow-hidden border border-slate-200/80 shadow-md bg-white">
+    <div className="w-full h-1/2 min-h-0 flex-none lg:flex-1 lg:w-auto lg:h-full relative rounded-2xl sm:rounded-3xl overflow-hidden border border-slate-200/80 shadow-md bg-white">
       <MapComponent
         key="overview-map"
         villages={villagesData}
