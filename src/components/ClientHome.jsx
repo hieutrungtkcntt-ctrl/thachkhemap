@@ -550,7 +550,7 @@ export default function ClientHome({
   </div>
 </div>
 
-    {/* ==================== TAB 1: TRA CỨU CSDL FIREBASE ==================== */}
+ {/* ==================== TAB 1: TRA CỨU CSDL FIREBASE ==================== */}
 {activeTab === 'db_search' && (
   <div className="flex-1 min-h-0 overflow-y-auto bg-[#f4f7fb] p-4 sm:p-6 lg:p-8">
     <div className="max-w-[1700px] mx-auto space-y-6">
@@ -623,7 +623,6 @@ export default function ClientHome({
                 const isChecked = selectedCatIds.includes(catIdStr);
                 const catColor = cat.color || '#2563EB';
 
-                {/* Tính số lượng địa điểm thuộc danh mục này */}
                 const count = locations.filter(loc => 
                   String(loc.type || loc.category) === catIdStr || String(loc.type || loc.category) === String(cat.label)
                 ).length;
@@ -714,8 +713,242 @@ export default function ClientHome({
 
         </div>
       </div>
-      
-      {/* Các phần hiển thị danh sách kết quả, phân trang ở bên dưới giữ nguyên... */}
+
+      {/* THANH ĐIỀU KHIỂN HIỂN THỊ (SỐ LƯỢNG, SẮP XẾP, GRID/LIST) */}
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-1">
+        <div className="text-xs sm:text-sm text-slate-600 font-semibold flex items-center gap-2">
+          <span>Hiển thị</span>
+          <span className="px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800 font-extrabold text-xs">
+            {dbFilteredData.length} / {locations.length}
+          </span>
+          <span>địa điểm phù hợp</span>
+        </div>
+
+        <div className="flex items-center gap-2 sm:gap-3 self-end sm:self-auto flex-wrap">
+          <label className="flex items-center gap-2 text-xs font-semibold text-slate-500 whitespace-nowrap">
+            <span>Số lượng:</span>
+            <select
+              value={dbPageSize}
+              onChange={(e) => setDbPageSize(Number(e.target.value))}
+              className="h-9 px-2.5 rounded-xl border border-slate-200 bg-white text-xs font-extrabold text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+              aria-label="Số địa điểm hiển thị mỗi trang"
+            >
+              <option value={10}>10 / trang</option>
+              <option value={20}>20 / trang</option>
+              <option value={30}>30 / trang</option>
+              <option value={40}>40 / trang</option>
+              <option value={50}>50 / trang</option>
+            </select>
+          </label>
+
+          <select
+            value={dbSortBy}
+            onChange={(e) => setDbSortBy(e.target.value)}
+            className="h-9 px-3 rounded-xl border border-slate-200 bg-white text-xs font-bold text-slate-700 focus:outline-none shadow-2xs"
+          >
+            <option value="name_asc">Sắp xếp: Tên (A - Z)</option>
+            <option value="name_desc">Sắp xếp: Tên (Z - A)</option>
+          </select>
+
+          <div className="flex items-center p-1 bg-slate-200/70 rounded-xl">
+            <button
+              type="button"
+              onClick={() => setDbViewMode('grid')}
+              className={`p-1.5 rounded-lg transition cursor-pointer ${dbViewMode === 'grid' ? 'bg-white text-blue-700 shadow-xs' : 'text-slate-500 hover:text-slate-800'}`}
+              title="Dạng lưới"
+            >
+              <IconGrid className="w-4 h-4" />
+            </button>
+            <button
+              type="button"
+              onClick={() => setDbViewMode('list')}
+              className={`p-1.5 rounded-lg transition cursor-pointer ${dbViewMode === 'list' ? 'bg-white text-blue-700 shadow-xs' : 'text-slate-500 hover:text-slate-800'}`}
+              title="Dạng danh sách"
+            >
+              <IconList className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* HIỂN THỊ DANH SÁCH ĐỊA ĐIỂM (GRID HOẶC LIST) */}
+      {dbFilteredData.length > 0 ? (
+        dbViewMode === 'grid' ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+            {dbPaginatedData.map(loc => (
+              <div
+                key={loc.id}
+                onClick={() => handleOpenDetailModal(loc)}
+                className="bg-white rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md hover:border-blue-300 transition-all cursor-pointer overflow-hidden flex flex-col p-3 group"
+              >
+                <div className="h-44 w-full rounded-xl bg-slate-100 relative overflow-hidden">
+                  <img
+                    src={loc.mediaUrl || loc.image || loc.imageUrl || "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=500"}
+                    alt={loc.name}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                  <div className="absolute top-2.5 left-2.5 bg-slate-900/80 backdrop-blur-md text-white px-2.5 py-1 rounded-lg text-[10px] font-extrabold shadow-sm">
+                    {getCategoryName(loc.type || loc.category)}
+                  </div>
+                </div>
+
+                <div className="p-3 flex flex-col flex-1 justify-between space-y-3">
+                  <div>
+                    <h4 className="font-extrabold text-slate-900 text-sm leading-snug group-hover:text-blue-700 transition-colors line-clamp-1">
+                      {loc.name}
+                    </h4>
+                    <p className="text-xs text-slate-500 mt-1 line-clamp-2 leading-relaxed">
+                      {loc.info || loc.desc || 'Chưa có thông tin mô tả chi tiết cho địa điểm này.'}
+                    </p>
+                  </div>
+
+                  <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
+                    <span className="font-bold text-blue-700">Xem chi tiết</span>
+                    {loc.lat && loc.lng && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDirectGPSRoute(loc.lat, loc.lng, loc);
+                        }}
+                        className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-[11px] transition"
+                      >
+                        🧭 Chỉ đường
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {dbPaginatedData.map(loc => (
+              <div
+                key={loc.id}
+                onClick={() => handleOpenDetailModal(loc)}
+                className="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-sm hover:shadow-md hover:border-blue-300 transition cursor-pointer flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 group"
+              >
+                <div className="flex items-center gap-4 min-w-0">
+                  <img
+                    src={loc.mediaUrl || loc.image || loc.imageUrl || "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=500"}
+                    alt={loc.name}
+                    className="w-20 h-20 sm:w-24 sm:h-24 rounded-xl object-cover shrink-0 bg-slate-100"
+                  />
+                  <div className="min-w-0 space-y-1">
+                    <span className="inline-block text-[10px] font-extrabold px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 border border-blue-100">
+                      {getCategoryName(loc.type || loc.category)}
+                    </span>
+                    <h4 className="font-extrabold text-slate-900 text-base leading-snug group-hover:text-blue-700 transition-colors truncate">
+                      {loc.name}
+                    </h4>
+                    <p className="text-xs text-slate-500 line-clamp-1">
+                      {loc.info || loc.desc || 'Chưa có thông tin mô tả chi tiết.'}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleOpenDetailModal(loc);
+                    }}
+                    className="px-4 py-2 rounded-xl text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 transition"
+                  >
+                    Chi tiết
+                  </button>
+                  {loc.lat && loc.lng && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDirectGPSRoute(loc.lat, loc.lng, loc);
+                      }}
+                      className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-slate-900 hover:bg-slate-800 transition flex items-center gap-1"
+                    >
+                      🧭 Chỉ đường
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )
+      ) : (
+        <div className="bg-white rounded-3xl p-12 text-center border border-slate-200/80 shadow-sm space-y-3">
+          <div className="text-4xl">🔍</div>
+          <h3 className="font-extrabold text-slate-800 text-base sm:text-lg">Không tìm thấy địa điểm phù hợp</h3>
+          <p className="text-xs sm:text-sm text-slate-500 max-w-md mx-auto">
+            Không tìm thấy địa điểm nào khớp với các thể loại hoặc từ khóa bạn đã chọn.
+          </p>
+          <button
+            type="button"
+            onClick={handleResetDbFilters}
+            className="mt-2 inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-100 transition cursor-pointer"
+          >
+            Xem lại tất cả CSDL địa điểm
+          </button>
+        </div>
+      )}
+
+      {/* THANH PHÂN TRANG */}
+      {dbFilteredData.length > 0 && (
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white border border-slate-200 rounded-2xl px-4 py-3 shadow-sm">
+          <div className="text-xs text-slate-500 font-medium text-center sm:text-left">
+            Đang hiển thị <strong className="text-slate-800">
+              {dbStartIndex + 1}–{Math.min(dbStartIndex + dbPageSize, dbFilteredData.length)}
+            </strong> trong tổng số <strong className="text-blue-700">{dbFilteredData.length}</strong> địa điểm
+          </div>
+
+          <div className="flex items-center gap-1.5 flex-wrap justify-center">
+            <button
+              type="button"
+              disabled={safeDbCurrentPage <= 1}
+              onClick={() => setDbCurrentPage(page => Math.max(1, page - 1))}
+              className="px-3 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition"
+            >
+              ‹ Trước
+            </button>
+
+            {Array.from({ length: dbTotalPages }, (_, index) => index + 1)
+              .filter(page => page === 1 || page === dbTotalPages || Math.abs(page - safeDbCurrentPage) <= 2)
+              .reduce((items, page, index, pages) => {
+                if (index > 0 && page - pages[index - 1] > 1) items.push('ellipsis-' + page);
+                items.push(page);
+                return items;
+              }, [])
+              .map(page => typeof page === 'string' ? (
+                <span key={page} className="px-1 text-slate-400 text-xs">…</span>
+              ) : (
+                <button
+                  key={page}
+                  type="button"
+                  onClick={() => setDbCurrentPage(page)}
+                  aria-current={safeDbCurrentPage === page ? 'page' : undefined}
+                  className={`min-w-9 h-9 px-2 rounded-xl text-xs font-extrabold transition ${
+                    safeDbCurrentPage === page
+                      ? 'bg-blue-700 text-white shadow-sm'
+                      : 'bg-slate-100 text-slate-600 hover:bg-blue-50 hover:text-blue-700'
+                  }`}
+                >
+                  {page}
+                </button>
+              ))}
+
+            <button
+              type="button"
+              disabled={safeDbCurrentPage >= dbTotalPages}
+              onClick={() => setDbCurrentPage(page => Math.min(dbTotalPages, page + 1))}
+              className="px-3 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition"
+            >
+              Sau ›
+            </button>
+          </div>
+        </div>
+      )}
+
     </div>
   </div>
 )}
@@ -979,7 +1212,7 @@ export default function ClientHome({
           </div>
         </div>
       )}
-  {/* ==================== TAB 3: ĐỊA ĐIỂM & CƠ SỞ (TỐI ƯU TỔNG THỂ CHO WEB & MOBILE) ==================== */}
+{/* ==================== TAB 3: ĐỊA ĐIỂM & CƠ SỞ (TỐI ƯU TỔNG THỂ CHO WEB & MOBILE) ==================== */}
 {activeTab === 'overview' && (
   <div className="relative w-full h-[calc(100vh-115px)] md:h-[calc(100vh-100px)] flex flex-col md:flex-row p-1.5 sm:p-3 bg-slate-100 gap-2 overflow-hidden">
 
