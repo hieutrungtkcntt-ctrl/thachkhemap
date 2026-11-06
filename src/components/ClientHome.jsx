@@ -483,17 +483,7 @@ export default function ClientHome({
         </div>
       </header>
 
-      {/* BANNER ẢNH TRÀN 2 BÊN FULL MÀN HÌNH */}
-     <div className="w-full bg-slate-900 border-b border-slate-200 shrink-0">
-  <img 
-    src="public/images/tn.png" 
-    alt="Banner Xã Thạch Khê" 
-    className="w-full h-auto object-cover block mx-auto"
-    onError={(e) => { 
-      e.currentTarget.style.display = 'none'; 
-    }}
-  />
-</div>
+      
 
 {/* THANH TAB ĐIỀU HƯỚNG 4 MỤC CHÍNH */}
 <div className="bg-[#f4f7fb] px-2 sm:px-7 py-2.5 z-10 shrink-0 border-b border-slate-200/60">
@@ -1194,36 +1184,36 @@ export default function ClientHome({
         </div>
       )}
   
- {/* ==================== TAB 3: ĐỊA ĐIỂM & CƠ SỞ (TỐI ƯU CỐ ĐỊNH MOBILE) ==================== */}
+{/* ==================== TAB 3: ĐỊA ĐIỂM & CƠ SỞ (TỐI ƯU TỔNG THỂ CHO WEBSITE & MOBILE) ==================== */}
 {activeTab === 'overview' && (
   <div className="relative w-full h-[calc(100vh-115px)] md:h-[calc(100vh-100px)] flex flex-col md:flex-row p-1.5 sm:p-3 bg-slate-100 gap-2 overflow-hidden">
 
-    {/* ==================== BẢNG TRA CỨU BÊN TRÁI (THU GỌN TRÊN MOBILE) ==================== */}
+    {/* ==================== BẢNG TRA CỨU BÊN TRÁI (MỞ RỘNG RỘNG RÃI) ==================== */}
     <aside
       className="
-        w-full md:w-[390px] lg:w-[420px] shrink-0
+        w-full md:w-[460px] lg:w-[500px] shrink-0
         bg-white
         border border-slate-200/80
         rounded-2xl sm:rounded-3xl
         shadow-sm
         flex flex-col
-        h-[38%] md:h-full
+        h-[45%] md:h-full
         overflow-hidden
       "
     >
       {/* HEADER */}
-      <div className="relative shrink-0 overflow-hidden bg-gradient-to-r from-[#12366b] to-[#1d4ed8] px-3 py-2.5 sm:px-5 sm:py-4 text-white">
+      <div className="relative shrink-0 overflow-hidden bg-gradient-to-r from-[#12366b] to-[#1d4ed8] px-3 py-2 sm:px-4 sm:py-3 text-white">
         <div className="absolute -right-8 -top-10 w-32 h-32 rounded-full bg-white/10" />
 
         <div className="relative flex items-center justify-between gap-2">
           <div className="min-w-0">
             <div className="flex items-center gap-1 mb-0.5">
               <span className="w-4 h-4 rounded bg-white/15 flex items-center justify-center text-[10px]">📍</span>
-              <span className="text-[8px] font-bold tracking-wider text-blue-100 uppercase">
+              <span className="text-[9px] font-bold tracking-wider text-blue-100 uppercase">
                 BẢN ĐỒ SỐ THẠCH KHÊ
               </span>
             </div>
-            <h3 className="font-extrabold text-xs sm:text-base tracking-tight">
+            <h3 className="font-extrabold text-xs sm:text-sm tracking-tight">
               Khám phá địa điểm
             </h3>
           </div>
@@ -1246,27 +1236,27 @@ export default function ClientHome({
             placeholder="Tìm tên địa điểm, cơ sở..."
             className="w-full h-8 pl-8 pr-7 border border-slate-200 rounded-xl text-xs bg-slate-50 text-slate-800 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/15 focus:border-blue-500 transition-all"
           />
-          <IconSearch className="w-3 h-3 text-slate-400 absolute left-2.5 top-2.5 group-focus-within:text-blue-600 transition" />
+          <IconSearch className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5 group-focus-within:text-blue-600 transition" />
           {searchTerm && (
             <button
               type="button"
               onClick={() => setSearchTerm && setSearchTerm('')}
-              className="absolute right-2 top-2 text-slate-400 hover:text-slate-700 text-xs font-bold"
+              className="absolute right-2 top-2 text-slate-400 hover:text-slate-700 text-xs font-bold px-1"
             >
               ✕
             </button>
           )}
         </div>
 
-        {/* DANH MỤC (VUỐT NGANG) */}
-        <div className="flex items-center gap-1 overflow-x-auto pb-0.5 scrollbar-none">
+        {/* DANH MỤC (XUỐNG DÒNG TRÊN WEBSITE, VUỐT NGANG TRÊN MOBILE) */}
+        <div className="flex items-center gap-1.5 overflow-x-auto sm:overflow-x-visible sm:flex-wrap pb-1 sm:pb-0 scrollbar-none">
           <button
             type="button"
             onClick={() => setSelectedCats([])}
-            className={`h-6 px-2.5 rounded-lg text-[10px] font-extrabold shrink-0 transition-all cursor-pointer ${
+            className={`h-7 px-3 rounded-lg text-xs font-extrabold shrink-0 transition-all cursor-pointer ${
               selectedCats.length === 0
                 ? 'bg-blue-600 text-white shadow-xs'
-                : 'bg-slate-100 text-slate-600 hover:bg-slate-50'
+                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
             }`}
           >
             Tất cả
@@ -1287,10 +1277,10 @@ export default function ClientHome({
                     setSelectedCats([catId]);
                   }
                 }}
-                className={`h-6 px-2.5 rounded-lg text-[10px] font-bold shrink-0 transition-all flex items-center gap-1 cursor-pointer ${
+                className={`h-7 px-3 rounded-lg text-xs font-bold shrink-0 transition-all flex items-center gap-1 cursor-pointer ${
                   isSelected
                     ? 'bg-blue-600 text-white shadow-xs'
-                    : 'bg-slate-100 text-slate-600 hover:bg-slate-50'
+                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                 }`}
               >
                 <span>{cat.label}</span>
@@ -1300,179 +1290,143 @@ export default function ClientHome({
         </div>
       </div>
 
-   {/* DANH SÁCH ĐỊA ĐIỂM (THANH CUỘN RIÊNG) */}
-<div className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-2 bg-slate-50/80 space-y-2.5 scrollbar-thin">
-  {filteredLocations.length > 0 ? (
-    filteredLocations.map(loc => {
-      const isSelected = overviewSelectedLocation?.id === loc.id;
-      const imageUrl = loc.mediaUrl || loc.image || loc.imageUrl || "https://images.unsplash.com/photo-1507525428034-b723cf961dbe?w=500";
-      
-      return (
-        <div
-          key={loc.id}
-          onClick={() => handleSelectOverviewLocation(loc)}
-          className={`group bg-white rounded-2xl transition-all cursor-pointer p-3 flex gap-2.5 relative overflow-hidden border shadow-2xs ${
-            isSelected
-              ? 'border-blue-500 bg-blue-50/70 ring-2 ring-blue-500/10 shadow-md'
-              : 'border-slate-200/80 hover:border-blue-300 hover:shadow-md'
-          }`}
-        >
-          {/* ẢNH ĐỊA ĐIỂM & HUY HIỆU (Đã thu nhỏ kích thước cố định w-20 h-20 để không bị tràn) */}
-        <div className="relative w-20 h-20 shrink-0 overflow-hidden rounded-xl bg-slate-100 shadow-xs">
-          <img
-            src={imageUrl}
-            alt={loc.name}
-            loading="lazy"
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-          />
-        </div>
-
-          {/* THÔNG TIN CHI TIẾT BÊN PHẢI (flex-1 và min-w-0 giúp co giãn chữ thông minh không tràn) */}
-          <div className="min-w-0 flex-1 flex flex-col justify-between">
-            <div>
-              <span className="text-[9px] font-extrabold text-blue-700 uppercase tracking-wider block truncate">
-                {getCategoryName(loc.type || loc.category)}
-              </span>
-              <h4 className="font-extrabold text-slate-900 text-xs leading-snug line-clamp-1 group-hover:text-blue-700 transition mt-0.5">
-                {loc.name}
-              </h4>
-
-              {/* Thông tin địa chỉ & giờ mở cửa */}
-              <div className="mt-1 space-y-0.5 text-[10.5px] text-slate-600">
-                <div className="flex items-center gap-1">
-                  <span className="text-slate-400 shrink-0">Địa chỉ:</span>
-                  <span className="truncate font-medium text-slate-700">{loc.address || loc.info || 'Thôn Thạch Hải, Xã Thạch Khê'}</span>
+      {/* DANH SÁCH ĐỊA ĐIỂM (ẢNH LỚN NẰM TRÊN, THÔNG TIN Ở DƯỚI) */}
+      <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-2.5 bg-slate-50/80 space-y-3.5 scrollbar-thin">
+        {filteredLocations.length > 0 ? (
+          filteredLocations.map(loc => {
+            const isSelected = overviewSelectedLocation?.id === loc.id;
+            const imageUrl = loc.mediaUrl || loc.image || loc.imageUrl || "https://images.unsplash.com/photo-1507525428034-b723cf961dbe?w=500";
+            
+            return (
+              <div
+                key={loc.id}
+                onClick={() => handleSelectOverviewLocation(loc)}
+                className={`group bg-white rounded-2xl transition-all cursor-pointer p-3 flex flex-col gap-2.5 relative overflow-hidden border shadow-2xs ${
+                  isSelected
+                    ? 'border-blue-500 bg-blue-50/70 ring-2 ring-blue-500/10 shadow-md'
+                    : 'border-slate-200/80 hover:border-blue-300 hover:shadow-md'
+                }`}
+              >
+                {/* ẢNH ĐỊA ĐIỂM TO RÕ NẰM TRÊN */}
+                <div className="relative w-full h-36 sm:h-44 shrink-0 overflow-hidden rounded-xl bg-slate-100 shadow-xs">
+                  <img
+                    src={imageUrl}
+                    alt={loc.name}
+                    loading="lazy"
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                  <span className="absolute top-2.5 left-2.5 bg-white/90 backdrop-blur-md text-blue-700 font-extrabold text-[9.5px] uppercase tracking-wider px-2.5 py-1 rounded-lg shadow-xs">
+                    {getCategoryName(loc.type || loc.category)}
+                  </span>
                 </div>
-                {loc.workingHours && (
-                  <div className="flex items-center gap-1">
-                    <span className="text-slate-400 shrink-0">Giờ:</span>
-                    <span className="font-medium text-slate-700 truncate">{loc.workingHours}</span>
+
+                {/* THÔNG TIN CHI TIẾT NẰM Ở DƯỚI */}
+                <div className="min-w-0 flex flex-col justify-between space-y-2">
+                  <div>
+                    <h4 className="font-extrabold text-slate-900 text-sm sm:text-base leading-snug line-clamp-2 group-hover:text-blue-700 transition">
+                      {loc.name}
+                    </h4>
+
+                    {/* Địa chỉ & giờ mở cửa */}
+                    <div className="mt-1 space-y-1 text-xs text-slate-600">
+                      <div className="flex items-center gap-1 min-w-0">
+                        <span className="text-slate-400 shrink-0 font-medium">ĐC:</span>
+                        <span className="truncate font-medium text-slate-700">{loc.address || loc.info || 'Thôn Thạch Hải, Xã Thạch Khê'}</span>
+                      </div>
+                      {loc.workingHours && (
+                        <div className="flex items-center gap-1 min-w-0">
+                          <span className="text-slate-400 shrink-0 font-medium">Giờ:</span>
+                          <span className="font-medium text-slate-700 truncate">{loc.workingHours}</span>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                )}
-              </div>
-            </div>
 
-            {/* DƯỚI CÙNG: ĐÁNH GIÁ VÀ NÚT BẤM VỪA KHÍT KHUNG */}
-            <div className="flex items-center justify-between pt-1.5 mt-1 border-t border-slate-100 gap-1">
-              {/* Đánh giá sao & lượt xem thu gọn */}
-              <div className="flex items-center gap-1 text-[10px] font-bold text-slate-700 shrink-0">
-                <span className="text-amber-500">★</span>
-                <span>{loc.rating || '4.8'}</span>
-                <span className="text-slate-300">•</span>
-                <span className="text-slate-500 font-normal text-[9.5px]">👁 {loc.views || '120'}</span>
-              </div>
+                  {/* NÚT BẤM (Căn phải gọn gàng) */}
+                  <div className="flex items-center justify-end pt-2 border-t border-slate-100 gap-1.5">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleOpenDetailModal(loc);
+                      }}
+                      className="px-3.5 py-1.5 rounded-xl text-[11px] font-extrabold text-blue-700 bg-blue-50 hover:bg-blue-100 transition cursor-pointer"
+                    >
+                      Chi tiết
+                    </button>
 
-              {/* Nhóm nút bấm thiết kế gọn gàng */}
-              <div className="flex items-center gap-1 shrink-0">
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleOpenDetailModal(loc);
-                  }}
-                  className="px-2.5 py-1 rounded-lg text-[10px] font-extrabold text-blue-700 bg-blue-50 hover:bg-blue-100 transition cursor-pointer"
-                >
-                  Chi tiết
-                </button>
-
-                {loc.lat && loc.lng && (
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDirectGPSRoute(loc.lat, loc.lng, loc);
-                    }}
-                    className="px-2.5 py-1 rounded-lg text-[10px] font-extrabold text-white bg-slate-900 hover:bg-blue-700 transition flex items-center gap-1 cursor-pointer shadow-2xs whitespace-nowrap"
-                  >
-                    <span>🧭</span>
-                    <span>Đường đi</span>
-                  </button>
-                )}
+                    {loc.lat && loc.lng && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDirectGPSRoute(loc.lat, loc.lng, loc);
+                        }}
+                        className="px-3.5 py-1.5 rounded-xl text-[11px] font-extrabold text-white bg-slate-900 hover:bg-blue-700 transition flex items-center gap-1 cursor-pointer shadow-2xs whitespace-nowrap"
+                      >
+                        <span>🧭</span>
+                        <span>Đường đi</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
               </div>
-            </div>
+            );
+          })
+        ) : (
+          <div className="flex flex-col items-center justify-center py-8 px-3 text-center">
+            <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-xl mb-2">🔍</div>
+            <p className="text-xs text-slate-600 font-bold">Không tìm thấy địa điểm phù hợp</p>
+            <button
+              type="button"
+              onClick={() => {
+                setSearchTerm && setSearchTerm('');
+                setSelectedCats && setSelectedCats([]);
+              }}
+              className="mt-2.5 px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition shadow-xs cursor-pointer"
+            >
+              Xóa bộ lọc tìm kiếm
+            </button>
           </div>
-        </div>
-      );
-    })
-  ) : (
-    <div className="flex flex-col items-center justify-center py-8 px-3 text-center">
-      <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-xl mb-2">🔍</div>
-      <p className="text-xs text-slate-600 font-bold">Không tìm thấy địa điểm phù hợp</p>
-      <button
-        type="button"
-        onClick={() => {
-          setSearchTerm && setSearchTerm('');
-          setSelectedCats && setSelectedCats([]);
-        }}
-        className="mt-2.5 px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition shadow-xs cursor-pointer"
-      >
-        Xóa bộ lọc tìm kiếm
-      </button>
-    </div>
-  )}
-</div>
+        )}
+      </div>
     </aside>
 
-    {/* ==================== KHUNG BẢN ĐỒ BÊN PHẢI (CỐ ĐỊNH KHÔNG GIAN CÒN LẠI) ==================== */}
+    {/* ==================== KHUNG BẢN ĐỒ BÊN PHẢI ==================== */}
     <div className="flex-1 h-full relative rounded-2xl sm:rounded-3xl overflow-hidden border border-slate-200/80 shadow-md bg-white">
-      
-      {/* THÔNG TIN LỘ TRÌNH GPS */}
-      {routeCoordinates && routeCoordinates.length > 0 && (
-        <div className="absolute top-2 left-2 right-2 sm:left-auto sm:right-3 z-[1000] sm:max-w-[320px] bg-slate-900/95 backdrop-blur-md text-white px-3 py-2 rounded-xl shadow-xl flex items-center justify-between border border-white/10">
-          <div className="flex items-center gap-2 min-w-0">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
-            <div className="min-w-0">
-              <p className="text-[8px] font-bold text-emerald-400 uppercase tracking-wider">Đang chỉ đường</p>
-              <p className="text-[11px] font-extrabold truncate text-white">
-                {overviewSelectedLocation?.name || "Lộ trình di chuyển"}
-              </p>
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={handleClearRoute}
-            className="bg-red-600 text-white px-2 py-1 rounded-lg text-[10px] font-bold shrink-0 ml-2"
-          >
-            ✕ Hủy
-          </button>
-        </div>
-      )}
-
-      {/* BẢN ĐỒ LEAFLET */}
-      <div className="absolute inset-0 w-full h-full min-h-0">
-        <MapComponent
-          key="overview-map"
-          villages={villagesData}
-          communeBoundary={communeInfo?.boundary}
-          defaultCenter={defaultCenter}
-          currentCenter={overviewMapCenter}
-          mapZoom={overviewMapZoom}
-          mapStyle={mapStyle}
-          setMapStyle={setMapStyle}
-          isPickingMap={false}
-          setIsPickingMap={() => {}}
-          setIsReportModalOpen={() => {}}
-          setReportForm={() => {}}
-          setPickedLatLng={() => {}}
-          setDetectedLocationName={() => {}}
-          pickedLatLng={null}
-          userLocation={userLocation}
-          routeCoordinates={routeCoordinates}
-          selectedVillage={null}
-          hideVillageNames={false}
-          hideLocationPins={false}
-          filteredLocations={filteredLocations}
-          selectedLocation={overviewSelectedLocation}
-          onSelectLocation={handleSelectOverviewLocation}
-          onDirectGPSRoute={handleDirectGPSRoute}
-          getCategoryName={getCategoryName}
-          reports={[]}
-          onOpenDetail={handleOpenDetailModal}
-          onClearRoute={handleClearRoute}
-          disableVillageHover={true}
-          disableVillagePopup={true}
-        />
-      </div>
+      <MapComponent
+        key="overview-map"
+        villages={villagesData}
+        communeBoundary={communeInfo?.boundary}
+        defaultCenter={defaultCenter}
+        currentCenter={overviewMapCenter}
+        mapZoom={overviewMapZoom}
+        mapStyle={mapStyle}
+        setMapStyle={setMapStyle}
+        isPickingMap={false}
+        setIsPickingMap={() => {}}
+        setIsReportModalOpen={() => {}}
+        setReportForm={() => {}}
+        setPickedLatLng={() => {}}
+        setDetectedLocationName={() => {}}
+        pickedLatLng={null}
+        userLocation={userLocation}
+        routeCoordinates={routeCoordinates}
+        setRouteCoordinates={setRouteCoordinates}
+        selectedVillage={null}
+        hideVillageNames={false}
+        hideLocationPins={false}
+        filteredLocations={filteredLocations}
+        selectedLocation={overviewSelectedLocation}
+        onSelectLocation={handleSelectOverviewLocation}
+        onDirectGPSRoute={handleDirectGPSRoute}
+        getCategoryName={getCategoryName}
+        reports={[]}
+        onOpenDetail={handleOpenDetailModal}
+        onClearRoute={handleClearRoute}
+        disableVillageHover={true}
+        disableVillagePopup={true}
+      />
     </div>
 
   </div>
