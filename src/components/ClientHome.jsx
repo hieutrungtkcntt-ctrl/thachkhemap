@@ -1212,20 +1212,21 @@ export default function ClientHome({
           </div>
         </div>
       )}
-{/* ==================== TAB 3: ĐỊA ĐIỂM & CƠ SỞ (TỐI ƯU TỔNG THỂ CHO WEB & MOBILE) ==================== */}
+{/* ==================== TAB 3: ĐỊA ĐIỂM & CƠ SỞ (TỐI ƯU ẨN DANH SÁCH TRÊN MOBILE) ==================== */}
 {activeTab === 'overview' && (
   <div className="relative w-full h-[calc(100vh-115px)] md:h-[calc(100vh-100px)] flex flex-col md:flex-row p-1.5 sm:p-3 bg-slate-100 gap-2 overflow-hidden">
 
-    {/* ==================== BẢNG TRA CỨU BÊN TRÁI ==================== */}
+    {/* ==================== BẢNG TRA CỨU BÊN TRÁI (ẨN TRÊN MOBILE: DÙNG class "hidden md:flex") ==================== */}
     <aside
       className="
+        hidden md:flex
         w-full md:w-[460px] lg:w-[500px] shrink-0
         bg-white
         border border-slate-200/80
         rounded-2xl sm:rounded-3xl
         shadow-sm
-        flex flex-col
-        h-[42%] md:h-full
+        flex-col
+        h-full
         overflow-hidden
       "
     >
@@ -1512,7 +1513,7 @@ export default function ClientHome({
       </div>
     </aside>
 
-    {/* ==================== KHUNG BẢN ĐỒ BÊN PHẢI ==================== */}
+    {/* ==================== KHUNG BẢN ĐỒ BÊN PHẢI (CHIẾM TRỌN MÀN HÌNH TRÊN MOBILE) ==================== */}
     <div className="flex-1 h-full relative rounded-2xl sm:rounded-3xl overflow-hidden border border-slate-200/80 shadow-md bg-white">
       <MapComponent
         key="overview-map"
