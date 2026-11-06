@@ -1212,11 +1212,11 @@ export default function ClientHome({
           </div>
         </div>
       )}
-{/* ==================== TAB 3: ĐỊA ĐIỂM & CƠ SỞ (TỐI ƯU ẨN DANH SÁCH TRÊN MOBILE) ==================== */}
+{/* ==================== TAB 3: ĐỊA ĐIỂM & CƠ SỞ (LĨNH VỰC 1 HÀNG TRƯỢT NGANG) ==================== */}
 {activeTab === 'overview' && (
   <div className="relative w-full h-[calc(100vh-115px)] md:h-[calc(100vh-100px)] flex flex-col md:flex-row p-1.5 sm:p-3 bg-slate-100 gap-2 overflow-hidden">
 
-    {/* ==================== BẢNG TRA CỨU BÊN TRÁI (ẨN TRÊN MOBILE: DÙNG class "hidden md:flex") ==================== */}
+    {/* ==================== BẢNG TRA CỨU BÊN TRÁI ==================== */}
     <aside
       className="
         hidden md:flex
@@ -1254,8 +1254,8 @@ export default function ClientHome({
         </div>
       </div>
 
-      {/* KHU VỰC TÌM KIẾM VÀ BỘ LỌC THOÁNG ĐÃNG CÓ DROPDOWN GỢI Ý */}
-      <div className="shrink-0 p-2 bg-white border-b border-slate-100 space-y-1.5 relative z-20">
+      {/* KHU VỰC TÌM KIẾM VÀ BỘ LỌC */}
+      <div className="shrink-0 p-2.5 bg-white border-b border-slate-100 space-y-2 relative z-20">
         
         {/* Ô TÌM KIẾM CÓ MENU GỢI Ý TỰ ĐỘNG */}
         <div className="relative group">
@@ -1278,7 +1278,7 @@ export default function ClientHome({
             </button>
           )}
 
-          {/* DROPDOWN HIỂN THỊ DANH SÁCH GỢI Ý KHI NHẬP TỪ KHÓA */}
+          {/* DROPDOWN GỢI Ý */}
           {searchTerm && searchTerm.trim().length > 0 && (
             <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-xl max-h-52 overflow-y-auto z-50 divide-y divide-slate-100 scrollbar-thin">
               <div className="bg-slate-900 text-white text-[10px] font-extrabold uppercase px-3 py-1.5 tracking-wider sticky top-0 z-10 flex items-center justify-between">
@@ -1317,7 +1317,7 @@ export default function ClientHome({
           )}
         </div>
 
-        {/* DANH MỤC LĨNH VỰC: THIẾT KẾ DẠNG LƯỚI 2 CỘT GỌN GÀNG, THOÁNG MẮT */}
+        {/* DANH MỤC LĨNH VỰC: HIỂN THỊ DẠNG 1 HÀNG NGANG TRƯỢT (HORIZONTAL SCROLL) */}
         <div className="space-y-1">
           <div className="flex items-center justify-between px-0.5">
             <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">
@@ -1334,24 +1334,22 @@ export default function ClientHome({
             )}
           </div>
           
-          <div className="grid grid-cols-2 gap-1.5 max-h-24 sm:max-h-28 overflow-y-auto pr-1 scrollbar-thin">
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-thin">
             {/* Nút Tất cả */}
             <div
               onClick={() => setSelectedCats([])}
-              className={`flex items-center justify-between p-1.5 rounded-xl border transition cursor-pointer select-none ${
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border transition cursor-pointer select-none shrink-0 ${
                 selectedCats.length === 0
                   ? 'bg-blue-600 text-white border-blue-600 shadow-2xs'
                   : 'bg-white border-slate-200 hover:bg-slate-50 text-slate-700'
               }`}
             >
-              <div className="flex items-center gap-1.5 min-w-0">
-                <span className={`w-5 h-5 rounded-md flex items-center justify-center shrink-0 text-xs ${
-                  selectedCats.length === 0 ? 'bg-white/20 text-white' : 'bg-blue-50 text-blue-600'
-                }`}>
-                  🗺️
-                </span>
-                <span className="text-[11px] font-extrabold truncate">Tất cả</span>
-              </div>
+              <span className={`w-5 h-5 rounded-md flex items-center justify-center shrink-0 text-xs ${
+                selectedCats.length === 0 ? 'bg-white/20 text-white' : 'bg-blue-50 text-blue-600'
+              }`}>
+                🗺️
+              </span>
+              <span className="text-xs font-extrabold">Tất cả</span>
               <span className={`text-[10px] font-extrabold px-1.5 py-0.5 rounded-md shrink-0 ${
                 selectedCats.length === 0 ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600'
               }`}>
@@ -1384,21 +1382,18 @@ export default function ClientHome({
                     backgroundColor: isSelected ? catColor : '#ffffff',
                     color: isSelected ? '#ffffff' : '#334155'
                   }}
-                  className="flex items-center justify-between p-1.5 rounded-xl border transition cursor-pointer select-none shadow-2xs hover:border-blue-300 min-w-0"
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-xl border transition cursor-pointer select-none shadow-2xs hover:border-blue-300 shrink-0"
                 >
-                  <div className="flex items-center gap-1.5 min-w-0">
-                    <span 
-                      style={{
-                        backgroundColor: isSelected ? 'rgba(255,255,255,0.2)' : `${catColor}15`,
-                        color: isSelected ? '#ffffff' : catColor
-                      }}
-                      className="w-5 h-5 rounded-md flex items-center justify-center shrink-0 text-[11px] transition"
-                    >
-                      {cat.icon || '📌'}
-                    </span>
-                    <span className="text-[11px] font-bold truncate">{cat.label}</span>
-                  </div>
-
+                  <span 
+                    style={{
+                      backgroundColor: isSelected ? 'rgba(255,255,255,0.2)' : `${catColor}15`,
+                      color: isSelected ? '#ffffff' : catColor
+                    }}
+                    className="w-5 h-5 rounded-md flex items-center justify-center shrink-0 text-xs transition"
+                  >
+                    {cat.icon || '📌'}
+                  </span>
+                  <span className="text-xs font-bold">{cat.label}</span>
                   <span 
                     style={{
                       backgroundColor: isSelected ? 'rgba(255,255,255,0.2)' : '#f1f5f9',
@@ -1416,7 +1411,7 @@ export default function ClientHome({
       </div>
 
       {/* DANH SÁCH ĐỊA ĐIỂM */}
-      <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-2 bg-slate-50/80 space-y-2.5 scrollbar-thin">
+      <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-2.5 bg-slate-50/80 space-y-3 scrollbar-thin">
         {filteredLocations.length > 0 ? (
           filteredLocations.map(loc => {
             const isSelected = overviewSelectedLocation?.id === loc.id;
@@ -1426,31 +1421,31 @@ export default function ClientHome({
               <div
                 key={loc.id}
                 onClick={() => handleSelectOverviewLocation(loc)}
-                className={`group bg-white rounded-2xl transition-all cursor-pointer p-2.5 flex flex-col gap-2 relative overflow-hidden border shadow-2xs ${
+                className={`group bg-white rounded-2xl transition-all cursor-pointer p-3 flex flex-col gap-2.5 relative overflow-hidden border shadow-2xs ${
                   isSelected
                     ? 'border-blue-500 bg-blue-50/70 ring-2 ring-blue-500/10 shadow-md'
                     : 'border-slate-200/80 hover:border-blue-300 hover:shadow-md'
                 }`}
               >
-                <div className="relative w-full h-32 sm:h-40 shrink-0 overflow-hidden rounded-xl bg-slate-100 shadow-xs">
+                <div className="relative w-full h-36 sm:h-44 shrink-0 overflow-hidden rounded-xl bg-slate-100 shadow-xs">
                   <img
                     src={imageUrl}
                     alt={loc.name}
                     loading="lazy"
                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                   />
-                  <span className="absolute top-2 left-2 bg-white/90 backdrop-blur-md text-blue-700 font-extrabold text-[9px] uppercase tracking-wider px-2 py-0.5 rounded-md shadow-xs">
+                  <span className="absolute top-2.5 left-2.5 bg-white/90 backdrop-blur-md text-blue-700 font-extrabold text-[9.5px] uppercase tracking-wider px-2.5 py-1 rounded-lg shadow-xs">
                     {getCategoryName(loc.type || loc.category)}
                   </span>
                 </div>
 
-                <div className="min-w-0 flex flex-col justify-between space-y-1.5">
+                <div className="min-w-0 flex flex-col justify-between space-y-2">
                   <div>
-                    <h4 className="font-extrabold text-slate-900 text-xs sm:text-sm leading-snug line-clamp-2 group-hover:text-blue-700 transition">
+                    <h4 className="font-extrabold text-slate-900 text-sm sm:text-base leading-snug line-clamp-2 group-hover:text-blue-700 transition">
                       {loc.name}
                     </h4>
 
-                    <div className="mt-1 space-y-0.5 text-[11px] text-slate-600">
+                    <div className="mt-1 space-y-1 text-xs text-slate-600">
                       <div className="flex items-center gap-1 min-w-0">
                         <span className="text-slate-400 shrink-0 font-medium">ĐC:</span>
                         <span className="truncate font-medium text-slate-700">{loc.address || loc.info || 'Thôn Thạch Hải, Xã Thạch Khê'}</span>
@@ -1464,14 +1459,14 @@ export default function ClientHome({
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-end pt-1.5 border-t border-slate-100 gap-1.5">
+                  <div className="flex items-center justify-end pt-2 border-t border-slate-100 gap-1.5">
                     <button
                       type="button"
                       onClick={(e) => {
                         e.stopPropagation();
                         handleOpenDetailModal(loc);
                       }}
-                      className="px-3 py-1 rounded-xl text-[10px] font-extrabold text-blue-700 bg-blue-50 hover:bg-blue-100 transition cursor-pointer"
+                      className="px-3.5 py-1.5 rounded-xl text-[11px] font-extrabold text-blue-700 bg-blue-50 hover:bg-blue-100 transition cursor-pointer"
                     >
                       Chi tiết
                     </button>
@@ -1483,7 +1478,7 @@ export default function ClientHome({
                           e.stopPropagation();
                           handleDirectGPSRoute(loc.lat, loc.lng, loc);
                         }}
-                        className="px-3 py-1 rounded-xl text-[10px] font-extrabold text-white bg-slate-900 hover:bg-blue-700 transition flex items-center gap-1 cursor-pointer shadow-2xs whitespace-nowrap"
+                        className="px-3.5 py-1.5 rounded-xl text-[11px] font-extrabold text-white bg-slate-900 hover:bg-blue-700 transition flex items-center gap-1 cursor-pointer shadow-2xs whitespace-nowrap"
                       >
                         <span>🧭</span>
                         <span>Đường đi</span>
@@ -1495,8 +1490,8 @@ export default function ClientHome({
             );
           })
         ) : (
-          <div className="flex flex-col items-center justify-center py-6 px-3 text-center">
-            <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-lg mb-1.5">🔍</div>
+          <div className="flex flex-col items-center justify-center py-8 px-3 text-center">
+            <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-xl mb-2">🔍</div>
             <p className="text-xs text-slate-600 font-bold">Không tìm thấy địa điểm phù hợp</p>
             <button
               type="button"
@@ -1504,7 +1499,7 @@ export default function ClientHome({
                 setSearchTerm && setSearchTerm('');
                 setSelectedCats && setSelectedCats([]);
               }}
-              className="mt-2 px-3 py-1 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-bold transition shadow-xs cursor-pointer"
+              className="mt-2.5 px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition shadow-xs cursor-pointer"
             >
               Xóa bộ lọc tìm kiếm
             </button>
@@ -1513,7 +1508,7 @@ export default function ClientHome({
       </div>
     </aside>
 
-    {/* ==================== KHUNG BẢN ĐỒ BÊN PHẢI (CHIẾM TRỌN MÀN HÌNH TRÊN MOBILE) ==================== */}
+    {/* ==================== KHUNG BẢN ĐỒ BÊN PHẢI ==================== */}
     <div className="flex-1 h-full relative rounded-2xl sm:rounded-3xl overflow-hidden border border-slate-200/80 shadow-md bg-white">
       <MapComponent
         key="overview-map"
