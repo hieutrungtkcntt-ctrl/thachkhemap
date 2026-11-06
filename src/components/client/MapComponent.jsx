@@ -615,7 +615,7 @@ export default function MapComponent({
   const isVillageMode = Boolean(selectedVillage) && !selectedLocation;
 
   return (
-    <div className="w-full h-full min-h-[300px] sm:min-h-[350px] flex-1 relative bg-slate-100 z-0 overflow-hidden isolate">
+    <div className="w-full h-full min-h-0 flex-1 relative bg-slate-100 z-0 overflow-hidden isolate">
       
       <style>{`
         .leaflet-control-attribution { display: none !important; }
