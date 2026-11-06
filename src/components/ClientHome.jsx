@@ -1212,7 +1212,7 @@ export default function ClientHome({
           </div>
         </div>
       )}
-{/* ==================== TAB 3: ĐỊA ĐIỂM & CƠ SỞ (LĨNH VỰC 1 HÀNG TRƯỢT NGANG) ==================== */}
+{/* ==================== TAB 3: ĐỊA ĐIỂM & CƠ SỞ (LĨNH VỰC DẠNG DANH SÁCH DỌC GỌN GÀNG) ==================== */}
 {activeTab === 'overview' && (
   <div className="relative w-full h-[calc(100vh-115px)] md:h-[calc(100vh-100px)] flex flex-col md:flex-row p-1.5 sm:p-3 bg-slate-100 gap-2 overflow-hidden">
 
@@ -1317,11 +1317,11 @@ export default function ClientHome({
           )}
         </div>
 
-        {/* DANH MỤC LĨNH VỰC: HIỂN THỊ DẠNG 1 HÀNG NGANG TRƯỢT (HORIZONTAL SCROLL) */}
-        <div className="space-y-1">
+        {/* DANH MỤC LĨNH VỰC: DẠNG DANH SÁCH DỌC CÓ CHECKBOX (GIỐNG TAB 1) */}
+        <div className="space-y-1.5">
           <div className="flex items-center justify-between px-0.5">
             <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">
-              Lĩnh vực ({categories.length + 1})
+              Lĩnh vực / Danh mục ({categories.length + 1})
             </span>
             {selectedCats.length > 0 && (
               <button
@@ -1334,30 +1334,36 @@ export default function ClientHome({
             )}
           </div>
           
-          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-thin">
+          <div className="space-y-1.5 max-h-36 overflow-y-auto pr-1 scrollbar-thin">
             {/* Nút Tất cả */}
             <div
               onClick={() => setSelectedCats([])}
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border transition cursor-pointer select-none shrink-0 ${
-                selectedCats.length === 0
-                  ? 'bg-blue-600 text-white border-blue-600 shadow-2xs'
-                  : 'bg-white border-slate-200 hover:bg-slate-50 text-slate-700'
+              style={{
+                borderColor: selectedCats.length === 0 ? '#2563EB' : undefined,
+                backgroundColor: selectedCats.length === 0 ? '#2563EB08' : '#ffffff'
+              }}
+              className={`flex items-center justify-between p-2 rounded-xl border transition cursor-pointer select-none ${
+                selectedCats.length === 0 ? 'shadow-2xs ring-1 ring-blue-600/20' : 'border-slate-200/80 hover:bg-slate-50'
               }`}
             >
-              <span className={`w-5 h-5 rounded-md flex items-center justify-center shrink-0 text-xs ${
-                selectedCats.length === 0 ? 'bg-white/20 text-white' : 'bg-blue-50 text-blue-600'
-              }`}>
-                🗺️
-              </span>
-              <span className="text-xs font-extrabold">Tất cả</span>
-              <span className={`text-[10px] font-extrabold px-1.5 py-0.5 rounded-md shrink-0 ${
-                selectedCats.length === 0 ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600'
-              }`}>
+              <div className="flex items-center gap-2.5 min-w-0">
+                <input
+                  type="checkbox"
+                  checked={selectedCats.length === 0}
+                  onChange={() => setSelectedCats([])}
+                  className="w-4 h-4 rounded cursor-pointer shrink-0 ml-0.5 accent-blue-600"
+                />
+                <span className="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 text-xs font-bold transition">
+                  🗺️
+                </span>
+                <span className="text-xs font-bold text-slate-800 truncate">Tất cả lĩnh vực</span>
+              </div>
+              <span className="text-xs font-extrabold text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded-lg shrink-0">
                 {locations.length}
               </span>
             </div>
 
-            {/* Các danh mục CSDL */}
+            {/* Các danh mục từ CSDL */}
             {(categories || []).map(cat => {
               const catId = String(cat.id || cat.label);
               const isSelected = selectedCats.includes(catId) || selectedCats.includes(String(cat.label));
@@ -1378,29 +1384,40 @@ export default function ClientHome({
                     }
                   }}
                   style={{
-                    borderColor: isSelected ? catColor : '#e2e8f0',
-                    backgroundColor: isSelected ? catColor : '#ffffff',
-                    color: isSelected ? '#ffffff' : '#334155'
+                    borderColor: isSelected ? catColor : undefined,
+                    backgroundColor: isSelected ? `${catColor}08` : '#ffffff'
                   }}
-                  className="flex items-center gap-2 px-3 py-1.5 rounded-xl border transition cursor-pointer select-none shadow-2xs hover:border-blue-300 shrink-0"
+                  className={`flex items-center justify-between p-2 rounded-xl border transition cursor-pointer select-none ${
+                    isSelected ? 'shadow-2xs ring-1' : 'border-slate-200/80 hover:bg-slate-50'
+                  }`}
                 >
-                  <span 
-                    style={{
-                      backgroundColor: isSelected ? 'rgba(255,255,255,0.2)' : `${catColor}15`,
-                      color: isSelected ? '#ffffff' : catColor
-                    }}
-                    className="w-5 h-5 rounded-md flex items-center justify-center shrink-0 text-xs transition"
-                  >
-                    {cat.icon || '📌'}
-                  </span>
-                  <span className="text-xs font-bold">{cat.label}</span>
-                  <span 
-                    style={{
-                      backgroundColor: isSelected ? 'rgba(255,255,255,0.2)' : '#f1f5f9',
-                      color: isSelected ? '#ffffff' : '#475569'
-                    }}
-                    className="text-[10px] font-extrabold px-1.5 py-0.5 rounded-md shrink-0"
-                  >
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <input
+                      type="checkbox"
+                      checked={isSelected}
+                      onChange={() => {
+                        if (isSelected) {
+                          setSelectedCats([]);
+                        } else {
+                          setSelectedCats([catId]);
+                        }
+                      }}
+                      className="w-4 h-4 rounded cursor-pointer shrink-0 ml-0.5"
+                      style={{ accentColor: catColor }}
+                    />
+                    <span 
+                      style={{
+                        backgroundColor: `${catColor}15`,
+                        color: catColor
+                      }}
+                      className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 text-xs font-bold transition"
+                    >
+                      {cat.icon || '📌'}
+                    </span>
+                    <span className="text-xs font-bold text-slate-800 truncate">{cat.label}</span>
+                  </div>
+
+                  <span className="text-xs font-extrabold text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded-lg shrink-0">
                     {count}
                   </span>
                 </div>
