@@ -432,19 +432,19 @@ export default function ClientHome({
   }
 
   return (
-    <div className="w-full min-h-screen bg-[#f4f7fb] flex flex-col font-sans text-slate-800 antialiased selection:bg-blue-600 selection:text-white relative">
+    <div className="w-full min-h-screen min-h-[100dvh] overflow-x-hidden bg-[#f4f7fb] flex flex-col font-sans text-slate-800 antialiased selection:bg-blue-600 selection:text-white relative">
       {/* Header */}
-      <header className="bg-white text-slate-900 shadow-sm px-4 sm:px-7 py-3 sm:py-4 flex flex-col md:flex-row justify-between items-stretch md:items-center gap-3 z-30 shrink-0 border-b border-slate-200">
-        <div className="flex items-center justify-between md:justify-start space-x-3">
-          <div className="flex items-center space-x-3">
+      <header className="bg-white text-slate-900 shadow-sm px-3 sm:px-5 lg:px-7 py-2.5 sm:py-3 lg:py-4 flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-2 sm:gap-3 z-30 shrink-0 border-b border-slate-200">
+        <div className="flex items-center justify-between sm:justify-start space-x-2.5 sm:space-x-3 min-w-0">
+          <div className="flex items-center space-x-2.5 sm:space-x-3 min-w-0">
             <img 
               src="/logo.png" 
               alt="Logo Xã Thạch Khê" 
-              className="w-8 h-8 sm:w-9 sm:h-9 object-contain flex-shrink-0"
+              className="w-9 h-9 sm:w-10 sm:h-10 object-contain flex-shrink-0"
               onError={(e) => { e.currentTarget.style.display = 'none'; }}
             />
             <div>
-              <h1 className="text-sm sm:text-base font-extrabold tracking-tight text-slate-900 flex items-center gap-1.5">
+              <h1 className="text-[13px] sm:text-base font-extrabold tracking-tight text-slate-900 flex items-center gap-1.5 min-w-0">
                 <IconCompass className="w-4 h-4 text-amber-400" />
                 <span>Bản Đồ Số Xã Thạch Khê</span>
               </h1>
@@ -453,8 +453,8 @@ export default function ClientHome({
           </div>
         </div>
 
-        <div className="flex items-center justify-between md:justify-end gap-2.5 relative flex-wrap">
-          <div className="h-11 bg-gradient-to-r from-blue-50 to-sky-50 text-slate-700 text-xs px-3.5 rounded-xl font-semibold border border-blue-100 shadow-2xs flex items-center gap-2.5 whitespace-nowrap">
+        <div className="flex items-center justify-between sm:justify-end gap-2 relative flex-wrap">
+          <div className="h-10 sm:h-11 bg-gradient-to-r from-blue-50 to-sky-50 text-slate-700 text-xs px-2.5 sm:px-3.5 rounded-xl font-semibold border border-blue-100 shadow-2xs flex items-center gap-2 whitespace-nowrap min-w-0">
             <span className="text-xl leading-none">{weather.icon}</span>
             <div className="flex flex-col justify-center leading-tight">
               <span className="text-[9px] text-slate-400 font-extrabold uppercase tracking-wider">Thạch Khê</span>
@@ -475,7 +475,7 @@ export default function ClientHome({
           <button 
             type="button"
             onClick={onGoToAdmin}
-            className="h-11 bg-white hover:bg-slate-50 active:bg-slate-100 text-slate-700 text-xs px-3.5 rounded-xl font-semibold border border-slate-200 shadow-2xs transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer"
+            className="h-10 sm:h-11 min-w-11 bg-white hover:bg-slate-50 active:bg-slate-100 text-slate-700 text-xs px-3 sm:px-3.5 rounded-xl font-semibold border border-slate-200 shadow-2xs transition-all flex items-center justify-center gap-2 whitespace-nowrap cursor-pointer"
           >
             <IconLock className="w-3.5 h-3.5 text-slate-400" />
             <span>Quản trị</span>
@@ -486,15 +486,15 @@ export default function ClientHome({
       
 
 {/* THANH TAB ĐIỀU HƯỚNG 4 MỤC CHÍNH */}
-<div className="bg-[#f4f7fb] px-2 sm:px-7 py-2.5 z-10 shrink-0 border-b border-slate-200/60">
+<div className="bg-[#f4f7fb] px-2 sm:px-4 lg:px-7 py-2 z-20 shrink-0 border-b border-slate-200/60">
   <div className="max-w-5xl mx-auto flex items-center justify-center">
-    <div className="grid grid-cols-4 items-center gap-1 p-1 sm:p-1.5 bg-slate-200/80 rounded-2xl border border-slate-300/80 w-full sm:w-auto shadow-inner">
+    <div className="grid grid-cols-4 items-stretch gap-1 p-1 sm:p-1.5 bg-slate-200/80 rounded-xl sm:rounded-2xl border border-slate-300/80 w-full sm:w-auto shadow-inner">
       
       {/* Tab 1 */}
       <button 
         type="button"
         onClick={() => setActiveTab('db_search')}
-        className={`px-1.5 sm:px-5 py-2 sm:py-2.5 rounded-xl font-bold text-[11px] sm:text-sm transition-all flex items-center justify-center gap-1 sm:gap-2 whitespace-nowrap cursor-pointer ${
+        className={`min-w-0 min-h-11 px-1 sm:px-5 py-2 sm:py-2.5 rounded-lg sm:rounded-xl font-bold text-[10px] min-[390px]:text-[11px] sm:text-sm transition-all flex items-center justify-center gap-0.5 sm:gap-2 whitespace-nowrap cursor-pointer ${
           activeTab === 'db_search' 
             ? 'bg-blue-700 text-white shadow-sm shadow-blue-900/15' 
             : 'text-slate-600 hover:text-blue-800 hover:bg-white'
@@ -508,7 +508,7 @@ export default function ClientHome({
       <button 
         type="button"
         onClick={() => setActiveTab('villages')}
-        className={`px-1.5 sm:px-5 py-2 sm:py-2.5 rounded-xl font-bold text-[11px] sm:text-sm transition-all flex items-center justify-center gap-1 sm:gap-2 whitespace-nowrap cursor-pointer ${
+        className={`min-w-0 min-h-11 px-1 sm:px-5 py-2 sm:py-2.5 rounded-lg sm:rounded-xl font-bold text-[10px] min-[390px]:text-[11px] sm:text-sm transition-all flex items-center justify-center gap-0.5 sm:gap-2 whitespace-nowrap cursor-pointer ${
           activeTab === 'villages' 
             ? 'bg-blue-700 text-white shadow-sm shadow-blue-900/15' 
             : 'text-slate-600 hover:text-blue-800 hover:bg-white'
@@ -522,7 +522,7 @@ export default function ClientHome({
       <button 
         type="button"
         onClick={() => setActiveTab('overview')}
-        className={`px-1.5 sm:px-5 py-2 sm:py-2.5 rounded-xl font-bold text-[11px] sm:text-sm transition-all flex items-center justify-center gap-1 sm:gap-2 whitespace-nowrap cursor-pointer ${
+        className={`min-w-0 min-h-11 px-1 sm:px-5 py-2 sm:py-2.5 rounded-lg sm:rounded-xl font-bold text-[10px] min-[390px]:text-[11px] sm:text-sm transition-all flex items-center justify-center gap-0.5 sm:gap-2 whitespace-nowrap cursor-pointer ${
           activeTab === 'overview' 
             ? 'bg-blue-700 text-white shadow-sm shadow-blue-900/15' 
             : 'text-slate-600 hover:text-blue-800 hover:bg-white'
@@ -536,7 +536,7 @@ export default function ClientHome({
       <button 
         type="button"
         onClick={() => setActiveTab('utilities')}
-        className={`px-1.5 sm:px-5 py-2 sm:py-2.5 rounded-xl font-bold text-[11px] sm:text-sm transition-all flex items-center justify-center gap-1 sm:gap-2 whitespace-nowrap cursor-pointer ${
+        className={`min-w-0 min-h-11 px-1 sm:px-5 py-2 sm:py-2.5 rounded-lg sm:rounded-xl font-bold text-[10px] min-[390px]:text-[11px] sm:text-sm transition-all flex items-center justify-center gap-0.5 sm:gap-2 whitespace-nowrap cursor-pointer ${
           activeTab === 'utilities' 
             ? 'bg-blue-700 text-white shadow-sm shadow-blue-900/15' 
             : 'text-slate-600 hover:text-blue-800 hover:bg-white'
@@ -552,7 +552,7 @@ export default function ClientHome({
 
  {/* ==================== TAB 1: TRA CỨU CSDL FIREBASE ==================== */}
 {activeTab === 'db_search' && (
-  <div className="flex-1 min-h-0 overflow-y-auto bg-[#f4f7fb] p-4 sm:p-6 lg:p-8">
+  <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain bg-[#f4f7fb] p-3 sm:p-5 lg:p-8">
     <div className="max-w-[1700px] mx-auto space-y-6">
 
       <div className="bg-white rounded-3xl p-5 sm:p-7 border border-slate-200/80 shadow-sm space-y-5">
@@ -955,11 +955,11 @@ export default function ClientHome({
 
       {/* ==================== TAB 2: 11 THÔN ==================== */}
       {activeTab === 'villages' && (
-        <div className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-6 space-y-6">
-          <div className="w-full max-w-[1800px] mx-auto flex-1 min-h-[420px] relative rounded-3xl overflow-hidden border border-slate-200/80 shadow-sm bg-white">
+        <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-3 sm:p-5 lg:p-6 space-y-4 sm:space-y-6">
+          <div className="w-full max-w-[1800px] mx-auto flex-1 min-h-[420px] relative rounded-2xl sm:rounded-3xl overflow-hidden border border-slate-200/80 shadow-sm bg-white">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-5 items-stretch">
               
-              <div className="lg:col-span-8 h-[clamp(20rem,55vh,32rem)] lg:h-[calc(100vh-220px)] bg-white rounded-2xl p-2.5 border border-slate-200 shadow-sm overflow-hidden relative flex flex-col">
+              <div className="lg:col-span-8 h-[clamp(19rem,48dvh,32rem)] lg:h-[calc(100dvh-220px)] bg-white rounded-2xl p-1.5 sm:p-2.5 border border-slate-200 shadow-sm overflow-hidden relative flex flex-col">
                 <div className="w-full h-full rounded-xl overflow-hidden relative flex-1">
                   <MapComponent 
                     key="villages-map"
@@ -998,7 +998,7 @@ export default function ClientHome({
                 </div>
               </div>
 
-              <div className="lg:col-span-4 h-auto lg:h-[calc(100vh-220px)] bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col overflow-hidden">
+              <div className="lg:col-span-4 h-auto lg:h-[calc(100dvh-220px)] bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col overflow-hidden">
                 <div className="p-4 bg-slate-50/80 border-b border-slate-200 font-bold text-sm text-slate-900 flex items-center justify-between shrink-0">
                   <span className="flex items-center gap-2">
                     <IconFileText className="w-4.5 h-4.5 text-blue-700" />
@@ -1006,7 +1006,7 @@ export default function ClientHome({
                   </span>
                 </div>
 
-                <div className="p-3 overflow-y-auto space-y-2.5 max-h-[320px] lg:max-h-none lg:h-1/2 border-b border-slate-200 scrollbar-thin sm:p-3.5">
+                <div className="p-2.5 sm:p-3.5 overflow-y-auto overscroll-contain space-y-2 max-h-[34dvh] lg:max-h-none lg:h-1/2 border-b border-slate-200 scrollbar-thin">
                   {villagesData.map(v => {
                     const isSelected = selectedVillage?.id === v.id;
                     const villageColor = v.color || '#3b82f6';
@@ -1056,7 +1056,7 @@ export default function ClientHome({
                   })}
                 </div>
 
-              <div className="p-4 bg-slate-50/70 lg:h-1/2 overflow-y-auto space-y-4 scrollbar-thin">
+              <div className="p-3 sm:p-4 bg-slate-50/70 lg:h-1/2 min-h-0 overflow-y-auto overscroll-contain space-y-3 sm:space-y-4 scrollbar-thin">
   {selectedVillage ? (
     <div className="space-y-3.5">
       {/* Tiêu đề & Thông tin mô tả lịch sử thôn */}
@@ -1214,18 +1214,20 @@ export default function ClientHome({
       )}
 {/* ==================== TAB 3: ĐỊA ĐIỂM & CƠ SỞ ==================== */}
 {activeTab === 'overview' && (
-  <div className="relative w-full h-[calc(100vh-115px)] md:h-[calc(100vh-100px)] flex flex-col md:flex-row p-1.5 sm:p-3 bg-slate-100 gap-2 overflow-hidden">
+  <div className="relative w-full flex-1 min-h-0 flex flex-col lg:flex-row p-2 sm:p-3 bg-slate-100 gap-3 overflow-y-visible lg:overflow-hidden lg:h-[calc(100dvh-190px)]">
 
     {/* ==================== BẢNG TRA CỨU BÊN TRÁI ==================== */}
     <aside
       className="
-        w-full md:w-[460px] lg:w-[500px] shrink-0
+        w-full lg:w-[380px] xl:w-[440px] shrink-0
         bg-white
         border border-slate-200/80
         rounded-2xl sm:rounded-3xl
         shadow-sm
         flex flex-col
-        h-auto md:h-full
+        h-auto lg:h-full
+        max-h-none lg:max-h-full
+        min-h-0
         overflow-hidden
       "
     >
@@ -1254,7 +1256,7 @@ export default function ClientHome({
       </div>
 
       {/* KHU VỰC TÌM KIẾM VÀ BỘ LỌC (HIỂN THỊ CẢ TRÊN MOBILE VÀ DESKTOP) */}
-      <div className="shrink-0 p-2.5 bg-white border-b border-slate-100 space-y-2 relative z-20">
+      <div className="shrink-0 p-2.5 sm:p-3 bg-white border-b border-slate-100 space-y-2 relative z-20">
         
         {/* Ô TÌM KIẾM CÓ MENU GỢI Ý TỰ ĐỘNG */}
         <div className="relative group">
@@ -1263,7 +1265,7 @@ export default function ClientHome({
             value={searchTerm || ''}
             onChange={(e) => setSearchTerm && setSearchTerm(e.target.value)}
             placeholder="Tìm tên địa điểm, cơ sở..."
-            className="w-full h-8.5 pl-8.5 pr-7 border border-slate-200 rounded-xl text-xs bg-slate-50 text-slate-800 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium"
+            className="w-full h-10 sm:h-10 pl-9 pr-8 border border-slate-200 rounded-xl text-[13px] sm:text-sm bg-slate-50 text-slate-800 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium"
           />
           <IconSearch className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5 group-focus-within:text-blue-600 transition" />
           
@@ -1333,7 +1335,7 @@ export default function ClientHome({
             )}
           </div>
           
-          <div className="space-y-1.5 max-h-36 overflow-y-auto pr-1 scrollbar-thin">
+          <div className="space-y-1.5 max-h-28 sm:max-h-36 overflow-y-auto overscroll-contain pr-1 scrollbar-thin">
             {/* Nút Tất cả */}
             <div
               onClick={() => setSelectedCats([])}
@@ -1427,7 +1429,7 @@ export default function ClientHome({
       </div>
 
       {/* DANH SÁCH CARD ĐỊA ĐIỂM (ẨN TRÊN MOBILE VỚI CLASS "hidden md:block") */}
-      <div className="hidden md:block flex-1 min-h-0 overflow-y-auto overscroll-contain p-2.5 bg-slate-50/80 space-y-3 scrollbar-thin">
+      <div className="flex-1 min-h-[110px] max-h-[30dvh] lg:max-h-none lg:min-h-0 overflow-y-auto overscroll-contain p-2 sm:p-2.5 bg-slate-50/80 space-y-2.5 sm:space-y-3 scrollbar-thin">
         {filteredLocations.length > 0 ? (
           filteredLocations.map(loc => {
             const isSelected = overviewSelectedLocation?.id === loc.id;
@@ -1443,7 +1445,7 @@ export default function ClientHome({
                     : 'border-slate-200/80 hover:border-blue-300 hover:shadow-md'
                 }`}
               >
-                <div className="relative w-full h-36 sm:h-44 shrink-0 overflow-hidden rounded-xl bg-slate-100 shadow-xs">
+                <div className="relative w-full h-24 min-[390px]:h-28 sm:h-36 lg:h-40 shrink-0 overflow-hidden rounded-xl bg-slate-100 shadow-xs">
                   <img
                     src={imageUrl}
                     alt={loc.name}
@@ -1482,7 +1484,7 @@ export default function ClientHome({
                         e.stopPropagation();
                         handleOpenDetailModal(loc);
                       }}
-                      className="px-3.5 py-1.5 rounded-xl text-[11px] font-extrabold text-blue-700 bg-blue-50 hover:bg-blue-100 transition cursor-pointer"
+                      className="min-h-10 px-3.5 py-2 rounded-xl text-[11px] font-extrabold text-blue-700 bg-blue-50 hover:bg-blue-100 transition cursor-pointer"
                     >
                       Chi tiết
                     </button>
@@ -1494,7 +1496,7 @@ export default function ClientHome({
                           e.stopPropagation();
                           handleDirectGPSRoute(loc.lat, loc.lng, loc);
                         }}
-                        className="px-3.5 py-1.5 rounded-xl text-[11px] font-extrabold text-white bg-slate-900 hover:bg-blue-700 transition flex items-center gap-1 cursor-pointer shadow-2xs whitespace-nowrap"
+                        className="min-h-10 px-3.5 py-2 rounded-xl text-[11px] font-extrabold text-white bg-slate-900 hover:bg-blue-700 transition flex items-center gap-1 cursor-pointer shadow-2xs whitespace-nowrap"
                       >
                         <span>🧭</span>
                         <span>Đường đi</span>
@@ -1525,7 +1527,7 @@ export default function ClientHome({
     </aside>
 
     {/* ==================== KHUNG BẢN ĐỒ BÊN PHẢI (TRÀN MÀN HÌNH BÊN DƯỚI TRÊN MOBILE) ==================== */}
-    <div className="flex-1 h-full relative rounded-2xl sm:rounded-3xl overflow-hidden border border-slate-200/80 shadow-md bg-white">
+    <div className="w-full h-[44dvh] min-h-[310px] max-h-[520px] lg:flex-1 lg:w-auto lg:h-full lg:min-h-0 lg:max-h-none relative rounded-2xl sm:rounded-3xl overflow-hidden border border-slate-200/80 shadow-md bg-white">
       <MapComponent
         key="overview-map"
         villages={villagesData}
@@ -1565,8 +1567,8 @@ export default function ClientHome({
 )}
       {/* ==================== TAB 4: TIỆN ÍCH SỐ ==================== */}
       {activeTab === 'utilities' && (
-        <div className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-6">
-          <div className="max-w-4xl mx-auto bg-white rounded-2xl p-5 sm:p-8 border border-slate-200 shadow-sm">
+        <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-3 sm:p-5 lg:p-6">
+          <div className="max-w-4xl mx-auto bg-white rounded-2xl p-4 sm:p-6 lg:p-8 border border-slate-200 shadow-sm">
             <div className="max-w-2xl space-y-3">
               <h3 className="font-extrabold text-slate-900 text-xl sm:text-2xl tracking-tight">Tiện ích số & Dịch vụ công trực tuyến</h3>
               <p className="text-sm sm:text-base leading-relaxed text-slate-600">
@@ -1589,7 +1591,7 @@ export default function ClientHome({
 
       {/* Nút bật/tắt nhạc nền (nâng z-index lên z-50 để đè lên footer) */}
       {/* NÚT ĐIỀU KHIỂN NHẠC NỀN */}
-<div className="fixed bottom-12 right-4 sm:right-5 z-50">
+<div className="fixed right-3 sm:right-5 bottom-[calc(16px+env(safe-area-inset-bottom))] z-[1000]">
   <button
     type="button"
     onClick={handleToggleBackgroundMusic}
@@ -1631,8 +1633,8 @@ export default function ClientHome({
         onDirectGPSRoute={handleDirectGPSRoute}
       />
       {/* FOOTER CUỐI TRANG */}
-<footer className="w-full shrink-0 bg-slate-900 text-slate-300 border-t border-slate-800 text-xs mt-auto">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+<footer className="w-full shrink-0 bg-slate-900 text-slate-300 border-t border-slate-800 text-xs mt-auto pb-[env(safe-area-inset-bottom)]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 sm:py-6 lg:py-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 mb-6 pb-6 border-b border-slate-800/80">
             
             {/* Cột 1: Thông tin cơ quan */}
