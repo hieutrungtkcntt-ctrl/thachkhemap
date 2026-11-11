@@ -763,13 +763,13 @@ export default function MapComponent({
 
         {!fixedVillageOverview && pickedLatLng && (
           <Marker position={pickedLatLng} icon={getReportIcon('Chờ xử lý')}>
-            <Popup><div className="text-xs font-bold text-rose-600">📍 Vị trí sự cố đang chọn. </div></Popup>
+            <Popup><div className="text-xs font-bold text-rose-600">📍 Vị trí sự cố đang chọn</div></Popup>
           </Marker>
         )}
 
         {!fixedVillageOverview && userLocation && (
           <Marker position={userLocation} icon={gpsPinIcon}>
-            <Popup><div className="text-xs font-bold text-slate-900">📍 Vị trí hiện tại của bạn. </div></Popup>
+            <Popup><div className="text-xs font-bold text-slate-900">📍 Vị trí hiện tại của bạn</div></Popup>
           </Marker>
         )}
 
