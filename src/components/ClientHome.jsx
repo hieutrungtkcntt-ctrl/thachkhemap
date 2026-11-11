@@ -1373,7 +1373,7 @@ export default function ClientHome({
               <div className="space-y-0.5">
                 {/* Badge danh mục */}
                 <div className="flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-green-500 shrink-0" />
                   <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider truncate">
                     {getCategoryName(loc.type || loc.category)}
                   </span>
@@ -1401,7 +1401,19 @@ export default function ClientHome({
                   Xem chi tiết
                 </button>
 
-               
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleOpenDetailModal(loc);
+                    }}
+                    className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-[10px] transition cursor-pointer"
+                    title="Khám phá"
+                  >
+                    Explore
+                  </button>
+
                   {loc.lat && loc.lng && (
                     <button
                       type="button"
@@ -1412,7 +1424,7 @@ export default function ClientHome({
                       className="w-7 h-7 rounded-lg bg-slate-100 hover:bg-blue-600 hover:text-white text-slate-600 transition flex items-center justify-center shadow-2xs cursor-pointer"
                       title="Chỉ đường GPS"
                     >
-                      Chỉ đường
+                      🧭
                     </button>
                   )}
                 </div>
