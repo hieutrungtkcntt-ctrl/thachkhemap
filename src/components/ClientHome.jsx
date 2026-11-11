@@ -1716,7 +1716,7 @@ export default function ClientHome({
               </h5>
               <ul className="space-y-1.5 text-[11px] text-slate-400">
                 <li className="flex items-center gap-2">
-                  <span>📍</span> Địa chỉ: Trụ sở UBND xã Thạch Khê, thôn Đồng Giang, xã Thạch Khê, tỉnh Hà Tĩnh
+                  <span>📍</span> Địa chỉ: Trụ sở UBND xã Thạch Khê, thôn Đồng Giang, tỉnh Hà Tĩnh
                 </li>
                 <li className="flex items-center gap-2">
                   <span>📧</span> Email: thachkhe@hatinh.gov.vn
