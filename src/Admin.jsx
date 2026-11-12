@@ -7,12 +7,13 @@ import DashboardOverview from './admin/DashboardOverview';
 import LocationManagement from './admin/LocationManagement';
 import VillageManagement from './admin/VillageManagement';
 import ReportManagement from './admin/ReportManagement';
+import NewsManagement from './admin/NewsManagement';
 
 export default function Admin({ reports = [], setReports, communeInfo, villagesData = [], onLocationsUpdate }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [pin, setPin] = useState('');
   const [error, setError] = useState(false);
-  const [activeTab, setActiveTab] = useState('overview'); // overview, locations, villages, reports
+  const [activeTab, setActiveTab] = useState('overview'); // overview, locations, villages, reports, news
 
   const [locations, setLocations] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -75,7 +76,6 @@ export default function Admin({ reports = [], setReports, communeInfo, villagesD
       const { id, ...locData } = updatedLoc;
       const locRef = doc(db, "locations", String(id));
       
-      // Ghi trực tiếp lên Firestore
       await setDoc(locRef, locData, { merge: true });
       
       const updatedList = locations.map(item => item.id === id ? updatedLoc : item);
@@ -169,6 +169,12 @@ export default function Admin({ reports = [], setReports, communeInfo, villagesD
             🏘️ Quản lý 11 Thôn
           </button>
           <button 
+            onClick={() => setActiveTab('news')}
+            className={`px-4 py-2.5 rounded-xl font-semibold text-xs transition cursor-pointer ${activeTab === 'news' ? 'bg-blue-600 text-white shadow' : 'bg-white text-gray-600 hover:bg-gray-100'}`}
+          >
+            📰 Quản lý Tin tức
+          </button>
+          <button 
             onClick={() => setActiveTab('reports')}
             className={`px-4 py-2.5 rounded-xl font-semibold text-xs transition flex items-center cursor-pointer ${activeTab === 'reports' ? 'bg-blue-600 text-white shadow' : 'bg-white text-gray-600 hover:bg-gray-100'}`}
           >
@@ -195,6 +201,9 @@ export default function Admin({ reports = [], setReports, communeInfo, villagesD
             )}
             {activeTab === 'villages' && (
               <VillageManagement villagesData={villagesData} />
+            )}
+            {activeTab === 'news' && (
+              <NewsManagement />
             )}
             {activeTab === 'reports' && (
               <ReportManagement reports={reports} setReports={setReports} />

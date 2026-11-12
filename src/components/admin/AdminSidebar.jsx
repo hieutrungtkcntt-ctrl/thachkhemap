@@ -61,6 +61,16 @@ export default function AdminSidebar({ activeTab, setActiveTab, totalReports, pe
             <span className="flex items-center gap-2">📍 Quản lý địa điểm</span>
           </button>
 
+          {/* MỤC QUẢN LÝ TIN TỨC VỪA THÊM */}
+          <button
+            onClick={() => setActiveTab('news')}
+            className={`w-max md:w-full shrink-0 flex items-center justify-between px-3.5 py-2.5 rounded-xl transition focus-visible:z-10 ${
+              activeTab === 'news' ? 'bg-blue-600 text-white font-bold shadow' : 'hover:bg-slate-800 text-slate-300'
+            }`}
+          >
+            <span className="flex items-center gap-2">📰 Quản lý Tin tức</span>
+          </button>
+
           {currentUser?.role === 'admin' && (
             <button
               onClick={() => setActiveTab('accounts')}
